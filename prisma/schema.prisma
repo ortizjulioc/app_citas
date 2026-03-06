@@ -90,6 +90,7 @@ model Sucursal {
   servicios Servicio[]
   citas     Cita[]
   facturas  Factura[]
+  productos Producto[]
 }
 
 // CLIENTES
@@ -327,6 +328,73 @@ model MovimientoCaja {
   updatedAt    DateTime           @updatedAt
 }
 
+// PRODUCTOS
+
+model Producto {
+  id          String   @id @default(uuid())
+  sucursalId  String
+  nombre      String
+  descripcion String?
+  precio      Float
+  costo       String
+  stock       String
+  deleted     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sucursal    Sucursal @relation(fields: [sucursalId], references: [id])
+}
+
+model MoviminetoProducto {
+  id         String         @id @default(uuid())
+  productoId String
+  tipo       tipoMovimiento
+  cantidad   String
+  referencia String
+  deleted    Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+//NOMINA 
+model PeriodoNomina {
+  id          String   @id @default(uuid())
+  fechaInicio DateTime
+  fechaFin    DateTime
+  estado      String?
+}
+
+model Nomina {
+  id              String   @id @default(uuid())
+  empleadoId      String
+  periodonominaId String
+  salarioBase     Float
+  comision        String
+  bonos           Float?
+  total           Float
+  deleted         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model DetalleNomina {
+  id          String @id @default(uuid())
+  nominaId    String
+  tipo        String
+  descripcion String
+  cantidad    String
+}
+
+model notificacion {
+  id        String   @id @default(uuid())
+  userId    String
+  titulo    String
+  mensaje   String
+  leido     String
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 //*************************************************************************************************
 enum TipoSalario {
   FIJO
@@ -365,4 +433,9 @@ enum EstadoCaja {
 enum TipoMovimientoCaja {
   INGRESO
   GASTO
+}
+
+enum tipoMovimiento {
+  ENTRADA
+  SALIDA
 }
