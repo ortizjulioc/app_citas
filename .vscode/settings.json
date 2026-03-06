@@ -49,5 +49,8 @@
     "customizer",
     "iconify",
     "tanstack"
-  ]
+  ],
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  }
 }
