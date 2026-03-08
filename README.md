@@ -1,4 +1,4 @@
-# 📅 [Nombre de tu App]
+# 📅 APP de citas
 Sistema integral de gestión de citas y servicios para empresas.
 
 ## 🚀 Descripción
