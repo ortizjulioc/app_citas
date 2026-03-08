@@ -1,34 +1,25 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 📅 [Nombre de tu App]
+Sistema integral de gestión de citas y servicios para empresas.
 
-## Getting Started
+## 🚀 Descripción
+Plataforma diseñada para conectar empresas con sus clientes, facilitando la gestión de citas, servicios, facturación y control de inventario en tiempo real. Construido sobre Next.js y PostgreSQL.
 
-First, run the development server:
+## 🏗️ Arquitectura del Sistema
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Stack Tecnológico
+- **Frontend/Backend:** Next.js (App Router)
+- **Base de Datos:** PostgreSQL
+- **ORM:** Prisma
+- **Autenticación:** [Menciona si usarás NextAuth/Auth.js]
+- **Estilos:** Tailwind CSS
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛣️ Roadmap
+- [ ] **Fase 1:** Configuración base y Autenticación (Roles & Permisos).
+- [ ] **Fase 2:** Gestión de Negocios, Sucursales y Empleados.
+- [ ] **Fase 3:** Motor de Citas y disponibilidad.
+- [ ] **Fase 4:** Facturación y Pasarela de Pagos.
+- [ ] **Fase 5:** Notificaciones y Panel de Control.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## 📄 Documentación
+Para detalles técnicos completos, consulta: [DOCUMENTATION.md](./docs/DOCUMENTATION.md)f
