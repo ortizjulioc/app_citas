@@ -23,4 +23,4 @@ Facilitar la reserva de servicios, automatizar la facturación y centralizar la 
 ## 3. Requerimientos No Funcionales
 - **Escalabilidad:** Arquitectura lista para migrar a una app móvil (Sails.js/API-first).
 - **Consistencia:** Uso de transacciones de base de datos para pagos y citas.
-- **Seguridad:** Protección de rutas mediante Middlewares en Next.js.
+- **Seguridad:** Protección de rutas mediante Middlewares en Next.js.  
