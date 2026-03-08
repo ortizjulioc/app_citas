@@ -1,4 +1,4 @@
-# 📅 APP de citas
+# 📅 [Nombre de tu App]
 Sistema integral de gestión de citas y servicios para empresas.
 
 ## 🚀 Descripción
@@ -22,4 +22,4 @@ Plataforma diseñada para conectar empresas con sus clientes, facilitando la ges
 - [ ] **Fase 5:** Notificaciones y Panel de Control.
 
 ## 📄 Documentación
-Para detalles técnicos completos, consulta: [DOCUMENTATION.md](./docs/DOCUMENTATION.md)f
+Para detalles técnicos completos, consulta: [DOCUMENTATION.md](./docs/DOCUMENTATION.md)
