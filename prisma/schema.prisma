@@ -16,15 +16,16 @@ datasource db {
 // USUARIOS Y SEGURIDAD 
 
 model Usuario {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  nombre    String
-  apellido  String
-  telefono  String
-  deleted   Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  nombre        String
+  apellido      String
+  telefono      String
+  deleted       Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  notificacions notificacion[]
 }
 
 model Rol {
@@ -91,6 +92,7 @@ model Sucursal {
   citas     Cita[]
   facturas  Factura[]
   productos Producto[]
+  cajas     Caja[]
 }
 
 // CLIENTES
@@ -130,6 +132,7 @@ model Empleado {
   comisionEmpleados ComisionEmpleado[]
   servicioEmpleados ServicioEmpleado[]
   citas             Cita[]
+  nominas           Nomina[]
 }
 
 model HorarioEmpleado {
@@ -293,17 +296,19 @@ model MetodoPago {
 // CAJA 
 
 model Caja {
-  id         String     @id @default(uuid())
-  sucursalId String
-  nombre     String
-  estado     EstadoCaja
-  deleted    Boolean    @default(false)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id          String       @id @default(uuid())
+  sucursalId  String
+  nombre      String
+  estado      EstadoCaja
+  deleted     Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sucursal    Sucursal     @relation(fields: [sucursalId], references: [id])
+  sesionCajas SesionCaja[]
 }
 
 model SesionCaja {
-  id               String   @id @default(uuid())
+  id               String           @id @default(uuid())
   cajaId           String
   abiertoPor       String?
   cerradoPor       String?
@@ -311,9 +316,11 @@ model SesionCaja {
   cantidadAlCerrar Float
   horaApetura      DateTime
   horaCerradura    DateTime
-  deleted          Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  deleted          Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  caja             Caja             @relation(fields: [cajaId], references: [id])
+  movimientoCajas  MovimientoCaja[]
 }
 
 model MovimientoCaja {
@@ -326,22 +333,24 @@ model MovimientoCaja {
   deleted      Boolean            @default(false)
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
+  sesionCaja   SesionCaja         @relation(fields: [sesionCajaId], references: [id])
 }
 
 // PRODUCTOS
 
 model Producto {
-  id          String   @id @default(uuid())
-  sucursalId  String
-  nombre      String
-  descripcion String?
-  precio      Float
-  costo       String
-  stock       String
-  deleted     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  sucursal    Sucursal @relation(fields: [sucursalId], references: [id])
+  id                  String               @id @default(uuid())
+  sucursalId          String
+  nombre              String
+  descripcion         String?
+  precio              Float
+  costo               String
+  stock               String
+  deleted             Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  sucursal            Sucursal             @relation(fields: [sucursalId], references: [id])
+  moviminetoProductos MoviminetoProducto[]
 }
 
 model MoviminetoProducto {
@@ -353,6 +362,7 @@ model MoviminetoProducto {
   deleted    Boolean        @default(false)
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
+  producto   Producto       @relation(fields: [productoId], references: [id])
 }
 
 //NOMINA 
@@ -361,19 +371,23 @@ model PeriodoNomina {
   fechaInicio DateTime
   fechaFin    DateTime
   estado      String?
+  nominas     Nomina[]
 }
 
 model Nomina {
-  id              String   @id @default(uuid())
+  id              String          @id @default(uuid())
   empleadoId      String
   periodonominaId String
   salarioBase     Float
   comision        String
   bonos           Float?
   total           Float
-  deleted         Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  deleted         Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  empleado        Empleado        @relation(fields: [empleadoId], references: [id])
+  periodoNomina   PeriodoNomina   @relation(fields: [periodonominaId], references: [id])
+  detalleNominas  DetalleNomina[]
 }
 
 model DetalleNomina {
@@ -382,17 +396,19 @@ model DetalleNomina {
   tipo        String
   descripcion String
   cantidad    String
+  nomina      Nomina @relation(fields: [nominaId], references: [id])
 }
 
 model notificacion {
   id        String   @id @default(uuid())
-  userId    String
+  usuarioId String
   titulo    String
   mensaje   String
   leido     String
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
 }
 
 //*************************************************************************************************
