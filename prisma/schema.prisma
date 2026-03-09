@@ -43,6 +43,8 @@ model Usuario {
   // Sesiones que cerró
   CajaCerradaPor  SesionCaja[]     @relation("CajaCerradaPor")
   usuarioNegocios UsuarioNegocio[]
+
+  @@map("usuario")
 }
 
 model Rol {
@@ -54,6 +56,8 @@ model Rol {
   updatedAt   DateTime     @updatedAt
   usuarioRols UsuarioRol[]
   rolPermisos RolPermiso[]
+
+  @@map("rol")
 }
 
 model UsuarioRol {
@@ -68,6 +72,7 @@ model UsuarioRol {
 
   @@unique([usuarioId, rolId])
   @@index([usuarioId])
+  @@map("usuario_rol")
 }
 
 model Permiso {
@@ -78,6 +83,8 @@ model Permiso {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   rolPermisos RolPermiso[]
+
+  @@map("permiso")
 }
 
 model RolPermiso {
@@ -92,6 +99,7 @@ model RolPermiso {
 
   @@unique([rolId, permisoId])
   @@index([rolId, permisoId])
+  @@map("rol_permiso")
 }
 
 // NEGOCIO Y SUCURSALES
@@ -113,6 +121,7 @@ model Negocio {
   usuarioNegocios UsuarioNegocio[]
 
   @@index([deleted])
+  @@map("negocio")
 }
 
 model UsuarioNegocio {
@@ -128,6 +137,7 @@ model UsuarioNegocio {
   deleted   Boolean  @default(false)
 
   @@unique([usuarioId, negocioId])
+  @@map("usuario_negocio")
 }
 
 model Sucursal {
@@ -146,6 +156,7 @@ model Sucursal {
   empleados Empleado[]
 
   @@unique([negocioId, nombre])
+  @@map("sucursal")
 }
 
 // CLIENTES
@@ -167,6 +178,7 @@ model Cliente {
   clienteNegocios ClienteNegocio[]
 
   @@index([telefono])
+  @@map("cliente")
 }
 
 model ClienteNegocio {
@@ -186,6 +198,7 @@ model ClienteNegocio {
   @@unique([clienteId, negocioId])
   @@index([negocioId])
   @@index([clienteId])
+  @@map("cliente_negocio")
 }
 
 // EMPLEADOS
@@ -215,6 +228,8 @@ model Empleado {
   disponibilidadEmpleados DisponibilidadEmpleado[]
 
   @@index([sucursalId])
+  @@index([usuarioId])
+  @@map("empleado")
 }
 
 model DisponibilidadEmpleado {
@@ -225,6 +240,8 @@ model DisponibilidadEmpleado {
   horaFin    DateTime  @db.Time
 
   empleado Empleado @relation(fields: [empleadoId], references: [id])
+
+  @@map("disponibilidad_empleado")
 }
 
 model BloqueoHorario {
@@ -239,6 +256,7 @@ model BloqueoHorario {
   empleado   Empleado @relation(fields: [empleadoId], references: [id])
 
   @@index([empleadoId])
+  @@map("bloqueo_horario")
 }
 
 model HorarioEmpleado {
@@ -254,6 +272,7 @@ model HorarioEmpleado {
   empleado Empleado @relation(fields: [empleadoId], references: [id])
 
   @@index([empleadoId])
+  @@map("horario_empleado")
 }
 
 model ComisionEmpleado {
@@ -270,6 +289,7 @@ model ComisionEmpleado {
 
   @@index([empleadoId])
   @@index([servicioId])
+  @@map("comision_empleado")
 }
 
 // SERVICIOS
@@ -292,6 +312,8 @@ model Servicio {
   servicioEmpleados ServicioEmpleado[]
   servicioCitas     ServicioCita[]
   detalleFacturas   DetalleFactura[]
+
+  @@map("servicio")
 }
 
 model ServicioEmpleado {
@@ -307,6 +329,7 @@ model ServicioEmpleado {
 
   @@index([servicioId])
   @@index([empleadoId])
+  @@map("servicio_empleado")
 }
 
 // AGENDA/CITAS
@@ -334,6 +357,7 @@ model Cita {
   @@index([clienteId])
   @@index([empleadoId])
   @@index([sucursalId])
+  @@map("cita")
 }
 
 model HistorialCita {
@@ -344,6 +368,8 @@ model HistorialCita {
   nota   String?
 
   cita Cita @relation(fields: [citaId], references: [id])
+
+  @@map("historial_cita")
 }
 
 model ServicioCita {
@@ -358,6 +384,7 @@ model ServicioCita {
   servicio Servicio @relation(fields: [servicioId], references: [id])
 
   @@unique([citaId, servicioId])
+  @@map("servicio_cita")
 }
 
 // FACTURACION 
@@ -389,6 +416,7 @@ model Factura {
   @@index([citaId])
   @@index([sucursalId])
   @@index([numeroFactura])
+  @@map("factura")
 }
 
 model DetalleFactura {
@@ -407,6 +435,7 @@ model DetalleFactura {
   servicio Servicio @relation(fields: [servicioId], references: [id])
 
   @@unique([facturaId, servicioId])
+  @@map("detalle_factura")
 }
 
 // PAGOS 
@@ -427,6 +456,7 @@ model Pago {
   usuario    Usuario?   @relation(fields: [registradoPor], references: [id])
 
   @@index([facturaId])
+  @@map("pago")
 }
 
 model MetodoPago {
@@ -437,6 +467,8 @@ model MetodoPago {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   pagos       Pago[]
+
+  @@map("metodo_pago")
 }
 
 // CAJA 
@@ -451,6 +483,8 @@ model Caja {
   updatedAt   DateTime     @updatedAt
   sucursal    Sucursal     @relation(fields: [sucursalId], references: [id])
   sesionCajas SesionCaja[]
+
+  @@map("caja")
 }
 
 model SesionCaja {
@@ -482,6 +516,8 @@ model SesionCaja {
 
   // usuario que operó la sesión
   usuario Usuario? @relation("SesionUsuario", fields: [usuarioId], references: [id])
+
+  @@map("sesion_caja")
 }
 
 model MovimientoCaja {
@@ -497,6 +533,7 @@ model MovimientoCaja {
   sesionCaja   SesionCaja         @relation(fields: [sesionCajaId], references: [id])
 
   @@index([sesionCajaId])
+  @@map("movimiento_caja")
 }
 
 // PRODUCTOS
@@ -516,6 +553,7 @@ model Producto {
   movimientosProductos MovimientoProducto[]
 
   @@index([sucursalId])
+  @@map("producto")
 }
 
 model MovimientoProducto {
@@ -530,6 +568,7 @@ model MovimientoProducto {
   producto   Producto       @relation(fields: [productoId], references: [id])
 
   @@index([productoId])
+  @@map("movimiento_producto")
 }
 
 //NOMINA 
@@ -539,6 +578,8 @@ model PeriodoNomina {
   fechaFin    DateTime
   estado      EstadoPeriodoNomina?
   nominas     Nomina[]
+
+  @@map("periodo_nomina")
 }
 
 model Nomina {
@@ -558,6 +599,7 @@ model Nomina {
 
   @@index([empleadoId])
   @@index([periodonominaId])
+  @@map("nomina")
 }
 
 model DetalleNomina {
@@ -569,6 +611,7 @@ model DetalleNomina {
   nomina      Nomina            @relation(fields: [nominaId], references: [id])
 
   @@index([nominaId])
+  @@map("detalle_nomina")
 }
 
 // NOTIFICACIONES
@@ -582,6 +625,8 @@ model Notificacion {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@map("notificacion")
 }
 
 //*************************************************************************************************
