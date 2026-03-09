@@ -25,25 +25,30 @@ model Usuario {
   deleted       Boolean        @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  notificacions notificacion[]
+  notificacions Notificacion[]
+
+  usuarioRols UsuarioRol[]
 }
 
 model Rol {
-  id          String   @id @default(uuid())
-  nombre      String   @unique
+  id          String       @id @default(uuid())
+  nombre      String       @unique
   descripcion String
-  deleted     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  deleted     Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  usuarioRols UsuarioRol[]
 }
 
 model UsuarioRol {
   id        String   @id @default(uuid())
-  usuarioId Int
-  rolId     Int
+  usuarioId String
+  rolId     String
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  rol       Rol      @relation(fields: [rolId], references: [id])
 }
 
 model Permiso {
@@ -57,8 +62,8 @@ model Permiso {
 
 model RolPermiso {
   id        String   @id @default(uuid())
-  rolId     Int
-  permisoId Int
+  rolId     String
+  permisoId String
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -133,6 +138,7 @@ model Empleado {
   servicioEmpleados ServicioEmpleado[]
   citas             Cita[]
   nominas           Nomina[]
+  horarioEmpleados  HorarioEmpleado[]
 }
 
 model HorarioEmpleado {
@@ -144,6 +150,8 @@ model HorarioEmpleado {
   deleted    Boolean   @default(false)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+
+  empleado Empleado @relation(fields: [empleadoId], references: [id])
 }
 
 model ComisionEmpleado {
@@ -213,6 +221,10 @@ model Cita {
   sucursal      Sucursal       @relation(fields: [sucursalId], references: [id])
   servicioCitas ServicioCita[]
   facturas      Factura[]
+
+  @@index([clienteId])
+  @@index([empleadoId])
+  @@index([fecha])
 }
 
 model ServicioCita {
@@ -232,7 +244,7 @@ model ServicioCita {
 model Factura {
   id            String        @id @default(uuid())
   clienteId     String
-  citaId        String
+  citaId        String?
   sucursalId    String
   numeroFactura String?
   subtotal      Float
@@ -244,11 +256,11 @@ model Factura {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  cita            Cita             @relation(fields: [citaId], references: [id])
   cliente         Cliente          @relation(fields: [clienteId], references: [id])
   sucursal        Sucursal         @relation(fields: [sucursalId], references: [id])
   detalleFacturas DetalleFactura[]
   pagos           Pago[]
+  cita            Cita?            @relation(fields: [citaId], references: [id])
 }
 
 model DetalleFactura {
@@ -315,7 +327,7 @@ model SesionCaja {
   cantidadApertura Float
   cantidadAlCerrar Float
   horaApetura      DateTime
-  horaCerradura    DateTime
+  horaCierre       DateTime
   deleted          Boolean          @default(false)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -344,8 +356,8 @@ model Producto {
   nombre              String
   descripcion         String?
   precio              Float
-  costo               String
-  stock               String
+  costo               Float
+  stock               Int
   deleted             Boolean              @default(false)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -357,7 +369,7 @@ model MoviminetoProducto {
   id         String         @id @default(uuid())
   productoId String
   tipo       tipoMovimiento
-  cantidad   String
+  cantidad   Int
   referencia String
   deleted    Boolean        @default(false)
   createdAt  DateTime       @default(now())
@@ -379,7 +391,7 @@ model Nomina {
   empleadoId      String
   periodonominaId String
   salarioBase     Float
-  comision        String
+  comision        Float
   bonos           Float?
   total           Float
   deleted         Boolean         @default(false)
@@ -395,16 +407,17 @@ model DetalleNomina {
   nominaId    String
   tipo        String
   descripcion String
-  cantidad    String
+  cantidad    Float
   nomina      Nomina @relation(fields: [nominaId], references: [id])
 }
 
-model notificacion {
+// NOTIFICACIONES
+model Notificacion {
   id        String   @id @default(uuid())
   usuarioId String
   titulo    String
   mensaje   String
-  leido     String
+  leido     Boolean
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
