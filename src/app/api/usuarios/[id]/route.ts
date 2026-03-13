@@ -4,8 +4,9 @@ import { usuarioUpdateSchema } from '@/app/schemas/usuario.schema'
 import bcrypt from 'bcryptjs'
 
 // --- 1. GET: Obtener un usuario específico (activo) ---
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // 2. Aquí obtenemos el ID real desde la promesa
     const { id } = await params
     const usuario = await prisma.usuario.findFirst({
       where: {
@@ -34,42 +35,48 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
+//--------------------------------------------------------------------------------------------------
+
 // --- 2. PUT: Actualizar datos del usuario ---
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // 2. Aquí obtenemos el ID real desde la promesa
     const { id } = await params
+
     const body = await request.json()
 
-    // Validamos con el esquema de Yup (campos opcionales)
     const validatedData = await usuarioUpdateSchema.validate(body, {
       abortEarly: false,
       stripUnknown: true
     })
 
-    // Si se actualiza la contraseña, la hasheamos de nuevo
     if (validatedData.password) {
       validatedData.password = await bcrypt.hash(validatedData.password, 10)
     }
 
     const usuarioActualizado = await prisma.usuario.update({
-      where: { id: params.id },
+      // 3. USAMOS 'id' (el valor ya resuelto), NO 'params.id'
+      where: { id: id },
       data: validatedData
     })
 
-    // Ocultamos la contraseña en la respuesta
     const { password, ...sinPassword } = usuarioActualizado
+
     return NextResponse.json(sinPassword)
   } catch (error: any) {
     if (error.name === 'ValidationError') {
       return NextResponse.json({ error: error.errors }, { status: 400 })
     }
+
+    console.error(error)
     return NextResponse.json({ error: 'Error al actualizar el registro' }, { status: 500 })
   }
 }
 
 // --- 3. DELETE: Marcar como borrado (Soft Delete) ---
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // 2. Aquí obtenemos el ID real desde la promesa
     const { id } = await params
     // En lugar de borrar de la DB, actualizamos el booleano
     await prisma.usuario.update({
