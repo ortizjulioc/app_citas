@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/utils/lib/prisma'
 import { usuarioRolSchema } from '@/app/schemas/usuario-rol.schema'
+import { ConflictError, NotFoundError } from '@/utils/errors'
+import { handleApiError, successResponse, createdResponse } from '@/utils/api-response'
 
 export async function POST(request: Request) {
   try {
@@ -20,7 +22,7 @@ export async function POST(request: Request) {
     })
 
     if (existe) {
-      return NextResponse.json({ error: 'El usuario ya tiene este rol asignado' }, { status: 400 })
+      throw new ConflictError('El usuario ya tiene este rol asignado')
     }
     const existeUsuario = await prisma.usuario.findUnique({
       where: { id: validatedData.usuarioId }
@@ -29,7 +31,7 @@ export async function POST(request: Request) {
       where: { id: validatedData.rolId }
     })
     if (!existeUsuario || !existeRol) {
-      return NextResponse.json({ error: 'Usuario o rol no encontrado' }, { status: 404 })
+      throw new NotFoundError('Usuario o rol no encontrado')
     }
 
     const nuevoUsuarioRol = await prisma.usuarioRol.create({
@@ -56,16 +58,9 @@ export async function POST(request: Request) {
       }
     })
 
-    return NextResponse.json({ data: nuevoUsuarioRol, message: 'Usuario rol creado exitosamente' }, { status: 201 })
+    return createdResponse(nuevoUsuarioRol)
   } catch (error: any) {
-    if (error.name === 'ValidationError') {
-      return NextResponse.json({ error: 'Error de validación', detalles: error.errors }, { status: 400 })
-    }
-    if (error.code === 'P2025') {
-      return NextResponse.json({ error: 'Usuario o rol no encontrado' }, { status: 404 })
-    }
-    console.error(error)
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+    return handleApiError(error)
   }
 }
 //---------------------------------------------------------------------------------------------------------
@@ -133,19 +128,15 @@ export async function GET(request: Request) {
       prisma.usuarioRol.count({ where })
     ])
 
-    return NextResponse.json(
-      {
-        usuarioRoles,
-        pagination: {
-          total,
-          page,
-          totalPages: Math.ceil(total / limit)
-        }
-      },
-      { status: 200 }
-    )
+    return successResponse({
+      usuarioRoles,
+      pagination: {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit)
+      }
+    })
   } catch (error: any) {
-    console.error(error)
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+    return handleApiError(error)
   }
 }

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/utils/lib/prisma'
 import { rolSchema } from '@/app/schemas/rol.schema'
+import { ConflictError } from '@/utils/errors'
+import { handleApiError, successResponse, createdResponse } from '@/utils/api-response'
 
 export async function POST(request: Request) {
   try {
@@ -16,20 +18,16 @@ export async function POST(request: Request) {
     })
 
     if (existe) {
-      return NextResponse.json({ error: 'El nombre del rol ya existe' }, { status: 400 })
+      throw new ConflictError('El nombre del rol ya existe')
     }
 
     const nuevoRol = await prisma.rol.create({
       data: validatedData
     })
 
-    return NextResponse.json(nuevoRol, { status: 201 })
+    return createdResponse(nuevoRol)
   } catch (error: any) {
-    if (error.name === 'ValidationError') {
-      return NextResponse.json({ error: 'Error de validación', detalles: error.errors }, { status: 400 })
-    }
-    console.error(error)
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -75,19 +73,15 @@ export async function GET(request: Request) {
       prisma.rol.count({ where })
     ])
 
-    return NextResponse.json(
-      {
-        roles,
-        pagination: {
-          total,
-          page,
-          totalPages: Math.ceil(total / limit)
-        }
-      },
-      { status: 200 }
-    )
+    return successResponse({
+      roles,
+      pagination: {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit)
+      }
+    })
   } catch (error: any) {
-    console.error(error)
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
+    return handleApiError(error)
   }
 }

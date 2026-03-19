@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import prisma from '@/utils/lib/prisma'
 import { usuarioUpdateSchema } from '@/app/schemas/usuario.schema'
 import bcrypt from 'bcryptjs'
+import { handleApiError, successResponse } from '@/utils/api-response'
+import { NotFoundError } from '@/utils/errors'
 
 // --- 1. GET: Obtener un usuario específico (activo) ---
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -26,12 +28,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     })
 
     if (!usuario) {
-      return NextResponse.json({ error: 'Usuario no encontrado o inactivo' }, { status: 404 })
+      throw new NotFoundError('Usuario no encontrado o inactivo')
     }
 
-    return NextResponse.json(usuario)
+    return successResponse(usuario)
   } catch (error) {
-    return NextResponse.json({ error: 'Error al obtener el usuario' }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -62,14 +64,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { password, ...sinPassword } = usuarioActualizado
 
-    return NextResponse.json(sinPassword)
+    return successResponse(sinPassword)
   } catch (error: any) {
-    if (error.name === 'ValidationError') {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
-    }
-
-    console.error(error)
-    return NextResponse.json({ error: 'Error al actualizar el registro' }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -84,13 +81,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       data: { deleted: true }
     })
 
-    return NextResponse.json(
-      {
-        message: 'Usuario eliminado lógicamente con éxito'
-      },
-      { status: 200 }
-    )
+    return successResponse('Usuario eliminado lógicamente con éxito')
   } catch (error) {
-    return NextResponse.json({ error: 'No se pudo procesar la eliminación' }, { status: 500 })
+    return handleApiError(error)
   }
 }

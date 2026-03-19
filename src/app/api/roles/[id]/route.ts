@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/utils/lib/prisma'
 import { rolUpdateSchema } from '@/app/schemas/rol.schema'
+import { handleApiError, successResponse } from '@/utils/api-response'
+import { ConflictError, NotFoundError } from '@/utils/errors'
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -20,12 +22,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     })
 
     if (!rol) {
-      return NextResponse.json({ error: 'Rol no encontrado o inactivo' }, { status: 404 })
+      throw new NotFoundError('Rol no encontrado o inactivo')
     }
 
-    return NextResponse.json(rol)
+    return successResponse(rol)
   } catch (error) {
-    return NextResponse.json({ error: 'Error al obtener el rol' }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -52,7 +54,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       })
 
       if (existe) {
-        return NextResponse.json({ error: 'El nombre del rol ya existe' }, { status: 400 })
+        throw new ConflictError('El nombre del rol ya existe')
       }
     }
 
@@ -61,14 +63,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       data: validatedData
     })
 
-    return NextResponse.json(rolActualizado)
+    return successResponse(rolActualizado)
   } catch (error: any) {
-    if (error.name === 'ValidationError') {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
-    }
-
-    console.error(error)
-    return NextResponse.json({ error: 'Error al actualizar el registro' }, { status: 500 })
+    return handleApiError(error)
   }
 }
 
@@ -82,13 +79,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       data: { deleted: true }
     })
 
-    return NextResponse.json(
-      {
-        message: 'Rol eliminado lógicamente con éxito'
-      },
-      { status: 200 }
-    )
+    return successResponse({ message: 'Rol eliminado lógicamente con éxito' })
   } catch (error) {
-    return NextResponse.json({ error: 'No se pudo procesar la eliminación' }, { status: 500 })
+    return handleApiError(error)
   }
 }
