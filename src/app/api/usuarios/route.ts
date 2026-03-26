@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server'
+// eslint-disable-next-line import/no-unresolved
+import bcrypt from 'bcryptjs'
+
 import prisma from '@/utils/lib/prisma'
 import { usuarioSchema } from '@/app/schemas/usuario.schema'
-import bcrypt from 'bcryptjs'
 import { ConflictError } from '@/utils/errors'
 import { handleApiError, successResponse, createdResponse } from '@/utils/api-response'
 
