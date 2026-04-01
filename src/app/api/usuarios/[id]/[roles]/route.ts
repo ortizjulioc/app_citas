@@ -4,18 +4,19 @@ import { usuarioRolSchema } from '@/app/schemas/usuario-rol.schema'
 import { ConflictError, NotFoundError } from '@/utils/errors'
 import { handleApiError, successResponse, createdResponse } from '@/utils/api-response'
 
-export async function POST(request: Request) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const body = await request.json()
 
-    const validatedData = await usuarioRolSchema.validate(body, {
+    const validatedData = await usuarioRolSchema.validate({ ...body, usuarioId: id }, {
       abortEarly: false,
       stripUnknown: true
     })
 
     const existe = await prisma.usuarioRol.findFirst({
       where: {
-        usuarioId: validatedData.usuarioId,
+        usuarioId: id,
         rolId: validatedData.rolId,
         deleted: false
       }
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
       throw new ConflictError('El usuario ya tiene este rol asignado')
     }
     const existeUsuario = await prisma.usuario.findUnique({
-      where: { id: validatedData.usuarioId }
+      where: { id: id }
     })
     const existeRol = await prisma.rol.findUnique({
       where: { id: validatedData.rolId }
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
 
     const nuevoUsuarioRol = await prisma.usuarioRol.create({
       data: {
-        usuario: { connect: { id: validatedData.usuarioId } },
+        usuario: { connect: { id: id } },
         rol: { connect: { id: validatedData.rolId } }
       },
       include: {
@@ -64,20 +65,21 @@ export async function POST(request: Request) {
   }
 }
 //---------------------------------------------------------------------------------------------------------
-export async function GET(request: Request) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const skip = (page - 1) * limit
     const search = searchParams.get('search') || ''
     const advancedFilters = {
-      usuarioId: searchParams.get('usuarioId') || '',
       rolId: searchParams.get('rolId') || ''
     }
 
     const where: any = {
-      deleted: false
+      deleted: false,
+      usuarioId: id
     }
 
     if (search) {
@@ -93,9 +95,6 @@ export async function GET(request: Request) {
       ]
     }
 
-    if (advancedFilters.usuarioId) {
-      where.usuarioId = advancedFilters.usuarioId
-    }
 
     if (advancedFilters.rolId) {
       where.rolId = advancedFilters.rolId
@@ -140,3 +139,16 @@ export async function GET(request: Request) {
     return handleApiError(error)
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
