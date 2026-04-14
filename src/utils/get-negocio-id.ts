@@ -1,13 +1,28 @@
-import { JwtPayload } from './lib/jwt'
+import { verifyToken, JwtPayload } from './lib/jwt'
 
-export function getNegocioId(body: Record<string, unknown>, user: JwtPayload | null): string {
-  if (body.negocioId && typeof body.negocioId === 'string') {
-    return body.negocioId
+export function getNegocioId(request: Request): string | null {
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '') || null
+
+  if (!token) return null
+
+  try {
+    const decoded = verifyToken(token) as JwtPayload
+    return decoded?.negocioId || null
+  } catch {
+    return null
   }
+}
 
-  if (user?.negocioId) {
-    return user.negocioId
+export function getUserFromRequest(request: Request): JwtPayload | null {
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '') || null
+
+  if (!token) return null
+
+  try {
+    return verifyToken(token) as JwtPayload
+  } catch {
+    return null
   }
-
-  throw new Error('No se pudo determinar el negocio. Proporcione negocioId o inicie sesión en un negocio.')
 }
