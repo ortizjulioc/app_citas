@@ -41,8 +41,8 @@ model Usuario {
   CajaAbiertaPor SesionCaja[] @relation("CajaAbiertaPor")
 
   // Sesiones que cerró
-  CajaCerradaPor  SesionCaja[]     @relation("CajaCerradaPor")
-  usuarioNegocios UsuarioNegocio[]
+  CajaCerradaPor SesionCaja[] @relation("CajaCerradaPor")
+  // usuarioNegocios UsuarioNegocio[]
 
   @@map("usuario")
 }
@@ -118,27 +118,27 @@ model Negocio {
   sucursals       Sucursal[]
   clienteNegocios ClienteNegocio[]
   usuarios        Usuario[]
-  usuarioNegocios UsuarioNegocio[]
+  // usuarioNegocios UsuarioNegocio[]
 
   @@index([deleted])
   @@map("negocio")
 }
 
-model UsuarioNegocio {
-  id        String @id @default(uuid())
-  usuarioId String
-  negocioId String
+// model UsuarioNegocio {
+//   id        String @id @default(uuid())
+//   usuarioId String
+//   negocioId String
 
-  usuario Usuario @relation(fields: [usuarioId], references: [id])
-  negocio Negocio @relation(fields: [negocioId], references: [id])
+//   usuario Usuario @relation(fields: [usuarioId], references: [id])
+//   negocio Negocio @relation(fields: [negocioId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deleted   Boolean  @default(false)
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   deleted   Boolean  @default(false)
 
-  @@unique([usuarioId, negocioId])
-  @@map("usuario_negocio")
-}
+//   @@unique([usuarioId, negocioId])
+//   @@map("usuario_negocio")
+// }
 
 model Sucursal {
   id        String     @id @default(uuid())

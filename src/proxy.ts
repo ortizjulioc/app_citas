@@ -22,7 +22,17 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  return NextResponse.next()
+  // Inject Authorization header if token exists
+  const requestHeaders = new Headers(request.headers)
+  if (token) {
+    requestHeaders.set('Authorization', `Bearer ${token.value}`)
+  }
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
 }
 
 export const config = {

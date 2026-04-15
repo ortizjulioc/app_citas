@@ -1,17 +1,13 @@
 import { verifyToken, JwtPayload } from './lib/jwt'
 
-export function getNegocioId(request: Request, _body?: unknown): string | null {
-  const authHeader = request.headers.get('authorization')
-  const token = authHeader?.replace('Bearer ', '') || null
-
-  if (!token) return null
-
-  try {
-    const decoded = verifyToken(token) as JwtPayload
-    return decoded?.negocioId || null
-  } catch {
-    return null
+export function getNegocioId(body: any, user: JwtPayload | null): string {
+  const parsedNegocioId = body?.negocioId || user?.negocioId
+  
+  if (!parsedNegocioId) {
+    throw new Error('No se pudo determinar el negocioId. Se requiere desde el body o la sesión del usuario.')
   }
+  
+  return parsedNegocioId
 }
 
 export function getUserFromRequest(request: Request): JwtPayload | null {
