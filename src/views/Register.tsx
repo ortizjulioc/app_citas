@@ -27,6 +27,7 @@ import themeConfig from '@configs/themeConfig'
 const Register = ({ mode }: { mode: SystemMode }) => {
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const [tipoRegistro, setTipoRegistro] = useState<'cliente' | 'empresa'>('cliente')
+  const [step, setStep] = useState(1)
   
   // Usuario State
   const [formData, setFormData] = useState({
@@ -51,7 +52,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const validate = () => {
+  const validateUser = () => {
     const newErrors: Record<string, string> = {}
     if (!formData.nombre.trim()) newErrors.nombre = 'Requerido'
     if (!formData.apellido.trim()) newErrors.apellido = 'Requerido'
@@ -59,11 +60,15 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     if (!formData.telefono.trim()) newErrors.telefono = 'Requerido'
     if (!formData.password) newErrors.password = 'Requerido'
     
-    if (tipoRegistro === 'empresa') {
-      if (!negocioData.nombre.trim()) newErrors.nombreNegocio = 'Requerido'
-    }
-    
     setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const validateEmpresa = () => {
+    const newErrors: Record<string, string> = {}
+    if (!negocioData.nombre.trim()) newErrors.nombreNegocio = 'Requerido'
+    
+    setErrors(prev => ({ ...prev, ...newErrors }))
     return Object.keys(newErrors).length === 0
   }
 
@@ -73,7 +78,21 @@ const Register = ({ mode }: { mode: SystemMode }) => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validate()) return
+
+    if (tipoRegistro === 'empresa' && step === 1) {
+      if (validateUser()) {
+        setStep(2)
+      }
+      return
+    }
+
+    let isValid = validateUser()
+    if (tipoRegistro === 'empresa') {
+      const isEmpresaValid = validateEmpresa()
+      isValid = isValid && isEmpresaValid
+    }
+
+    if (!isValid) return
 
     setIsLoading(true)
     setErrorMsg(null)
@@ -104,112 +123,123 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   }
 
   return (
-    <div className='flex justify-center items-center min-bs-[100dvh] bg-backgroundPaper w-full'>
-      <div className='flex justify-center items-center bs-full is-full max-is-[800px] p-4 md:p-12 relative'>
-        <Link href='/' className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
+    <div className='flex flex-col justify-center items-center min-bs-[100dvh] bg-backgroundPaper w-full'>
+ 
           <Logo />
-        </Link>
+
+      <div className='flex justify-center items-center bs-full is-full max-is-[800px] p-4 md:p-12 relative'>
+
         
         <div className='flex flex-col gap-4 is-full mbs-11 sm:mbs-14 md:mbs-0 max-h-[90vh] overflow-y-auto px-1 hide-scrollbar'>
           <div className='flex flex-col gap-1'>
+
             <Typography variant='h4'>{`Crea tu cuenta en ${themeConfig.templateName} 🚀`}</Typography>
+
             <Typography>Empieza a gestionar tus servicios de forma fácil</Typography>
           </div>
           
           <form noValidate autoComplete='off' onSubmit={handleRegister} className='flex flex-col gap-4'>
-            
-            <div className='flex flex-col gap-2'>
-              <Typography variant="subtitle2">¿Qué tipo de cuenta deseas crear?</Typography>
-              <RadioGroup
-                row
-                value={tipoRegistro}
-                onChange={(e) => setTipoRegistro(e.target.value as 'cliente' | 'empresa')}
-              >
-                <FormControlLabel value="cliente" control={<Radio />} label="Soy Cliente" />
-                <FormControlLabel value="empresa" control={<Radio />} label="Soy Empresa" />
-              </RadioGroup>
-            </div>
-            
-            <Divider className='my-2'>Datos del Usuario</Divider>
+            {step === 1 && (
+              <>
+                <div className='flex flex-col gap-2'>
+                  <Typography variant="subtitle2">¿Qué tipo de cuenta deseas crear?</Typography>
+                  <RadioGroup
+                    row
+                    value={tipoRegistro}
+                    onChange={(e) => {
+                      setTipoRegistro(e.target.value as 'cliente' | 'empresa')
+                      if (e.target.value === 'cliente') {
+                        setStep(1)
+                      }
+                    }}
+                  >
+                    <FormControlLabel value="cliente" control={<Radio />} label="Soy Cliente" />
+                    <FormControlLabel value="empresa" control={<Radio />} label="Soy Empresa" />
+                  </RadioGroup>
+                </div>
+                
+                <Divider className='my-2'>Datos del Usuario</Divider>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <CustomTextField
-                fullWidth
-                label='Nombre *'
-                placeholder='Juan'
-                value={formData.nombre}
-                onChange={e => {
-                  setFormData({ ...formData, nombre: e.target.value })
-                  if (errors.nombre) setErrors(prev => ({ ...prev, nombre: '' }))
-                }}
-                error={!!errors.nombre}
-                helperText={errors.nombre}
-              />
-              <CustomTextField
-                fullWidth
-                label='Apellido *'
-                placeholder='Pérez'
-                value={formData.apellido}
-                onChange={e => {
-                  setFormData({ ...formData, apellido: e.target.value })
-                  if (errors.apellido) setErrors(prev => ({ ...prev, apellido: '' }))
-                }}
-                error={!!errors.apellido}
-                helperText={errors.apellido}
-              />
-              <CustomTextField
-                fullWidth
-                label='Email *'
-                type='email'
-                placeholder='usuario@gmail.com'
-                value={formData.email}
-                onChange={e => {
-                  setFormData({ ...formData, email: e.target.value })
-                  if (errors.email) setErrors(prev => ({ ...prev, email: '' }))
-                }}
-                error={!!errors.email}
-                helperText={errors.email}
-              />
-              <CustomTextField
-                fullWidth
-                label='Teléfono *'
-                placeholder='809-000-0000'
-                value={formData.telefono}
-                onChange={e => {
-                  setFormData({ ...formData, telefono: e.target.value })
-                  if (errors.telefono) setErrors(prev => ({ ...prev, telefono: '' }))
-                }}
-                error={!!errors.telefono}
-                helperText={errors.telefono}
-              />
-            </div>
-            
-            <CustomTextField
-              fullWidth
-              label='Contraseña *'
-              placeholder='············'
-              type={isPasswordShown ? 'text' : 'password'}
-              value={formData.password}
-              onChange={e => {
-                setFormData({ ...formData, password: e.target.value })
-                if (errors.password) setErrors(prev => ({ ...prev, password: '' }))
-              }}
-              error={!!errors.password}
-              helperText={errors.password}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <IconButton edge='end' onClick={() => setIsPasswordShown(!isPasswordShown)} onMouseDown={e => e.preventDefault()}>
-                        <i className={isPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }
-              }}
-            />
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                  <CustomTextField
+                    fullWidth
+                    label='Nombre *'
+                    placeholder='Juan'
+                    value={formData.nombre}
+                    onChange={e => {
+                      setFormData({ ...formData, nombre: e.target.value })
+                      if (errors.nombre) setErrors(prev => ({ ...prev, nombre: '' }))
+                    }}
+                    error={!!errors.nombre}
+                    helperText={errors.nombre}
+                  />
+                  <CustomTextField
+                    fullWidth
+                    label='Apellido *'
+                    placeholder='Pérez'
+                    value={formData.apellido}
+                    onChange={e => {
+                      setFormData({ ...formData, apellido: e.target.value })
+                      if (errors.apellido) setErrors(prev => ({ ...prev, apellido: '' }))
+                    }}
+                    error={!!errors.apellido}
+                    helperText={errors.apellido}
+                  />
+                  <CustomTextField
+                    fullWidth
+                    label='Email *'
+                    type='email'
+                    placeholder='usuario@gmail.com'
+                    value={formData.email}
+                    onChange={e => {
+                      setFormData({ ...formData, email: e.target.value })
+                      if (errors.email) setErrors(prev => ({ ...prev, email: '' }))
+                    }}
+                    error={!!errors.email}
+                    helperText={errors.email}
+                  />
+                  <CustomTextField
+                    fullWidth
+                    label='Teléfono *'
+                    placeholder='809-000-0000'
+                    value={formData.telefono}
+                    onChange={e => {
+                      setFormData({ ...formData, telefono: e.target.value })
+                      if (errors.telefono) setErrors(prev => ({ ...prev, telefono: '' }))
+                    }}
+                    error={!!errors.telefono}
+                    helperText={errors.telefono}
+                  />
+                </div>
+                
+                <CustomTextField
+                  fullWidth
+                  label='Contraseña *'
+                  placeholder='············'
+                  type={isPasswordShown ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={e => {
+                    setFormData({ ...formData, password: e.target.value })
+                    if (errors.password) setErrors(prev => ({ ...prev, password: '' }))
+                  }}
+                  error={!!errors.password}
+                  helperText={errors.password}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          <IconButton edge='end' onClick={() => setIsPasswordShown(!isPasswordShown)} onMouseDown={e => e.preventDefault()}>
+                            <i className={isPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
+                          </IconButton>
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                />
+              </>
+            )}
 
-            {tipoRegistro === 'empresa' && (
+            {step === 2 && tipoRegistro === 'empresa' && (
               <>
                 <Divider className='my-2'>Datos de la Empresa</Divider>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -259,16 +289,25 @@ const Register = ({ mode }: { mode: SystemMode }) => {
               </>
             )}
 
-            <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
-              {isLoading ? <CircularProgress size={24} color='inherit' /> : 'Registrarse'}
-            </Button>
-            
-            <div className='flex justify-center items-center flex-wrap gap-2'>
-              <Typography>¿Ya tienes una cuenta?</Typography>
-              <Typography component={Link} href='/login' color='primary.main'>
-                Iniciar Sesión
-              </Typography>
+            <div className='flex gap-4 mt-2'>
+              {step === 2 && (
+                <Button fullWidth variant='outlined' type='button' onClick={() => setStep(1)} disabled={isLoading}>
+                  Atrás
+                </Button>
+              )}
+              <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
+                {isLoading ? <CircularProgress size={24} color='inherit' /> : (tipoRegistro === 'empresa' && step === 1 ? 'Siguiente' : 'Registrarse')}
+              </Button>
             </div>
+            
+            {step === 1 && (
+              <div className='flex justify-center items-center flex-wrap gap-2'>
+                <Typography>¿Ya tienes una cuenta?</Typography>
+                <Typography component={Link} href='/login' color='primary.main'>
+                  Iniciar Sesión
+                </Typography>
+              </div>
+            )}
           </form>
         </div>
       </div>
