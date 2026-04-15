@@ -63,8 +63,14 @@ const UserDropdown = () => {
   }
 
   const handleUserLogout = async () => {
+    try {
+      await fetch('/api/auth/logout')
+    } catch (error) {
+      console.error(error)
+    }
     // Redirect to login page
     router.push('/login')
+    router.refresh()
   }
 
   return (

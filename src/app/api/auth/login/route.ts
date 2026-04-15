@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
     const { password, ...usuarioSinPassword } = usuario
 
-    return successResponse({
+    const response = successResponse({
       token,
       user: {
         id: usuarioSinPassword.id,
@@ -62,6 +62,15 @@ export async function POST(request: Request) {
         roles
       }
     })
+
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 60 * 60 * 12 // 12 hours
+    })
+
+    return response
   } catch (error) {
     return handleApiError(error)
   }
