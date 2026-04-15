@@ -6,7 +6,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Rutas que no requieren autenticación
-  const publicPaths = ['/login', '/register']
+  const publicPaths = ['/login', '/register', '/']
   const isPublicPath = publicPaths.some(p => pathname.startsWith(p))
 
   // Rutas de API que no requieren autenticación (endpoints de auth)
