@@ -107,13 +107,20 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
         body: JSON.stringify({ email, password })
       })
 
-      const data = await response.json()
+      const json = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error?.message || 'Error al iniciar sesión')
+        throw new Error(json.error?.message || 'Error al iniciar sesión')
       }
 
-      router.push('/')
+      const user = json.data?.user
+
+      if (user?.negocioId) {
+        router.push('/empresa')
+      } else {
+        router.push('/cliente')
+      }
+      
       router.refresh()
     } catch (error: any) {
       setErrorMsg(error.message)

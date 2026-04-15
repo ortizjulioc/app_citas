@@ -31,13 +31,24 @@ export async function POST(request: Request) {
       stripUnknown: true
     })
 
-    // Comprobar si existe el correo
+    // Comprobar si existe el correo del usuario
     const existe = await prisma.usuario.findUnique({
       where: { email: validatedData.usuario.email }
     })
 
     if (existe) {
-      throw new ConflictError('El correo ya está registrado')
+      throw new ConflictError('El correo del usuario ya está registrado')
+    }
+
+    // Comprobar si existe el correo de la empresa
+    if (validatedData.tipoRegistro === 'empresa' && validatedData.negocio?.email) {
+      const existeNegocio = await prisma.negocio.findFirst({
+        where: { email: validatedData.negocio.email }
+      })
+
+      if (existeNegocio) {
+        throw new ConflictError('El correo de la empresa ya está registrado')
+      }
     }
 
     const hashedPassword = await bcrypt.hash(validatedData.usuario.password, 10)
@@ -75,6 +86,7 @@ export async function POST(request: Request) {
 
     return createdResponse(usuarioSinPassword)
   } catch (error) {
+    console.log(error)
     return handleApiError(error)
   }
 }

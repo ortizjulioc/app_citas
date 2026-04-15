@@ -16,37 +16,13 @@ import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import Divider from '@mui/material/Divider'
 
-import classnames from 'classnames'
 import type { SystemMode } from '@core/types'
 import Link from '@components/Link'
 import Logo from '@components/layout/shared/Logo'
 import CustomTextField from '@core/components/mui/TextField'
 import themeConfig from '@configs/themeConfig'
-import { useImageVariant } from '@core/hooks/useImageVariant'
-import { useSettings } from '@core/hooks/useSettings'
 
-const RegisterIllustration = styled('img')(({ theme }) => ({
-  zIndex: 2,
-  blockSize: 'auto',
-  maxBlockSize: 680,
-  maxInlineSize: '100%',
-  margin: theme.spacing(12),
-  [theme.breakpoints.down(1536)]: {
-    maxBlockSize: 550
-  },
-  [theme.breakpoints.down('lg')]: {
-    maxBlockSize: 450
-  }
-}))
-
-const MaskImg = styled('img')({
-  blockSize: 'auto',
-  maxBlockSize: 355,
-  inlineSize: '100%',
-  position: 'absolute',
-  insetBlockEnd: 0,
-  zIndex: -1
-})
+// Layout styled components removed to make the view wider
 
 const Register = ({ mode }: { mode: SystemMode }) => {
   const [isPasswordShown, setIsPasswordShown] = useState(false)
@@ -73,23 +49,32 @@ const Register = ({ mode }: { mode: SystemMode }) => {
 
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {}
+    if (!formData.nombre.trim()) newErrors.nombre = 'Requerido'
+    if (!formData.apellido.trim()) newErrors.apellido = 'Requerido'
+    if (!formData.email.trim()) newErrors.email = 'Requerido'
+    if (!formData.telefono.trim()) newErrors.telefono = 'Requerido'
+    if (!formData.password) newErrors.password = 'Requerido'
+    
+    if (tipoRegistro === 'empresa') {
+      if (!negocioData.nombre.trim()) newErrors.nombreNegocio = 'Requerido'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const router = useRouter()
-  const { settings } = useSettings()
   const theme = useTheme()
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
-  
-  const authBackground = useImageVariant(mode, '/images/pages/auth-mask-light.png', '/images/pages/auth-mask-dark.png')
-  const characterIllustration = useImageVariant(
-    mode,
-    '/images/illustrations/auth/v2-login-light.png',
-    '/images/illustrations/auth/v2-login-dark.png',
-    '/images/illustrations/auth/v2-login-light-border.png',
-    '/images/illustrations/auth/v2-login-dark-border.png'
-  )
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!validate()) return
+
     setIsLoading(true)
     setErrorMsg(null)
 
@@ -107,7 +92,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Error al registrar')
+        throw new Error(data.error?.message || data.message || 'Error al registrar')
       }
 
       router.push('/login')
@@ -119,37 +104,19 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   }
 
   return (
-    <div className='flex bs-full justify-center'>
-      <div
-        className={classnames(
-          'flex bs-full items-center justify-center flex-1 min-bs-[100dvh] relative p-6 max-md:hidden',
-          {
-            'border-ie': settings.skin === 'bordered'
-          }
-        )}
-      >
-        <RegisterIllustration src={characterIllustration} alt='character-illustration' />
-        {!hidden && (
-          <MaskImg
-            alt='mask'
-            src={authBackground}
-            className={classnames({ 'scale-x-[-1]': theme.direction === 'rtl' })}
-          />
-        )}
-      </div>
-      
-      <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
+    <div className='flex justify-center items-center min-bs-[100dvh] bg-backgroundPaper w-full'>
+      <div className='flex justify-center items-center bs-full is-full max-is-[800px] p-4 md:p-12 relative'>
         <Link href='/' className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
           <Logo />
         </Link>
         
-        <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0 max-h-[90vh] overflow-y-auto px-1 hide-scrollbar'>
+        <div className='flex flex-col gap-4 is-full mbs-11 sm:mbs-14 md:mbs-0 max-h-[90vh] overflow-y-auto px-1 hide-scrollbar'>
           <div className='flex flex-col gap-1'>
             <Typography variant='h4'>{`Crea tu cuenta en ${themeConfig.templateName} 🚀`}</Typography>
             <Typography>Empieza a gestionar tus servicios de forma fácil</Typography>
           </div>
           
-          <form noValidate autoComplete='off' onSubmit={handleRegister} className='flex flex-col gap-5'>
+          <form noValidate autoComplete='off' onSubmit={handleRegister} className='flex flex-col gap-4'>
             
             <div className='flex flex-col gap-2'>
               <Typography variant="subtitle2">¿Qué tipo de cuenta deseas crear?</Typography>
@@ -165,47 +132,70 @@ const Register = ({ mode }: { mode: SystemMode }) => {
             
             <Divider className='my-2'>Datos del Usuario</Divider>
 
-            <div className='flex gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <CustomTextField
                 fullWidth
-                label='Nombre'
+                label='Nombre *'
                 placeholder='Juan'
                 value={formData.nombre}
-                onChange={e => setFormData({ ...formData, nombre: e.target.value })}
+                onChange={e => {
+                  setFormData({ ...formData, nombre: e.target.value })
+                  if (errors.nombre) setErrors(prev => ({ ...prev, nombre: '' }))
+                }}
+                error={!!errors.nombre}
+                helperText={errors.nombre}
               />
               <CustomTextField
                 fullWidth
-                label='Apellido'
+                label='Apellido *'
                 placeholder='Pérez'
                 value={formData.apellido}
-                onChange={e => setFormData({ ...formData, apellido: e.target.value })}
+                onChange={e => {
+                  setFormData({ ...formData, apellido: e.target.value })
+                  if (errors.apellido) setErrors(prev => ({ ...prev, apellido: '' }))
+                }}
+                error={!!errors.apellido}
+                helperText={errors.apellido}
+              />
+              <CustomTextField
+                fullWidth
+                label='Email *'
+                type='email'
+                placeholder='usuario@gmail.com'
+                value={formData.email}
+                onChange={e => {
+                  setFormData({ ...formData, email: e.target.value })
+                  if (errors.email) setErrors(prev => ({ ...prev, email: '' }))
+                }}
+                error={!!errors.email}
+                helperText={errors.email}
+              />
+              <CustomTextField
+                fullWidth
+                label='Teléfono *'
+                placeholder='809-000-0000'
+                value={formData.telefono}
+                onChange={e => {
+                  setFormData({ ...formData, telefono: e.target.value })
+                  if (errors.telefono) setErrors(prev => ({ ...prev, telefono: '' }))
+                }}
+                error={!!errors.telefono}
+                helperText={errors.telefono}
               />
             </div>
             
             <CustomTextField
               fullWidth
-              label='Email'
-              type='email'
-              placeholder='usuario@gmail.com'
-              value={formData.email}
-              onChange={e => setFormData({ ...formData, email: e.target.value })}
-            />
-            
-            <CustomTextField
-              fullWidth
-              label='Teléfono'
-              placeholder='809-000-0000'
-              value={formData.telefono}
-              onChange={e => setFormData({ ...formData, telefono: e.target.value })}
-            />
-            
-            <CustomTextField
-              fullWidth
-              label='Contraseña'
+              label='Contraseña *'
               placeholder='············'
               type={isPasswordShown ? 'text' : 'password'}
               value={formData.password}
-              onChange={e => setFormData({ ...formData, password: e.target.value })}
+              onChange={e => {
+                setFormData({ ...formData, password: e.target.value })
+                if (errors.password) setErrors(prev => ({ ...prev, password: '' }))
+              }}
+              error={!!errors.password}
+              helperText={errors.password}
               slotProps={{
                 input: {
                   endAdornment: (
@@ -222,15 +212,19 @@ const Register = ({ mode }: { mode: SystemMode }) => {
             {tipoRegistro === 'empresa' && (
               <>
                 <Divider className='my-2'>Datos de la Empresa</Divider>
-                <CustomTextField
-                  fullWidth
-                  label='Nombre del Negocio'
-                  placeholder='Mi Tienda SRL'
-                  value={negocioData.nombre}
-                  onChange={e => setNegocioData({ ...negocioData, nombre: e.target.value })}
-                />
-                
-                <div className='flex gap-4'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                  <CustomTextField
+                    fullWidth
+                    label='Nombre del Negocio *'
+                    placeholder='Mi Tienda SRL'
+                    value={negocioData.nombre}
+                    onChange={e => {
+                      setNegocioData({ ...negocioData, nombre: e.target.value })
+                      if (errors.nombreNegocio) setErrors(prev => ({ ...prev, nombreNegocio: '' }))
+                    }}
+                    error={!!errors.nombreNegocio}
+                    helperText={errors.nombreNegocio}
+                  />
                   <CustomTextField
                     fullWidth
                     label='RNC (Opcional)'
@@ -245,23 +239,23 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                     value={negocioData.telefono}
                     onChange={e => setNegocioData({ ...negocioData, telefono: e.target.value })}
                   />
+                  <CustomTextField
+                    fullWidth
+                    label='Email de la Empresa (Opcional)'
+                    type='email'
+                    placeholder='empresa@gmail.com'
+                    value={negocioData.email}
+                    onChange={e => setNegocioData({ ...negocioData, email: e.target.value })}
+                  />
+                  <CustomTextField
+                    fullWidth
+                    className='md:col-span-2'
+                    label='Dirección Comercial (Opcional)'
+                    placeholder='Av. Central #400'
+                    value={negocioData.direccion}
+                    onChange={e => setNegocioData({ ...negocioData, direccion: e.target.value })}
+                  />
                 </div>
-                
-                <CustomTextField
-                  fullWidth
-                  label='Email de la Empresa (Opcional)'
-                  type='email'
-                  placeholder='empresa@gmail.com'
-                  value={negocioData.email}
-                  onChange={e => setNegocioData({ ...negocioData, email: e.target.value })}
-                />
-                <CustomTextField
-                  fullWidth
-                  label='Dirección Comercial (Opcional)'
-                  placeholder='Av. Central #400'
-                  value={negocioData.direccion}
-                  onChange={e => setNegocioData({ ...negocioData, direccion: e.target.value })}
-                />
               </>
             )}
 
