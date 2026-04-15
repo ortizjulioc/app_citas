@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import type { HTMLAttributes } from 'react'
 
 // Third-party Imports
@@ -36,7 +36,7 @@ export type HorizontalNavProps = HTMLAttributes<HTMLDivElement> & {
   breakpoints?: Partial<typeof defaultBreakpoints>
   customStyles?: CSSObject
   verticalNavProps?: Pick<VerticalNavProps, 'width' | 'backgroundColor' | 'backgroundImage' | 'customStyles'>
-  verticalNavContent?: ({ children }: ChildrenType) => JSX.Element
+  verticalNavContent?: ({ children }: ChildrenType) => React.ReactElement
 
   /**
    * @ignore

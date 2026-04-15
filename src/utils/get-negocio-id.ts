@@ -1,6 +1,6 @@
 import { verifyToken, JwtPayload } from './lib/jwt'
 
-export function getNegocioId(request: Request): string | null {
+export function getNegocioId(request: Request, _body?: unknown): string | null {
   const authHeader = request.headers.get('authorization')
   const token = authHeader?.replace('Bearer ', '') || null
 

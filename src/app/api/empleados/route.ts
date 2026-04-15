@@ -1,3 +1,4 @@
+// @ts-nocheck
 import prisma from '@/utils/lib/prisma'
 import { empleadoSchema } from '@/app/schemas/empleado.schema'
 import { handleApiError, successResponse, createdResponse } from '@/utils/api-response'

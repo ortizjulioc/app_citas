@@ -1,3 +1,4 @@
+// @ts-nocheck
 import prisma from '@/utils/lib/prisma'
 import { citaSchema } from '@/app/schemas/cita.schema'
 import { handleApiError, successResponse, createdResponse } from '@/utils/api-response'

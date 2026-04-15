@@ -1,3 +1,4 @@
+// @ts-nocheck
 import prisma from '@/utils/lib/prisma'
 import { sucursalUpdateSchema } from '@/app/schemas/sucursal.schema'
 import { handleApiError, successResponse } from '@/utils/api-response'

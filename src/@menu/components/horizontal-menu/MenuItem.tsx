@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { forwardRef, useContext, useEffect, useState } from 'react'
+import React, { forwardRef, useContext, useEffect, useState } from 'react'
 import type { AnchorHTMLAttributes, ForwardRefRenderFunction, ReactElement, MouseEvent, ReactNode } from 'react'
 
 // Next Imports
@@ -112,7 +112,8 @@ const MenuItem: ForwardRefRenderFunction<HTMLLIElement, MenuItemProps> = (props,
 
   // Change active state when the url changes
   useEffect(() => {
-    const href = rest.href || (component && typeof component !== 'string' && component.props.href)
+    const componentAny = component as React.ReactElement<{ href?: string }>
+    const href = rest.href || (component && typeof component !== 'string' && componentAny.props?.href)
 
     if (href) {
       // Check if the current url matches any of the children urls
