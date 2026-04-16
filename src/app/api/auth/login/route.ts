@@ -63,12 +63,12 @@ export async function POST(request: Request) {
       }
     })
 
-    response.cookies.set('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: 60 * 60 * 12 // 12 hours
-    })
+    // response.cookies.set('token', token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production',
+    //   path: '/',
+    //   maxAge: 60 * 60 * 12 // 12 hours
+    // })
 
     return response
   } catch (error) {

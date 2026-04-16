@@ -1,12 +1,13 @@
+import { BadRequestError } from './errors'
 import { verifyToken, JwtPayload } from './lib/jwt'
 
 export function getNegocioId(body: any, user: JwtPayload | null): string {
   const parsedNegocioId = body?.negocioId || user?.negocioId
-  
+
   if (!parsedNegocioId) {
-    throw new Error('No se pudo determinar el negocioId. Se requiere desde el body o la sesión del usuario.')
+    throw new BadRequestError('No se pudo determinar el negocioId. Se requiere desde el body o la sesión del usuario.')
   }
-  
+
   return parsedNegocioId
 }
 

@@ -30,8 +30,8 @@ export function proxy(request: NextRequest) {
 
   return NextResponse.next({
     request: {
-      headers: requestHeaders,
-    },
+      headers: requestHeaders
+    }
   })
 }
 
@@ -44,6 +44,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - images/ (public images)
      */
-    '/((?!_next/static|_next/image|favicon.ico|images/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|images/).*)'
   ]
 }
