@@ -31,12 +31,13 @@ import Link from '@components/Link'
 import Logo from '@components/layout/shared/Logo'
 import CustomTextField from '@core/components/mui/TextField'
 
-// Config Imports
-import themeConfig from '@configs/themeConfig'
-
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
+import { useAuth } from '@/contexts/AuthContext'
+
+// Config Imports
+import themeConfig from '@configs/themeConfig'
 
 // Styled Custom Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -84,6 +85,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
   const theme = useTheme()
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
   const authBackground = useImageVariant(mode, lightImg, darkImg)
+  const { login } = useAuth()
 
   const characterIllustration = useImageVariant(
     mode,
@@ -113,12 +115,16 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
         throw new Error(json.error?.message || 'Error al iniciar sesión')
       }
 
-      const user = json.data?.user
+      const { token, user } = json.data
 
-      if (user?.negocioId) {
+      login(token, user)
+
+      if (user.roles?.includes('admin')) {
         router.push('/empresa')
+      } else if (user.roles?.includes('cliente')) {
+        router.push('/home')
       } else {
-        router.push('/cliente')
+        router.push('/home')
       }
       
       router.refresh()

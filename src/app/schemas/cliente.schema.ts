@@ -3,11 +3,12 @@ import * as yup from 'yup'
 export const clienteSchema = yup.object({
   nombre: yup.string().required('El nombre es requerido'),
   apellido: yup.string().required('El apellido es requerido'),
-  telefono: yup.string().required('El telefono es requerido'),
+  telefono: yup.string().optional(),
   email: yup.string().email('Email invalido').nullable(),
   fechaNacimiento: yup.date().nullable(),
   direccion: yup.string().nullable(),
-  notas: yup.string().nullable()
+  notas: yup.string().nullable(),
+  negocioId: yup.string().optional()
 })
 
 export const clienteUpdateSchema = yup.object({
@@ -17,5 +18,6 @@ export const clienteUpdateSchema = yup.object({
   email: yup.string().email('Email invalido').nullable(),
   fechaNacimiento: yup.date().nullable(),
   direccion: yup.string().nullable(),
-  notas: yup.string().nullable()
+  notas: yup.string().nullable(),
+  negocioId: yup.string().optional()
 })

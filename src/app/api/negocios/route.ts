@@ -60,6 +60,7 @@ export async function GET(request: Request) {
           telefono: true,
           email: true,
           direccion: true,
+          categoriaServicio: true,
           createdAt: true
         }
       }),

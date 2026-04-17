@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import * as yup from 'yup'
+import { PrismaClient, Prisma } from '@/generated/prisma'
 
 import prisma from '@/utils/lib/prisma'
 import { handleApiError, createdResponse } from '@/utils/api-response'
@@ -7,11 +8,23 @@ import { ConflictError } from '@/utils/errors'
 import { usuarioSchema } from '@/app/schemas/usuario.schema'
 import { negocioSchema } from '@/app/schemas/negocio.schema'
 
+const ROL_ADMIN = 'admin'
+const ROL_CLIENTE = 'cliente'
+
+async function getOrCreateRol(tx: PrismaClient | Prisma.TransactionClient, nombre: string, descripcion: string) {
+  let rol = await tx.rol.findFirst({ where: { nombre, deleted: false } })
+  if (!rol) {
+    rol = await tx.rol.create({
+      data: { nombre, descripcion }
+    })
+  }
+  return rol
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    // Validar tipoRegistro primero
     const baseSchema = yup.object({
       tipoRegistro: yup.string().oneOf(['cliente', 'empresa']).required('El tipo de registro es requerido'),
       usuario: usuarioSchema,
@@ -19,7 +32,6 @@ export async function POST(request: Request) {
 
     const initialData = await baseSchema.validate(body, { stripUnknown: true })
 
-    // Schema dinámico basado en tipoRegistro
     const registerSchema = yup.object({
       tipoRegistro: yup.string().oneOf(['cliente', 'empresa']).required(),
       usuario: usuarioSchema,
@@ -31,7 +43,6 @@ export async function POST(request: Request) {
       stripUnknown: true
     })
 
-    // Comprobar si existe el correo del usuario
     const existe = await prisma.usuario.findUnique({
       where: { email: validatedData.usuario.email }
     })
@@ -40,7 +51,6 @@ export async function POST(request: Request) {
       throw new ConflictError('El correo del usuario ya está registrado')
     }
 
-    // Comprobar si existe el correo de la empresa
     if (validatedData.tipoRegistro === 'empresa' && validatedData.negocio?.email) {
       const existeNegocio = await prisma.negocio.findFirst({
         where: { email: validatedData.negocio.email }
@@ -56,7 +66,6 @@ export async function POST(request: Request) {
     let nuevoUsuario
 
     if (validatedData.tipoRegistro === 'empresa' && validatedData.negocio) {
-      // Crear negocio y usuario en una transacción
       nuevoUsuario = await prisma.$transaction(async (tx) => {
         const nuevoNegocio = await tx.negocio.create({
           data: validatedData.negocio!
@@ -70,15 +79,45 @@ export async function POST(request: Request) {
           }
         })
 
+        const rolAdmin = await getOrCreateRol(tx, ROL_ADMIN, 'Administrador del negocio')
+
+        await tx.usuarioRol.create({
+          data: {
+            usuarioId: user.id,
+            rolId: rolAdmin.id
+          }
+        })
+
         return user
       })
     } else {
-      // Crear solo el usuario (cliente)
-      nuevoUsuario = await prisma.usuario.create({
-        data: {
-          ...validatedData.usuario,
-          password: hashedPassword
-        }
+      nuevoUsuario = await prisma.$transaction(async (tx) => {
+        const user = await tx.usuario.create({
+          data: {
+            ...validatedData.usuario,
+            password: hashedPassword
+          }
+        })
+
+        const rolCliente = await getOrCreateRol(tx, ROL_CLIENTE, 'Cliente que agenda citas')
+
+        await tx.usuarioRol.create({
+          data: {
+            usuarioId: user.id,
+            rolId: rolCliente.id
+          }
+        })
+
+        await tx.cliente.create({
+          data: {
+            nombre: validatedData.usuario.nombre,
+            apellido: validatedData.usuario.apellido,
+            telefono: validatedData.usuario.telefono || null,
+            email: validatedData.usuario.email
+          }
+        })
+
+        return user
       })
     }
 

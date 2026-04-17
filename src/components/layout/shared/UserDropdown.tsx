@@ -23,6 +23,7 @@ import Button from '@mui/material/Button'
 
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
@@ -43,8 +44,8 @@ const UserDropdown = () => {
 
   // Hooks
   const router = useRouter()
-
   const { settings } = useSettings()
+  const { user, logout } = useAuth()
 
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
@@ -68,7 +69,7 @@ const UserDropdown = () => {
     } catch (error) {
       console.error(error)
     }
-    // Redirect to login page
+    logout()
     router.push('/login')
     router.refresh()
   }
@@ -109,12 +110,12 @@ const UserDropdown = () => {
               <ClickAwayListener onClickAway={e => handleDropdownClose(e as MouseEvent | TouchEvent)}>
                 <MenuList>
                   <div className='flex items-center plb-2 pli-6 gap-2' tabIndex={-1}>
-                    <Avatar alt='John Doe' src='/images/avatars/1.png' />
+                    <Avatar alt={user?.nombre || 'User'} src='/images/avatars/1.png' />
                     <div className='flex items-start flex-col'>
                       <Typography className='font-medium' color='text.primary'>
-                        John Doe
+                        {user ? `${user.nombre} ${user.apellido}` : 'Usuario'}
                       </Typography>
-                      <Typography variant='caption'>admin@vuexy.com</Typography>
+                      <Typography variant='caption'>{user?.email}</Typography>
                     </div>
                   </div>
                   <Divider className='mlb-1' />
