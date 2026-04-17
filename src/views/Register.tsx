@@ -9,9 +9,7 @@ import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
-import Radio from '@mui/material/Radio'
-import RadioGroup from '@mui/material/RadioGroup'
-import FormControlLabel from '@mui/material/FormControlLabel'
+
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import Divider from '@mui/material/Divider'
@@ -26,6 +24,8 @@ import themeConfig from '@configs/themeConfig'
 
 const Register = ({ mode }: { mode: SystemMode }) => {
   const [isPasswordShown, setIsPasswordShown] = useState(false)
+  const [isConfirmPasswordShown, setIsConfirmPasswordShown] = useState(false)
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [tipoRegistro, setTipoRegistro] = useState<'cliente' | 'empresa'>('cliente')
   const [step, setStep] = useState(1)
   
@@ -57,8 +57,9 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     if (!formData.nombre.trim()) newErrors.nombre = 'Requerido'
     if (!formData.apellido.trim()) newErrors.apellido = 'Requerido'
     if (!formData.email.trim()) newErrors.email = 'Requerido'
-    if (!formData.telefono.trim()) newErrors.telefono = 'Requerido'
     if (!formData.password) newErrors.password = 'Requerido'
+    if (!confirmPassword) newErrors.confirmPassword = 'Requerido'
+    else if (confirmPassword !== formData.password) newErrors.confirmPassword = 'Las contraseñas no coinciden'
     
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -79,10 +80,13 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (tipoRegistro === 'empresa' && step === 1) {
-      if (validateUser()) {
-        setStep(2)
-      }
+    if (step === 1) {
+      setStep(2)
+      return
+    }
+
+    if (step === 2 && tipoRegistro === 'empresa') {
+      if (validateUser()) setStep(3)
       return
     }
 
@@ -141,23 +145,59 @@ const Register = ({ mode }: { mode: SystemMode }) => {
           <form noValidate autoComplete='off' onSubmit={handleRegister} className='flex flex-col gap-4'>
             {step === 1 && (
               <>
-                <div className='flex flex-col gap-2'>
+                <div className='flex flex-col gap-3 mbe-4'>
                   <Typography variant="subtitle2">¿Qué tipo de cuenta deseas crear?</Typography>
-                  <RadioGroup
-                    row
-                    value={tipoRegistro}
-                    onChange={(e) => {
-                      setTipoRegistro(e.target.value as 'cliente' | 'empresa')
-                      if (e.target.value === 'cliente') {
-                        setStep(1)
-                      }
-                    }}
-                  >
-                    <FormControlLabel value="cliente" control={<Radio />} label="Soy Cliente" />
-                    <FormControlLabel value="empresa" control={<Radio />} label="Soy Empresa" />
-                  </RadioGroup>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                    <div
+                      onClick={() => setTipoRegistro('cliente')}
+                      className='cursor-pointer rounded-xl border-2 p-5 flex flex-col items-center gap-2 transition-all'
+                      style={{
+                        borderColor: tipoRegistro === 'cliente' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-divider)',
+                        backgroundColor: tipoRegistro === 'cliente' ? 'var(--mui-palette-primary-lightOpacity, rgba(102, 108, 255, 0.08))' : 'transparent',
+                      }}
+                    >
+                      <div 
+                        className='flex justify-center items-center rounded-full p-3'
+                        style={{ backgroundColor: tipoRegistro === 'cliente' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-action-selected)', color: tipoRegistro === 'cliente' ? '#fff' : 'var(--mui-palette-text-secondary)' }}
+                      >
+                        <i className='tabler-user text-3xl' />
+                      </div>
+                      <Typography variant='h6' color={tipoRegistro === 'cliente' ? 'primary.main' : 'text.primary'}>
+                        Soy Cliente
+                      </Typography>
+                      <Typography variant='body2' align='center' color='text.secondary'>
+                        Para reservar citas y servicios
+                      </Typography>
+                    </div>
+
+                    <div
+                      onClick={() => setTipoRegistro('empresa')}
+                      className='cursor-pointer rounded-xl border-2 p-5 flex flex-col items-center gap-2 transition-all'
+                      style={{
+                        borderColor: tipoRegistro === 'empresa' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-divider)',
+                        backgroundColor: tipoRegistro === 'empresa' ? 'var(--mui-palette-primary-lightOpacity, rgba(102, 108, 255, 0.08))' : 'transparent',
+                      }}
+                    >
+                      <div 
+                        className='flex justify-center items-center rounded-full p-3'
+                        style={{ backgroundColor: tipoRegistro === 'empresa' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-action-selected)', color: tipoRegistro === 'empresa' ? '#fff' : 'var(--mui-palette-text-secondary)' }}
+                      >
+                        <i className='tabler-building-store text-3xl' />
+                      </div>
+                      <Typography variant='h6' color={tipoRegistro === 'empresa' ? 'primary.main' : 'text.primary'}>
+                        Soy Empresa
+                      </Typography>
+                      <Typography variant='body2' align='center' color='text.secondary'>
+                        Para gestionar mi negocio
+                      </Typography>
+                    </div>
+                  </div>
                 </div>
-                
+              </>
+            )}
+
+            {step === 2 && (
+              <>
                 <Divider className='my-2'>Datos del Usuario</Divider>
 
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -200,7 +240,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                   />
                   <CustomTextField
                     fullWidth
-                    label='Teléfono *'
+                    label='Teléfono (Opcional)'
                     placeholder='809-000-0000'
                     value={formData.telefono}
                     onChange={e => {
@@ -210,36 +250,59 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                     error={!!errors.telefono}
                     helperText={errors.telefono}
                   />
+                  <CustomTextField
+                    fullWidth
+                    label='Contraseña *'
+                    placeholder='············'
+                    type={isPasswordShown ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={e => {
+                      setFormData({ ...formData, password: e.target.value })
+                      if (errors.password) setErrors(prev => ({ ...prev, password: '' }))
+                    }}
+                    error={!!errors.password}
+                    helperText={errors.password}
+                    slotProps={{
+                      input: {
+                        endAdornment: (
+                          <InputAdornment position='end'>
+                            <IconButton edge='end' onClick={() => setIsPasswordShown(!isPasswordShown)} onMouseDown={e => e.preventDefault()}>
+                              <i className={isPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      }
+                    }}
+                  />
+                  <CustomTextField
+                    fullWidth
+                    label='Confirmar Contraseña *'
+                    placeholder='············'
+                    type={isConfirmPasswordShown ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={e => {
+                      setConfirmPassword(e.target.value)
+                      if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: '' }))
+                    }}
+                    error={!!errors.confirmPassword}
+                    helperText={errors.confirmPassword}
+                    slotProps={{
+                      input: {
+                        endAdornment: (
+                          <InputAdornment position='end'>
+                            <IconButton edge='end' onClick={() => setIsConfirmPasswordShown(!isConfirmPasswordShown)} onMouseDown={e => e.preventDefault()}>
+                              <i className={isConfirmPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      }
+                    }}
+                  />
                 </div>
-                
-                <CustomTextField
-                  fullWidth
-                  label='Contraseña *'
-                  placeholder='············'
-                  type={isPasswordShown ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={e => {
-                    setFormData({ ...formData, password: e.target.value })
-                    if (errors.password) setErrors(prev => ({ ...prev, password: '' }))
-                  }}
-                  error={!!errors.password}
-                  helperText={errors.password}
-                  slotProps={{
-                    input: {
-                      endAdornment: (
-                        <InputAdornment position='end'>
-                          <IconButton edge='end' onClick={() => setIsPasswordShown(!isPasswordShown)} onMouseDown={e => e.preventDefault()}>
-                            <i className={isPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
-                          </IconButton>
-                        </InputAdornment>
-                      )
-                    }
-                  }}
-                />
               </>
             )}
 
-            {step === 2 && tipoRegistro === 'empresa' && (
+            {step === 3 && tipoRegistro === 'empresa' && (
               <>
                 <Divider className='my-2'>Datos de la Empresa</Divider>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -283,20 +346,19 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                     label='Dirección Comercial (Opcional)'
                     placeholder='Av. Central #400'
                     value={negocioData.direccion}
-                    onChange={e => setNegocioData({ ...negocioData, direccion: e.target.value })}
                   />
                 </div>
               </>
             )}
 
             <div className='flex gap-4 mt-2'>
-              {step === 2 && (
-                <Button fullWidth variant='outlined' type='button' onClick={() => setStep(1)} disabled={isLoading}>
+              {(step === 2 || step === 3) && (
+                <Button fullWidth variant='outlined' type='button' onClick={() => setStep(step - 1)} disabled={isLoading}>
                   Atrás
                 </Button>
               )}
               <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
-                {isLoading ? <CircularProgress size={24} color='inherit' /> : (tipoRegistro === 'empresa' && step === 1 ? 'Siguiente' : 'Registrarse')}
+                {isLoading ? <CircularProgress size={24} color='inherit' /> : ((step === 1) || (step === 2 && tipoRegistro === 'empresa') ? 'Siguiente' : 'Registrarse')}
               </Button>
             </div>
             

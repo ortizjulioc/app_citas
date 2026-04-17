@@ -6,7 +6,7 @@ export const usuarioSchema = yup.object({
   password: yup.string().required('La contraseña es requerida'),
   nombre: yup.string().required('El nombre es requerido'),
   apellido: yup.string().required('El apellido es requerido'),
-  telefono: yup.string().required('El telefono es requerido'),
+  telefono: yup.string().optional(),
   deleted: yup.boolean().default(false),
   createdAt: yup.date().optional(),
   updatedAt: yup.date().optional()

@@ -13,7 +13,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// USUARIOS Y SEGURIDAD 
+// USUARIOS Y SEGURIDAD
 
 model Usuario {
   id        String   @id @default(uuid())
@@ -22,7 +22,7 @@ model Usuario {
   password  String
   nombre    String
   apellido  String
-  telefono  String
+  telefono  String?
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -292,8 +292,6 @@ model ComisionEmpleado {
   @@map("comision_empleado")
 }
 
-// SERVICIOS
-
 model Servicio {
   id              String   @id @default(uuid())
   sucursalId      String
@@ -387,7 +385,7 @@ model ServicioCita {
   @@map("servicio_cita")
 }
 
-// FACTURACION 
+// FACTURACION
 
 model Factura {
   id            String        @id @default(uuid())
@@ -438,7 +436,7 @@ model DetalleFactura {
   @@map("detalle_factura")
 }
 
-// PAGOS 
+// PAGOS
 
 model Pago {
   id            String   @id @default(uuid())
@@ -471,7 +469,7 @@ model MetodoPago {
   @@map("metodo_pago")
 }
 
-// CAJA 
+// CAJA
 
 model Caja {
   id          String       @id @default(uuid())
@@ -571,7 +569,7 @@ model MovimientoProducto {
   @@map("movimiento_producto")
 }
 
-//NOMINA 
+//NOMINA
 model PeriodoNomina {
   id          String               @id @default(uuid())
   fechaInicio DateTime
