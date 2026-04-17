@@ -9,6 +9,10 @@ import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
 
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
@@ -28,7 +32,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [tipoRegistro, setTipoRegistro] = useState<'cliente' | 'empresa'>('cliente')
   const [step, setStep] = useState(1)
-  
+
   // Usuario State
   const [formData, setFormData] = useState({
     nombre: '',
@@ -37,7 +41,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     telefono: '',
     password: ''
   })
-  
+
   // Negocio State
   const [negocioData, setNegocioData] = useState({
     nombre: '',
@@ -45,8 +49,21 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     RNC: '',
     telefono: '',
     email: '',
-    direccion: ''
+    direccion: '',
+    categoriaServicio: ''
   })
+
+  const categorias = [
+    { value: 'SALUD', label: 'Salud' },
+    { value: 'BELLEZA', label: 'Belleza' },
+    { value: 'AUTOMOTRIZ', label: 'Automotriz' },
+    { value: 'PROFESIONAL', label: 'Profesional' },
+    { value: 'EDUCACION', label: 'Educación' },
+    { value: 'HOGAR', label: 'Hogar' },
+    { value: 'TECNOLOGIA', label: 'Tecnología' },
+    { value: 'FITNESS', label: 'Fitness' },
+    { value: 'OTROS', label: 'Otros' }
+  ]
 
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -60,7 +77,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     if (!formData.password) newErrors.password = 'Requerido'
     if (!confirmPassword) newErrors.confirmPassword = 'Requerido'
     else if (confirmPassword !== formData.password) newErrors.confirmPassword = 'Las contraseñas no coinciden'
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -68,7 +85,8 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   const validateEmpresa = () => {
     const newErrors: Record<string, string> = {}
     if (!negocioData.nombre.trim()) newErrors.nombreNegocio = 'Requerido'
-    
+    if (!negocioData.categoriaServicio) newErrors.categoriaServicio = 'Requerido'
+
     setErrors(prev => ({ ...prev, ...newErrors }))
     return Object.keys(newErrors).length === 0
   }
@@ -128,37 +146,43 @@ const Register = ({ mode }: { mode: SystemMode }) => {
 
   return (
     <div className='flex flex-col justify-center items-center min-bs-[100dvh] bg-backgroundPaper w-full'>
- 
-          <Logo />
+      <Logo />
 
       <div className='flex justify-center items-center bs-full is-full max-is-[800px] p-4 md:p-12 relative'>
-
-        
         <div className='flex flex-col gap-4 is-full mbs-11 sm:mbs-14 md:mbs-0 max-h-[90vh] overflow-y-auto px-1 hide-scrollbar'>
           <div className='flex flex-col gap-1'>
-
             <Typography variant='h4'>{`Crea tu cuenta en ${themeConfig.templateName} 🚀`}</Typography>
 
             <Typography>Empieza a gestionar tus servicios de forma fácil</Typography>
           </div>
-          
+
           <form noValidate autoComplete='off' onSubmit={handleRegister} className='flex flex-col gap-4'>
             {step === 1 && (
               <>
                 <div className='flex flex-col gap-3 mbe-4'>
-                  <Typography variant="subtitle2">¿Qué tipo de cuenta deseas crear?</Typography>
+                  <Typography variant='subtitle2'>¿Qué tipo de cuenta deseas crear?</Typography>
                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                     <div
                       onClick={() => setTipoRegistro('cliente')}
                       className='cursor-pointer rounded-xl border-2 p-5 flex flex-col items-center gap-2 transition-all'
                       style={{
-                        borderColor: tipoRegistro === 'cliente' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-divider)',
-                        backgroundColor: tipoRegistro === 'cliente' ? 'var(--mui-palette-primary-lightOpacity, rgba(102, 108, 255, 0.08))' : 'transparent',
+                        borderColor:
+                          tipoRegistro === 'cliente' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-divider)',
+                        backgroundColor:
+                          tipoRegistro === 'cliente'
+                            ? 'var(--mui-palette-primary-lightOpacity, rgba(102, 108, 255, 0.08))'
+                            : 'transparent'
                       }}
                     >
-                      <div 
+                      <div
                         className='flex justify-center items-center rounded-full p-3'
-                        style={{ backgroundColor: tipoRegistro === 'cliente' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-action-selected)', color: tipoRegistro === 'cliente' ? '#fff' : 'var(--mui-palette-text-secondary)' }}
+                        style={{
+                          backgroundColor:
+                            tipoRegistro === 'cliente'
+                              ? 'var(--mui-palette-primary-main)'
+                              : 'var(--mui-palette-action-selected)',
+                          color: tipoRegistro === 'cliente' ? '#fff' : 'var(--mui-palette-text-secondary)'
+                        }}
                       >
                         <i className='tabler-user text-3xl' />
                       </div>
@@ -174,13 +198,23 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                       onClick={() => setTipoRegistro('empresa')}
                       className='cursor-pointer rounded-xl border-2 p-5 flex flex-col items-center gap-2 transition-all'
                       style={{
-                        borderColor: tipoRegistro === 'empresa' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-divider)',
-                        backgroundColor: tipoRegistro === 'empresa' ? 'var(--mui-palette-primary-lightOpacity, rgba(102, 108, 255, 0.08))' : 'transparent',
+                        borderColor:
+                          tipoRegistro === 'empresa' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-divider)',
+                        backgroundColor:
+                          tipoRegistro === 'empresa'
+                            ? 'var(--mui-palette-primary-lightOpacity, rgba(102, 108, 255, 0.08))'
+                            : 'transparent'
                       }}
                     >
-                      <div 
+                      <div
                         className='flex justify-center items-center rounded-full p-3'
-                        style={{ backgroundColor: tipoRegistro === 'empresa' ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-action-selected)', color: tipoRegistro === 'empresa' ? '#fff' : 'var(--mui-palette-text-secondary)' }}
+                        style={{
+                          backgroundColor:
+                            tipoRegistro === 'empresa'
+                              ? 'var(--mui-palette-primary-main)'
+                              : 'var(--mui-palette-action-selected)',
+                          color: tipoRegistro === 'empresa' ? '#fff' : 'var(--mui-palette-text-secondary)'
+                        }}
                       >
                         <i className='tabler-building-store text-3xl' />
                       </div>
@@ -266,7 +300,11 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                       input: {
                         endAdornment: (
                           <InputAdornment position='end'>
-                            <IconButton edge='end' onClick={() => setIsPasswordShown(!isPasswordShown)} onMouseDown={e => e.preventDefault()}>
+                            <IconButton
+                              edge='end'
+                              onClick={() => setIsPasswordShown(!isPasswordShown)}
+                              onMouseDown={e => e.preventDefault()}
+                            >
                               <i className={isPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
                             </IconButton>
                           </InputAdornment>
@@ -290,7 +328,11 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                       input: {
                         endAdornment: (
                           <InputAdornment position='end'>
-                            <IconButton edge='end' onClick={() => setIsConfirmPasswordShown(!isConfirmPasswordShown)} onMouseDown={e => e.preventDefault()}>
+                            <IconButton
+                              edge='end'
+                              onClick={() => setIsConfirmPasswordShown(!isConfirmPasswordShown)}
+                              onMouseDown={e => e.preventDefault()}
+                            >
                               <i className={isConfirmPasswordShown ? 'tabler-eye-off' : 'tabler-eye'} />
                             </IconButton>
                           </InputAdornment>
@@ -325,6 +367,28 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                     value={negocioData.RNC}
                     onChange={e => setNegocioData({ ...negocioData, RNC: e.target.value })}
                   />
+                  <FormControl fullWidth error={!!errors.categoriaServicio}>
+                    <InputLabel>Categoría del Servicio *</InputLabel>
+                    <Select
+                      value={negocioData.categoriaServicio}
+                      label='Categoría del Servicio *'
+                      onChange={e => {
+                        setNegocioData({ ...negocioData, categoriaServicio: e.target.value as string })
+                        if (errors.categoriaServicio) setErrors(prev => ({ ...prev, categoriaServicio: '' }))
+                      }}
+                    >
+                      {categorias.map(cat => (
+                        <MenuItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.categoriaServicio && (
+                      <Typography variant='caption' color='error' sx={{ ml: 2, mt: 0.5 }}>
+                        {errors.categoriaServicio}
+                      </Typography>
+                    )}
+                  </FormControl>
                   <CustomTextField
                     fullWidth
                     label='Teléfono Empresa (Opcional)'
@@ -346,6 +410,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                     label='Dirección Comercial (Opcional)'
                     placeholder='Av. Central #400'
                     value={negocioData.direccion}
+                    onChange={e => setNegocioData({ ...negocioData, direccion: e.target.value })}
                   />
                 </div>
               </>
@@ -353,15 +418,27 @@ const Register = ({ mode }: { mode: SystemMode }) => {
 
             <div className='flex gap-4 mt-2'>
               {(step === 2 || step === 3) && (
-                <Button fullWidth variant='outlined' type='button' onClick={() => setStep(step - 1)} disabled={isLoading}>
+                <Button
+                  fullWidth
+                  variant='outlined'
+                  type='button'
+                  onClick={() => setStep(step - 1)}
+                  disabled={isLoading}
+                >
                   Atrás
                 </Button>
               )}
               <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
-                {isLoading ? <CircularProgress size={24} color='inherit' /> : ((step === 1) || (step === 2 && tipoRegistro === 'empresa') ? 'Siguiente' : 'Registrarse')}
+                {isLoading ? (
+                  <CircularProgress size={24} color='inherit' />
+                ) : step === 1 || (step === 2 && tipoRegistro === 'empresa') ? (
+                  'Siguiente'
+                ) : (
+                  'Registrarse'
+                )}
               </Button>
             </div>
-            
+
             {step === 1 && (
               <div className='flex justify-center items-center flex-wrap gap-2'>
                 <Typography>¿Ya tienes una cuenta?</Typography>
@@ -373,7 +450,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
           </form>
         </div>
       </div>
-      
+
       <Snackbar open={!!errorMsg} autoHideDuration={6000} onClose={() => setErrorMsg(null)}>
         <Alert onClose={() => setErrorMsg(null)} severity='error' sx={{ width: '100%' }}>
           {errorMsg}
