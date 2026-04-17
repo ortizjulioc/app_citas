@@ -28,12 +28,17 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const skip = (page - 1) * limit
     const search = searchParams.get('search') || ''
+    const email = searchParams.get('email')
 
     const where: any = {
       deleted: false
     }
 
-    if (search) {
+    if (email) {
+      where.email = email
+    }
+
+    if (search && !email) {
       where.AND = [
         {
           OR: [

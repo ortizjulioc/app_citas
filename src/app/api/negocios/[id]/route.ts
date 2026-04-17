@@ -20,6 +20,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         telefono: true,
         email: true,
         direccion: true,
+        categoriaServicio: true,
         createdAt: true,
         updatedAt: true
       }

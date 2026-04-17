@@ -119,8 +119,6 @@ model Negocio {
   sucursals         Sucursal[]
   clienteNegocios   ClienteNegocio[]
   usuarios          Usuario[]
-  // usuarioNegocios UsuarioNegocio[]
-  clientes          Cliente[]
 
   @@index([deleted])
   @@map("negocio")
@@ -172,14 +170,12 @@ model Cliente {
   fechaNacimiento DateTime?
   direccion       String?
   notas           String?
-  negocioId       String?
   deleted         Boolean          @default(false)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   citas           Cita[]
   facturas        Factura[]
   clienteNegocios ClienteNegocio[]
-  negocio         Negocio?         @relation(fields: [negocioId], references: [id])
 
   @@index([telefono])
   @@map("cliente")

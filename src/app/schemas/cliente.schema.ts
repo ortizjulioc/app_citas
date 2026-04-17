@@ -7,8 +7,7 @@ export const clienteSchema = yup.object({
   email: yup.string().email('Email invalido').nullable(),
   fechaNacimiento: yup.date().nullable(),
   direccion: yup.string().nullable(),
-  notas: yup.string().nullable(),
-  negocioId: yup.string().optional()
+  notas: yup.string().nullable()
 })
 
 export const clienteUpdateSchema = yup.object({
@@ -18,6 +17,5 @@ export const clienteUpdateSchema = yup.object({
   email: yup.string().email('Email invalido').nullable(),
   fechaNacimiento: yup.date().nullable(),
   direccion: yup.string().nullable(),
-  notas: yup.string().nullable(),
-  negocioId: yup.string().optional()
+  notas: yup.string().nullable()
 })
