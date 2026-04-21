@@ -16,6 +16,7 @@ interface AuthContextType {
   user: User | null
   token: string | null
   isAuthenticated: boolean
+  isLoading: boolean
   login: (token: string, user: User) => void
   logout: () => void
   hasRole: (role: string) => boolean
@@ -33,6 +34,7 @@ interface StoredAuthData {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true) // Nuevo estado
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -45,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem(STORAGE_KEY)
       }
     }
+    setIsLoading(false) // Termina la carga
   }, [])
 
   const login = (newToken: string, newUser: User) => {
@@ -53,10 +56,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: newToken, user: newUser }))
   }
 
-  const logout = () => {
-    setToken(null)
-    setUser(null)
-    localStorage.removeItem(STORAGE_KEY)
+  const logout = async () => {
+    try {
+      // 1. Llamamos a la API para borrar la cookie HttpOnly
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch (error) {
+      console.error('Error al cerrar sesión en servidor:', error)
+    } finally {
+      // 2. Limpiamos el estado del cliente pase lo que pase
+      setToken(null)
+      setUser(null)
+      localStorage.removeItem(STORAGE_KEY)
+
+      // 3. Redirigimos al login
+      // Usamos window.location para asegurar un refresh limpio de los estados
+      window.location.href = '/login'
+    }
   }
 
   const hasRole = (role: string): boolean => {
@@ -69,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         token,
         isAuthenticated: !!token && !!user,
+        isLoading,
         login,
         logout,
         hasRole

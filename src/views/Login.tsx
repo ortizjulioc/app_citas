@@ -122,9 +122,9 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
       if (user.roles?.includes('admin')) {
         router.push('/empresa')
       } else if (user.roles?.includes('cliente')) {
-        router.push('/home')
+        router.push('/cliente')
       } else {
-        router.push('/home')
+        router.push('/cliente')
       }
       
       router.refresh()

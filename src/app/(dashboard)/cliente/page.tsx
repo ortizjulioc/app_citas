@@ -1,28 +1,30 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
+
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 
 export default function ClientePage() {
-  const { isAuthenticated, hasRole } = useAuth()
+  const { isAuthenticated, hasRole, isLoading } = useAuth() // Agregar isLoading
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!isAuthenticated || !hasRole('cliente')) {
-      router.push('/login')
-      return
+    if (!isLoading) {
+      // Solo evaluar cuando ya sabemos si hay sesión o no
+      if (!isAuthenticated || !hasRole('cliente')) {
+        router.push('/login')
+      }
     }
-    setLoading(false)
-  }, [isAuthenticated, hasRole, router])
+  }, [isAuthenticated, hasRole, router, isLoading])
 
-  if (loading || !isAuthenticated || !hasRole('cliente')) {
+  // Si está cargando el contexto O validando, mostrar loader
+  if (isLoading || !isAuthenticated || !hasRole('cliente')) {
     return (
-      <Box display='flex' justifyContent='center' alignItems='center' minHeight='50vh'>
+      <Box display='flex' justifyContent='center' alignItems='center' minHeight='100vh'>
         <CircularProgress />
       </Box>
     )

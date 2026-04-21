@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import Typography from '@mui/material/Typography'
@@ -8,26 +8,36 @@ import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 
 export default function EmpresaPage() {
-  const { isAuthenticated, hasRole } = useAuth()
+  // Extraemos isLoading del contexto
+  const { isAuthenticated, hasRole, isLoading } = useAuth()
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!isAuthenticated || !hasRole('admin')) {
-      router.push('/login')
-      return
+    // 1. Solo evaluamos la redirección si el Contexto terminó de cargar (isLoading === false)
+    if (!isLoading) {
+      if (!isAuthenticated || !hasRole('admin')) {
+        console.log('Acceso denegado o no autenticado. Redirigiendo...')
+        router.push('/login')
+      }
     }
-    setLoading(false)
-  }, [isAuthenticated, hasRole, router])
+  }, [isAuthenticated, hasRole, router, isLoading])
 
-  if (loading || !isAuthenticated || !hasRole('admin')) {
+  // 2. Mientras isLoading sea true, o si no estamos autenticados aún, mostramos el loader
+  // Esto evita el "flicker" donde se ve la página un segundo antes de ser expulsado
+  if (isLoading || !isAuthenticated || !hasRole('admin')) {
     return (
-      <Box display='flex' justifyContent='center' alignItems='center' minHeight='50vh'>
+      <Box
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
+        minHeight='100vh' // Cambiado a 100vh para centrarlo en toda la pantalla
+      >
         <CircularProgress />
       </Box>
     )
   }
 
+  // 3. Si llegamos aquí, es porque isLoading es false, isAuthenticated es true y el rol es admin
   return (
     <div className='flex items-center justify-center bs-full'>
       <div className='flex flex-col items-center gap-4'>

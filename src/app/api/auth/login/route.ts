@@ -63,12 +63,15 @@ export async function POST(request: Request) {
       }
     })
 
-    // response.cookies.set('token', token, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === 'production',
-    //   path: '/',
-    //   maxAge: 60 * 60 * 12 // 12 hours
-    // })
+    const tokenName = process.env.NEXT_PUBLIC_TOKEN_NAME || 'app_citas_token'
+
+    response.cookies.set(tokenName, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 12
+    })
 
     return response
   } catch (error) {
