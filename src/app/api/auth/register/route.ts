@@ -69,8 +69,23 @@ export async function POST(request: Request) {
       nuevoUsuario = await prisma.$transaction(async (tx) => {
         const { sucursal, ...negocioData } = validatedData.negocio!
 
+        const dias = (negocioData.diasLaborables || ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES']) as string[]
+
+        const formatTimeToPrisma = (time: string) => {
+          if (!time) return null
+          const [hours, minutes] = time.split(':')
+          return new Date(`1970-01-01T${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00.000Z`)
+        }
+
+        const negocioWithDefaults = {
+          ...negocioData,
+          horaApertura: formatTimeToPrisma(negocioData.horaApertura) || new Date('1970-01-01T09:00:00.000Z'),
+          horaCierre: formatTimeToPrisma(negocioData.horaCierre) || new Date('1970-01-01T18:00:00.000Z'),
+          diasLaborables: dias
+        }
+
         const nuevoNegocio = await tx.negocio.create({
-          data: negocioData
+          data: negocioWithDefaults
         })
 
         const user = await tx.usuario.create({

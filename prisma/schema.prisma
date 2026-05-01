@@ -113,6 +113,9 @@ model Negocio {
   email             String?
   direccion         String?
   categoriaServicio CategoriaServicio
+  horaApertura      DateTime          @db.Time
+  horaCierre        DateTime          @db.Time
+  diasLaborables    String[]
   deleted           Boolean           @default(false)
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt

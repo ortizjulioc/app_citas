@@ -37,6 +37,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
 
   const isAdmin = hasRole('admin')
   const isCliente = hasRole('cliente')
+  const isEmpleado = hasRole('empleado')
 
   return (
     <ScrollWrapper
@@ -59,7 +60,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
       >
         {isCliente && (
           <>
-            <MenuItem href='/home' icon={<i className='tabler-smart-home' />}>
+            <MenuItem href='/cliente/empresas' icon={<i className='tabler-building-store' />}>
               Empresas
             </MenuItem>
             <MenuItem href='/cliente/citas' icon={<i className='tabler-calendar' />}>
@@ -67,6 +68,17 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
             </MenuItem>
             <MenuItem href='/cliente/perfil' icon={<i className='tabler-user' />}>
               Perfil
+            </MenuItem>
+          </>
+        )}
+
+        {isEmpleado && (
+          <>
+            <MenuItem href='/home' icon={<i className='tabler-smart-home' />}>
+              Dashboard
+            </MenuItem>
+            <MenuItem href='/empleado/citas' icon={<i className='tabler-calendar' />}>
+              Mis Citas
             </MenuItem>
           </>
         )}

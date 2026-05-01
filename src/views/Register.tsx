@@ -51,7 +51,10 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     email: '',
     direccion: '',
     categoriaServicio: '',
-    sucursal: ''
+    sucursal: '',
+    horaApertura: '',
+    horaCierre: '',
+    diasLaborables: [] as string[]
   })
 
   const categorias = [
@@ -64,6 +67,16 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     { value: 'TECNOLOGIA', label: 'Tecnología' },
     { value: 'FITNESS', label: 'Fitness' },
     { value: 'OTROS', label: 'Otros' }
+  ]
+
+  const diasSemana = [
+    { value: 'LUNES', label: 'Lunes' },
+    { value: 'MARTES', label: 'Martes' },
+    { value: 'MIERCOLES', label: 'Miércoles' },
+    { value: 'JUEVES', label: 'Jueves' },
+    { value: 'VIERNES', label: 'Viernes' },
+    { value: 'SABADO', label: 'Sábado' },
+    { value: 'DOMINGO', label: 'Domingo' }
   ]
 
   const [isLoading, setIsLoading] = useState(false)
@@ -87,6 +100,9 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     const newErrors: Record<string, string> = {}
     if (!negocioData.nombre.trim()) newErrors.nombreNegocio = 'Requerido'
     if (!negocioData.categoriaServicio) newErrors.categoriaServicio = 'Requerido'
+    if (!negocioData.horaApertura) newErrors.horaApertura = 'Requerido'
+    if (!negocioData.horaCierre) newErrors.horaCierre = 'Requerido'
+    if (negocioData.diasLaborables.length === 0) newErrors.diasLaborables = 'Selecciona al menos un día'
     if (includeSucursal && !negocioData.sucursal.trim()) {
       newErrors.sucursal = 'Requerido'
     }
@@ -424,6 +440,74 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                     value={negocioData.direccion}
                     onChange={e => setNegocioData({ ...negocioData, direccion: e.target.value })}
                   />
+
+                  <Typography variant='subtitle1' className='md:col-span-2' sx={{ mt: 2, mb: 1 }}>
+                    Horario de Atención
+                  </Typography>
+
+                  <CustomTextField
+                    fullWidth
+                    label='Hora de Apertura *'
+                    type='time'
+                    value={negocioData.horaApertura}
+                    onChange={e => {
+                      setNegocioData({ ...negocioData, horaApertura: e.target.value })
+                      if (errors.horaApertura) setErrors(prev => ({ ...prev, horaApertura: '' }))
+                    }}
+                    error={!!errors.horaApertura}
+                    helperText={errors.horaApertura}
+                    slotProps={{
+                      input: {
+                        inputProps: { step: 600 }
+                      }
+                    }}
+                  />
+                  <CustomTextField
+                    fullWidth
+                    label='Hora de Cierre *'
+                    type='time'
+                    value={negocioData.horaCierre}
+                    onChange={e => {
+                      setNegocioData({ ...negocioData, horaCierre: e.target.value })
+                      if (errors.horaCierre) setErrors(prev => ({ ...prev, horaCierre: '' }))
+                    }}
+                    error={!!errors.horaCierre}
+                    helperText={errors.horaCierre}
+                    slotProps={{
+                      input: {
+                        inputProps: { step: 600 }
+                      }
+                    }}
+                  />
+
+                  <FormControl fullWidth error={!!errors.diasLaborables} className='md:col-span-2'>
+                    <Typography variant='body2' sx={{ mb: 1 }}>
+                      Días Laborables *
+                    </Typography>
+                    <div className='flex flex-wrap gap-2'>
+                      {diasSemana.map(dia => (
+                        <Button
+                          key={dia.value}
+                          variant={negocioData.diasLaborables.includes(dia.value) ? 'contained' : 'outlined'}
+                          size='small'
+                          onClick={() => {
+                            const newDias = negocioData.diasLaborables.includes(dia.value)
+                              ? negocioData.diasLaborables.filter(d => d !== dia.value)
+                              : [...negocioData.diasLaborables, dia.value]
+                            setNegocioData({ ...negocioData, diasLaborables: newDias })
+                            if (errors.diasLaborables) setErrors(prev => ({ ...prev, diasLaborables: '' }))
+                          }}
+                        >
+                          {dia.label}
+                        </Button>
+                      ))}
+                    </div>
+                    {errors.diasLaborables && (
+                      <Typography variant='caption' color='error' sx={{ ml: 2, mt: 0.5 }}>
+                        {errors.diasLaborables}
+                      </Typography>
+                    )}
+                  </FormControl>
                 </div>
               </>
             )}

@@ -1,0 +1,179 @@
+import prisma from '@/utils/lib/prisma'
+import { handleApiError, successResponse, notFoundResponse } from '@/utils/api-response'
+
+const DIA_SEMANA_MAP: Record<number, string> = {
+  0: 'DOMINGO',
+  1: 'LUNES',
+  2: 'MARTES',
+  3: 'MIERCOLES',
+  4: 'JUEVES',
+  5: 'VIERNES',
+  6: 'SABADO'
+}
+
+function getDiaSemana(date: Date): string {
+  return DIA_SEMANA_MAP[date.getDay()]
+}
+
+function timeToMinutes(time: Date): number {
+  return time.getHours() * 60 + time.getMinutes()
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ sucursalId: string }> }
+) {
+  try {
+    const { sucursalId } = await params
+    const { searchParams } = new URL(request.url)
+    const fecha = searchParams.get('fecha')
+    const duracion = parseInt(searchParams.get('duracion') || '60')
+
+    if (!fecha) {
+      return handleApiError(new Error('Fecha requerida'))
+    }
+
+    const fechaDate = new Date(fecha)
+    const diaSemana = getDiaSemana(fechaDate)
+
+    const sucursal = await prisma.sucursal.findFirst({
+      where: { id: sucursalId, deleted: false },
+      include: {
+        negocio: {
+          select: {
+            horaApertura: true,
+            horaCierre: true,
+            diasLaborables: true
+          }
+        }
+      }
+    })
+
+    if (!sucursal) {
+      return notFoundResponse('Sucursal no encontrada')
+    }
+
+    const { horaApertura, horaCierre, diasLaborables } = sucursal.negocio
+    if (!diasLaborables.includes(diaSemana)) {
+      return successResponse({
+        disponibles: false,
+        mensaje: 'La empresa no labora este día',
+        empleados: []
+      })
+    }
+
+    const inicioDia = timeToMinutes(horaApertura)
+    const finDia = timeToMinutes(horaCierre)
+
+    const empleados = await prisma.empleado.findMany({
+      where: {
+        sucursalId,
+        deleted: false
+      },
+      select: {
+        id: true,
+        nombre: true,
+        apellido: true
+      }
+    })
+
+    const disponibilidadPorEmpleado = await Promise.all(
+      empleados.map(async (empleado) => {
+        const horarios = await prisma.horarioEmpleado.findMany({
+          where: {
+            empleadoId: empleado.id,
+            diaSemana: diaSemana as any,
+            deleted: false
+          }
+        })
+
+        if (horarios.length === 0) {
+          return {
+            empleado,
+            disponible: false,
+            mensaje: 'No trabaja este día',
+            horarios: []
+          }
+        }
+
+        const inicio = timeToMinutes(horarios[0].horaInicio)
+        const fin = timeToMinutes(horarios[0].horaFin)
+
+        const bloqueos = await prisma.bloqueoHorario.findMany({
+          where: {
+            empleadoId: empleado.id,
+            deleted: false,
+            inicio: { lte: new Date(fechaDate.getTime() + 24 * 60 * 60 * 1000) },
+            fin: { gte: fechaDate }
+          }
+        })
+
+        const citas = await prisma.cita.findMany({
+          where: {
+            empleadoId: empleado.id,
+            deleted: false,
+            estado: { not: 'CANCELADA' },
+            inicio: {
+              gte: new Date(fechaDate.setHours(0, 0, 0, 0)),
+              lt: new Date(fechaDate.setHours(23, 59, 59, 999))
+            }
+          },
+          select: {
+            inicio: true,
+            fin: true
+          }
+        })
+
+        const trabajoInicio = Math.max(inicio, inicioDia)
+        const trabajoFin = Math.min(fin, finDia)
+
+        const slots: { inicio: string; fin: string }[] = []
+
+        for (let time = trabajoInicio; time + duracion <= trabajoFin; time += 30) {
+          const slotInicio = new Date(fecha)
+          slotInicio.setHours(Math.floor(time / 60), time % 60, 0, 0)
+
+          const slotFin = new Date(slotInicio)
+          slotFin.setMinutes(slotFin.getMinutes() + duracion)
+
+          const bloqueado = bloqueos.some(
+            (b) => slotInicio < b.fin && slotFin > b.inicio
+          )
+
+          if (bloqueado) continue
+
+          const ocupado = citas.some(
+            (c) => slotInicio < c.fin && slotFin > c.inicio
+          )
+
+          if (ocupado) continue
+
+          slots.push({
+            inicio: slotInicio.toISOString(),
+            fin: slotFin.toISOString()
+          })
+        }
+
+        return {
+          empleado,
+          disponible: slots.length > 0,
+          mensaje: slots.length > 0 ? `${slots.length} horarios disponibles` : 'Sin horarios disponibles',
+          horarios: slots
+        }
+      })
+    )
+
+    const empleadosConSlots = disponibilidadPorEmpleado.filter((e) => e.disponible)
+
+    return successResponse({
+      disponibles: empleadosConSlots.length > 0,
+      fecha: fecha,
+      diaSemana,
+      duracion,
+      empleados: disponibilidadPorEmpleado,
+      empleadosDisponibles: empleadosConSlots.length
+    })
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
