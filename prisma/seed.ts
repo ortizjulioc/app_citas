@@ -18,6 +18,12 @@ async function main() {
     { nombre: 'empleado', descripcion: 'Empleado del negocio' }
   ]
 
+  const permisos = [
+    { nombre: 'ver_citas_propias', descripcion: 'Ver sus propias citas' },
+    { nombre: 'gestionar_citas_propias', descripcion: 'Atender o cancelar sus propias citas' },
+    { nombre: 'ver_clientes', descripcion: 'Ver información de clientes' }
+  ]
+
   for (const rol of roles) {
     const existing = await prisma.rol.findFirst({ where: { nombre: rol.nombre, deleted: false } })
     if (!existing) {
@@ -25,6 +31,36 @@ async function main() {
       console.log(`✅ Created role: ${rol.nombre}`)
     } else {
       console.log(`⏭️  Role already exists: ${rol.nombre}`)
+    }
+  }
+
+  const rolEmpleado = await prisma.rol.findFirst({ where: { nombre: 'empleado', deleted: false } })
+
+  for (const permiso of permisos) {
+    const existingPermiso = await prisma.permiso.findFirst({ where: { nombre: permiso.nombre, deleted: false } })
+    let permisoCreado
+
+    if (!existingPermiso) {
+      permisoCreado = await prisma.permiso.create({ data: permiso })
+      console.log(`✅ Created permiso: ${permiso.nombre}`)
+    } else {
+      console.log(`⏭️  Permiso already exists: ${permiso.nombre}`)
+      permisoCreado = existingPermiso
+    }
+
+    if (rolEmpleado && permisoCreado) {
+      const existingRelacion = await prisma.rolPermiso.findFirst({
+        where: { rolId: rolEmpleado.id, permisoId: permisoCreado.id, deleted: false }
+      })
+
+      if (!existingRelacion) {
+        await prisma.rolPermiso.create({
+          data: { rolId: rolEmpleado.id, permisoId: permisoCreado.id }
+        })
+        console.log(`✅ Assigned permiso ${permiso.nombre} to rol empleado`)
+      } else {
+        console.log(`⏭️  Permiso ${permiso.nombre} already assigned to rol empleado`)
+      }
     }
   }
 

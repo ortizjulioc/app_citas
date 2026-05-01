@@ -50,7 +50,8 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     telefono: '',
     email: '',
     direccion: '',
-    categoriaServicio: ''
+    categoriaServicio: '',
+    sucursal: ''
   })
 
   const categorias = [
@@ -82,10 +83,13 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     return Object.keys(newErrors).length === 0
   }
 
-  const validateEmpresa = () => {
+  const validateEmpresa = (includeSucursal: boolean = false) => {
     const newErrors: Record<string, string> = {}
     if (!negocioData.nombre.trim()) newErrors.nombreNegocio = 'Requerido'
     if (!negocioData.categoriaServicio) newErrors.categoriaServicio = 'Requerido'
+    if (includeSucursal && !negocioData.sucursal.trim()) {
+      newErrors.sucursal = 'Requerido'
+    }
 
     setErrors(prev => ({ ...prev, ...newErrors }))
     return Object.keys(newErrors).length === 0
@@ -108,11 +112,19 @@ const Register = ({ mode }: { mode: SystemMode }) => {
       return
     }
 
-    let isValid = validateUser()
-    if (tipoRegistro === 'empresa') {
-      const isEmpresaValid = validateEmpresa()
-      isValid = isValid && isEmpresaValid
+    if (step === 3 && tipoRegistro === 'empresa') {
+      if (validateEmpresa(false)) setStep(4)
+      return
     }
+
+    if (step === 4 && tipoRegistro === 'empresa') {
+      const isUserValid = validateUser()
+      if (!isUserValid) return
+      const isEmpresaValid = validateEmpresa(true)
+      if (!isEmpresaValid) return
+    }
+
+    let isValid = validateUser()
 
     if (!isValid) return
 
@@ -416,8 +428,28 @@ const Register = ({ mode }: { mode: SystemMode }) => {
               </>
             )}
 
+            {step === 4 && tipoRegistro === 'empresa' && (
+              <>
+                <Divider className='my-2'>Datos de la Sucursal</Divider>
+                <div className='grid grid-cols-1 gap-4'>
+                  <CustomTextField
+                    fullWidth
+                    label='Nombre de la Sucursal *'
+                    placeholder='Casa Matriz'
+                    value={negocioData.sucursal}
+                    onChange={e => {
+                      setNegocioData({ ...negocioData, sucursal: e.target.value })
+                      if (errors.sucursal) setErrors(prev => ({ ...prev, sucursal: '' }))
+                    }}
+                    error={!!errors.sucursal}
+                    helperText={errors.sucursal}
+                  />
+                </div>
+              </>
+            )}
+
             <div className='flex gap-4 mt-2'>
-              {(step === 2 || step === 3) && (
+              {(step === 2 || step === 3 || step === 4) && (
                 <Button
                   fullWidth
                   variant='outlined'
@@ -431,7 +463,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
               <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
                 {isLoading ? (
                   <CircularProgress size={24} color='inherit' />
-                ) : step === 1 || (step === 2 && tipoRegistro === 'empresa') ? (
+                ) : step === 1 || (step === 2 && tipoRegistro === 'empresa') || (step === 3 && tipoRegistro === 'empresa') ? (
                   'Siguiente'
                 ) : (
                   'Registrarse'

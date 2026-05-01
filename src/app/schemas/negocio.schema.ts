@@ -19,7 +19,8 @@ export const negocioSchema = yup.object({
   telefono: yup.string().nullable(),
   email: yup.string().email('Email inválido').nullable(),
   direccion: yup.string().nullable(),
-  categoriaServicio: yup.string().oneOf(categoriaServicioEnum).required('La categoría del servicio es requerida')
+  categoriaServicio: yup.string().oneOf(categoriaServicioEnum).required('La categoría del servicio es requerida'),
+  sucursal: yup.string().required('El nombre de la sucursal es requerido')
 })
 
 export const negocioUpdateSchema = yup.object({
@@ -29,5 +30,6 @@ export const negocioUpdateSchema = yup.object({
   telefono: yup.string().nullable(),
   email: yup.string().email('Email inválido').nullable(),
   direccion: yup.string().nullable(),
-  categoriaServicio: yup.string().oneOf(categoriaServicioEnum)
+  categoriaServicio: yup.string().oneOf(categoriaServicioEnum),
+  sucursal: yup.string()
 })

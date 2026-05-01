@@ -67,8 +67,10 @@ export async function POST(request: Request) {
 
     if (validatedData.tipoRegistro === 'empresa' && validatedData.negocio) {
       nuevoUsuario = await prisma.$transaction(async (tx) => {
+        const { sucursal, ...negocioData } = validatedData.negocio!
+
         const nuevoNegocio = await tx.negocio.create({
-          data: validatedData.negocio!
+          data: negocioData
         })
 
         const user = await tx.usuario.create({
@@ -87,6 +89,15 @@ export async function POST(request: Request) {
             rolId: rolAdmin.id
           }
         })
+
+        if (validatedData.negocio.sucursal) {
+          await tx.sucursal.create({
+            data: {
+              nombre: validatedData.negocio.sucursal,
+              negocioId: nuevoNegocio.id
+            }
+          })
+        }
 
         return user
       })
