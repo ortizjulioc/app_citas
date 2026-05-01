@@ -4,8 +4,16 @@ import { handleApiError, successResponse } from '@/utils/api-response'
 import { NotFoundError } from '@/utils/errors'
 import { $Enums } from '@/generated/prisma'
 
+function formatTime(date: Date | null): string {
+  if (!date) return ''
+  return date.toTimeString().substring(0, 5)
+}
+
 function parseTimeToDate(timeString: string): Date {
   const [hours, minutes] = timeString.split(':').map(Number)
+  if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    throw new Error(`Invalid time string: ${timeString}`)
+  }
   const date = new Date()
   date.setHours(hours, minutes, 0, 0)
   return date
@@ -71,7 +79,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       throw new NotFoundError('Empleado no encontrado o inactivo')
     }
 
-    return successResponse(empleado)
+    const horarioFormateado = empleado.horarioEmpleados.map((h) => ({
+      ...h,
+      horaInicio: formatTime(h.horaInicio),
+      horaFin: formatTime(h.horaFin)
+    }))
+
+    const empleadoFormateado = {
+      ...empleado,
+      horarioEmpleados: horarioFormateado
+    }
+
+    return successResponse(empleadoFormateado)
   } catch (error) {
     return handleApiError(error)
   }

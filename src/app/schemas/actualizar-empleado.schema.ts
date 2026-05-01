@@ -3,10 +3,12 @@ import * as yup from 'yup'
 const tipoSalarioEnum = ['FIJO', 'POR_HORA', 'POR_COMISION']
 const diaSemanaEnum = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO']
 
+const timeRegex = /^([01]?\d|2[0-3]):([0-5]\d)$/
+
 const horarioSchema = yup.object({
   diaSemana: yup.string().oneOf(diaSemanaEnum, 'Día de semana inválido').required('El día de la semana es requerido'),
-  horaInicio: yup.string().required('La hora de inicio es requerida'),
-  horaFin: yup.string().required('La hora de fin es requerida')
+  horaInicio: yup.string().matches(timeRegex, 'Formato de hora inválido, use HH:mm').required('La hora de inicio es requerida'),
+  horaFin: yup.string().matches(timeRegex, 'Formato de hora inválido, use HH:mm').required('La hora de fin es requerida')
 })
 
 const bloqueoSchema = yup.object({
