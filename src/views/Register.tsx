@@ -13,6 +13,9 @@ import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
+import Box from '@mui/material/Box'
 
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
@@ -32,6 +35,7 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [tipoRegistro, setTipoRegistro] = useState<'cliente' | 'empresa'>('cliente')
   const [step, setStep] = useState(1)
+  const [activeTab, setActiveTab] = useState(0)
 
   // Usuario State
   const [formData, setFormData] = useState({
@@ -96,18 +100,44 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     return Object.keys(newErrors).length === 0
   }
 
+  const validateEmpresaGeneral = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!negocioData.nombre.trim()) newErrors.nombreNegocio = 'Requerido'
+    if (!negocioData.categoriaServicio) newErrors.categoriaServicio = 'Requerido'
+
+    setErrors(prev => ({ ...prev, ...newErrors }))
+
+    return Object.keys(newErrors).length === 0
+  }
+
+  const validateEmpresaHorario = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!negocioData.horaApertura) newErrors.horaApertura = 'Requerido'
+    if (!negocioData.horaCierre) newErrors.horaCierre = 'Requerido'
+    if (negocioData.diasLaborables.length === 0) newErrors.diasLaborables = 'Selecciona al menos un día'
+
+    setErrors(prev => ({ ...prev, ...newErrors }))
+
+    return Object.keys(newErrors).length === 0
+  }
+
   const validateEmpresa = (includeSucursal: boolean = false) => {
     const newErrors: Record<string, string> = {}
+
     if (!negocioData.nombre.trim()) newErrors.nombreNegocio = 'Requerido'
     if (!negocioData.categoriaServicio) newErrors.categoriaServicio = 'Requerido'
     if (!negocioData.horaApertura) newErrors.horaApertura = 'Requerido'
     if (!negocioData.horaCierre) newErrors.horaCierre = 'Requerido'
     if (negocioData.diasLaborables.length === 0) newErrors.diasLaborables = 'Selecciona al menos un día'
+
     if (includeSucursal && !negocioData.sucursal.trim()) {
       newErrors.sucursal = 'Requerido'
     }
 
     setErrors(prev => ({ ...prev, ...newErrors }))
+
     return Object.keys(newErrors).length === 0
   }
 
@@ -129,7 +159,16 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     }
 
     if (step === 3 && tipoRegistro === 'empresa') {
-      if (validateEmpresa(false)) setStep(4)
+      if (activeTab === 0) {
+        if (validateEmpresaGeneral()) {
+          setActiveTab(1)
+        }
+
+        return
+      }
+
+      if (validateEmpresaHorario()) setStep(4)
+
       return
     }
 
@@ -374,141 +413,173 @@ const Register = ({ mode }: { mode: SystemMode }) => {
 
             {step === 3 && tipoRegistro === 'empresa' && (
               <>
-                <Divider className='my-2'>Datos de la Empresa</Divider>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  <CustomTextField
-                    fullWidth
-                    label='Nombre del Negocio *'
-                    placeholder='Mi Tienda SRL'
-                    value={negocioData.nombre}
-                    onChange={e => {
-                      setNegocioData({ ...negocioData, nombre: e.target.value })
-                      if (errors.nombreNegocio) setErrors(prev => ({ ...prev, nombreNegocio: '' }))
-                    }}
-                    error={!!errors.nombreNegocio}
-                    helperText={errors.nombreNegocio}
+                <Divider className='my-2'>Configuración de Empresa</Divider>
+                <Tabs
+                  value={activeTab}
+                  onChange={(_, newValue) => setActiveTab(newValue)}
+                  variant='fullWidth'
+                  className='mbe-4'
+                  sx={{
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    '& .MuiTab-root': {
+                      minHeight: 48,
+                      flexDirection: 'row',
+                      gap: 2
+                    }
+                  }}
+                >
+                  <Tab
+                    label='Información General'
+                    icon={<i className='tabler-building text-xl' />}
+                    iconPosition='start'
+                    id='tab-general'
                   />
-                  <CustomTextField
-                    fullWidth
-                    label='RNC (Opcional)'
-                    placeholder='1-30-00000-1'
-                    value={negocioData.RNC}
-                    onChange={e => setNegocioData({ ...negocioData, RNC: e.target.value })}
+                  <Tab
+                    label='Horario de Atención'
+                    icon={<i className='tabler-clock text-xl' />}
+                    iconPosition='start'
+                    id='tab-horario'
                   />
-                  <FormControl fullWidth error={!!errors.categoriaServicio}>
-                    <InputLabel>Categoría del Servicio *</InputLabel>
-                    <Select
-                      value={negocioData.categoriaServicio}
-                      label='Categoría del Servicio *'
+                </Tabs>
+
+                {activeTab === 0 && (
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in'>
+                    <CustomTextField
+                      fullWidth
+                      label='Nombre del Negocio *'
+                      placeholder='Mi Tienda SRL'
+                      value={negocioData.nombre}
                       onChange={e => {
-                        setNegocioData({ ...negocioData, categoriaServicio: e.target.value as string })
-                        if (errors.categoriaServicio) setErrors(prev => ({ ...prev, categoriaServicio: '' }))
+                        setNegocioData({ ...negocioData, nombre: e.target.value })
+                        if (errors.nombreNegocio) setErrors(prev => ({ ...prev, nombreNegocio: '' }))
                       }}
-                    >
-                      {categorias.map(cat => (
-                        <MenuItem key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.categoriaServicio && (
-                      <Typography variant='caption' color='error' sx={{ ml: 2, mt: 0.5 }}>
-                        {errors.categoriaServicio}
+                      error={!!errors.nombreNegocio}
+                      helperText={errors.nombreNegocio}
+                    />
+                    <CustomTextField
+                      fullWidth
+                      label='RNC (Opcional)'
+                      placeholder='1-30-00000-1'
+                      value={negocioData.RNC}
+                      onChange={e => setNegocioData({ ...negocioData, RNC: e.target.value })}
+                    />
+                    <FormControl fullWidth error={!!errors.categoriaServicio}>
+                      <InputLabel>Categoría del Servicio *</InputLabel>
+                      <Select
+                        value={negocioData.categoriaServicio}
+                        label='Categoría del Servicio *'
+                        onChange={e => {
+                          setNegocioData({ ...negocioData, categoriaServicio: e.target.value as string })
+                          if (errors.categoriaServicio) setErrors(prev => ({ ...prev, categoriaServicio: '' }))
+                        }}
+                      >
+                        {categorias.map(cat => (
+                          <MenuItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.categoriaServicio && (
+                        <Typography variant='caption' color='error' sx={{ ml: 2, mt: 0.5 }}>
+                          {errors.categoriaServicio}
+                        </Typography>
+                      )}
+                    </FormControl>
+                    <CustomTextField
+                      fullWidth
+                      label='Teléfono Empresa (Opcional)'
+                      placeholder='809-000-0000'
+                      value={negocioData.telefono}
+                      onChange={e => setNegocioData({ ...negocioData, telefono: e.target.value })}
+                    />
+                    <CustomTextField
+                      fullWidth
+                      label='Email de la Empresa (Opcional)'
+                      type='email'
+                      placeholder='empresa@gmail.com'
+                      value={negocioData.email}
+                      onChange={e => setNegocioData({ ...negocioData, email: e.target.value })}
+                    />
+                    <CustomTextField
+                      fullWidth
+                      className='md:col-span-2'
+                      label='Dirección Comercial (Opcional)'
+                      placeholder='Av. Central #400'
+                      value={negocioData.direccion}
+                      onChange={e => setNegocioData({ ...negocioData, direccion: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {activeTab === 1 && (
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in'>
+                    <CustomTextField
+                      fullWidth
+                      label='Hora de Apertura *'
+                      type='time'
+                      value={negocioData.horaApertura}
+                      onChange={e => {
+                        setNegocioData({ ...negocioData, horaApertura: e.target.value })
+                        if (errors.horaApertura) setErrors(prev => ({ ...prev, horaApertura: '' }))
+                      }}
+                      error={!!errors.horaApertura}
+                      helperText={errors.horaApertura}
+                      slotProps={{
+                        input: {
+                          inputProps: { step: 600 }
+                        }
+                      }}
+                    />
+                    <CustomTextField
+                      fullWidth
+                      label='Hora de Cierre *'
+                      type='time'
+                      value={negocioData.horaCierre}
+                      onChange={e => {
+                        setNegocioData({ ...negocioData, horaCierre: e.target.value })
+                        if (errors.horaCierre) setErrors(prev => ({ ...prev, horaCierre: '' }))
+                      }}
+                      error={!!errors.horaCierre}
+                      helperText={errors.horaCierre}
+                      slotProps={{
+                        input: {
+                          inputProps: { step: 600 }
+                        }
+                      }}
+                    />
+
+                    <FormControl fullWidth error={!!errors.diasLaborables} className='md:col-span-2'>
+                      <Typography variant='body2' sx={{ mb: 1 }}>
+                        Días Laborables *
                       </Typography>
-                    )}
-                  </FormControl>
-                  <CustomTextField
-                    fullWidth
-                    label='Teléfono Empresa (Opcional)'
-                    placeholder='809-000-0000'
-                    value={negocioData.telefono}
-                    onChange={e => setNegocioData({ ...negocioData, telefono: e.target.value })}
-                  />
-                  <CustomTextField
-                    fullWidth
-                    label='Email de la Empresa (Opcional)'
-                    type='email'
-                    placeholder='empresa@gmail.com'
-                    value={negocioData.email}
-                    onChange={e => setNegocioData({ ...negocioData, email: e.target.value })}
-                  />
-                  <CustomTextField
-                    fullWidth
-                    className='md:col-span-2'
-                    label='Dirección Comercial (Opcional)'
-                    placeholder='Av. Central #400'
-                    value={negocioData.direccion}
-                    onChange={e => setNegocioData({ ...negocioData, direccion: e.target.value })}
-                  />
+                      <div className='flex flex-wrap gap-2'>
+                        {diasSemana.map(dia => (
+                          <Button
+                            key={dia.value}
+                            variant={negocioData.diasLaborables.includes(dia.value) ? 'contained' : 'outlined'}
+                            size='small'
+                            onClick={() => {
+                              const newDias = negocioData.diasLaborables.includes(dia.value)
+                                ? negocioData.diasLaborables.filter(d => d !== dia.value)
+                                : [...negocioData.diasLaborables, dia.value]
 
-                  <Typography variant='subtitle1' className='md:col-span-2' sx={{ mt: 2, mb: 1 }}>
-                    Horario de Atención
-                  </Typography>
-
-                  <CustomTextField
-                    fullWidth
-                    label='Hora de Apertura *'
-                    type='time'
-                    value={negocioData.horaApertura}
-                    onChange={e => {
-                      setNegocioData({ ...negocioData, horaApertura: e.target.value })
-                      if (errors.horaApertura) setErrors(prev => ({ ...prev, horaApertura: '' }))
-                    }}
-                    error={!!errors.horaApertura}
-                    helperText={errors.horaApertura}
-                    slotProps={{
-                      input: {
-                        inputProps: { step: 600 }
-                      }
-                    }}
-                  />
-                  <CustomTextField
-                    fullWidth
-                    label='Hora de Cierre *'
-                    type='time'
-                    value={negocioData.horaCierre}
-                    onChange={e => {
-                      setNegocioData({ ...negocioData, horaCierre: e.target.value })
-                      if (errors.horaCierre) setErrors(prev => ({ ...prev, horaCierre: '' }))
-                    }}
-                    error={!!errors.horaCierre}
-                    helperText={errors.horaCierre}
-                    slotProps={{
-                      input: {
-                        inputProps: { step: 600 }
-                      }
-                    }}
-                  />
-
-                  <FormControl fullWidth error={!!errors.diasLaborables} className='md:col-span-2'>
-                    <Typography variant='body2' sx={{ mb: 1 }}>
-                      Días Laborables *
-                    </Typography>
-                    <div className='flex flex-wrap gap-2'>
-                      {diasSemana.map(dia => (
-                        <Button
-                          key={dia.value}
-                          variant={negocioData.diasLaborables.includes(dia.value) ? 'contained' : 'outlined'}
-                          size='small'
-                          onClick={() => {
-                            const newDias = negocioData.diasLaborables.includes(dia.value)
-                              ? negocioData.diasLaborables.filter(d => d !== dia.value)
-                              : [...negocioData.diasLaborables, dia.value]
-                            setNegocioData({ ...negocioData, diasLaborables: newDias })
-                            if (errors.diasLaborables) setErrors(prev => ({ ...prev, diasLaborables: '' }))
-                          }}
-                        >
-                          {dia.label}
-                        </Button>
-                      ))}
-                    </div>
-                    {errors.diasLaborables && (
-                      <Typography variant='caption' color='error' sx={{ ml: 2, mt: 0.5 }}>
-                        {errors.diasLaborables}
-                      </Typography>
-                    )}
-                  </FormControl>
-                </div>
+                              setNegocioData({ ...negocioData, diasLaborables: newDias })
+                              if (errors.diasLaborables) setErrors(prev => ({ ...prev, diasLaborables: '' }))
+                            }}
+                          >
+                            {dia.label}
+                          </Button>
+                        ))}
+                      </div>
+                      {errors.diasLaborables && (
+                        <Typography variant='caption' color='error' sx={{ ml: 2, mt: 0.5 }}>
+                          {errors.diasLaborables}
+                        </Typography>
+                      )}
+                    </FormControl>
+                  </div>
+                )}
               </>
             )}
 
@@ -538,7 +609,13 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                   fullWidth
                   variant='outlined'
                   type='button'
-                  onClick={() => setStep(step - 1)}
+                  onClick={() => {
+                    if (step === 3 && activeTab === 1) {
+                      setActiveTab(0)
+                    } else {
+                      setStep(step - 1)
+                    }
+                  }}
                   disabled={isLoading}
                 >
                   Atrás
