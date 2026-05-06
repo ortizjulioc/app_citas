@@ -14,6 +14,7 @@ export const empleadoSchema = yup.object({
   salarioBase: yup.number().nullable(),
   fechaContratacion: yup.date().nullable(),
   sucursalId: yup.string().required('La sucursal es requerida'),
+  negocioId: yup.string().required('El negocio es requerido'),
   usuarioId: yup.string().nullable()
 })
 
@@ -26,5 +27,6 @@ export const empleadoUpdateSchema = yup.object({
   salarioBase: yup.number().nullable(),
   fechaContratacion: yup.date().nullable(),
   sucursalId: yup.string(),
+  negocioId: yup.string(),
   usuarioId: yup.string().nullable()
 })

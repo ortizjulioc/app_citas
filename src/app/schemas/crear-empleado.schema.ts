@@ -30,6 +30,7 @@ export const crearEmpleadoSchema = yup.object({
   salarioBase: yup.number().nullable(),
   fechaContratacion: yup.date().nullable(),
   sucursalId: yup.string().required('La sucursal es requerida'),
+  negocioId: yup.string().required('El negocio es requerido'),
   horario: yup.array().of(horarioSchema).nullable(),
   bloqueos: yup.array().of(bloqueoSchema).nullable(),
   servicios: yup.array().of(servicioSchema).nullable()

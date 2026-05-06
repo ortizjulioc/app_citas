@@ -105,16 +105,8 @@ export default function EmpleadosList() {
         const res = await fetch(`/api/empleados/${empleado.id}`)
         const json = await res.json()
         if (res.ok) {
-          const data = json.data
           setInitialData({
-            nombre: data.nombre,
-            apellido: data.apellido,
-            telefono: data.telefono,
-            email: data.email,
-            tipoSalario: data.tipoSalario,
-            salarioBase: data.salarioBase,
-            fechaContratacion: data.fechaContratacion,
-            sucursalId: data.sucursalId,
+            ...data,
             horario: data.horarioEmpleados?.map((h: any) => ({
               diaSemana: h.diaSemana,
               horaInicio: h.horaInicio?.substring(0, 5) || '',
@@ -154,16 +146,10 @@ export default function EmpleadosList() {
     const url = editingId ? `/api/empleados/${editingId}` : '/api/empleados'
     const method = editingId ? 'PUT' : 'POST'
 
-    const body = { ...data }
-    if (editingId) {
-      delete body.email
-      delete body.password
-    }
-
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify(data)
     })
 
     const json = await res.json()
@@ -262,17 +248,30 @@ export default function EmpleadosList() {
         </TableContainer>
       </Card>
 
-      <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth='md'>
-        <DialogTitle>{editingId ? 'Editar Empleado' : 'Nuevo Empleado'}</DialogTitle>
-        <DialogContent dividers>
+      <Dialog
+        open={openDialog}
+        onClose={handleClose}
+        fullWidth
+        maxWidth='md'
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle sx={{ px: 6, py: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant='h5'>{editingId ? 'Editar Perfil de Empleado' : 'Registro de Nuevo Empleado'}</Typography>
+          <IconButton onClick={handleClose} size='small'>
+            <i className='tabler-x' />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }} dividers>
           {sucursalId && (
-            <EmpleadoForm
-              initialData={initialData}
-              isEditing={!!editingId}
-              sucursalId={sucursalId}
-              onSave={handleSave}
-              onCancel={handleClose}
-            />
+            <Box sx={{ px: 6, py: 4 }}>
+              <EmpleadoForm
+                initialData={initialData}
+                isEditing={!!editingId}
+                sucursalId={sucursalId}
+                onSave={handleSave}
+                onCancel={handleClose}
+              />
+            </Box>
           )}
         </DialogContent>
       </Dialog>

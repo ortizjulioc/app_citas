@@ -76,7 +76,8 @@ export async function POST(request: Request) {
           tipoSalario: validatedData.tipoSalario as $Enums.TipoSalario,
           salarioBase: validatedData.salarioBase,
           fechaContratacion: validatedData.fechaContratacion,
-          sucursalId: validatedData.sucursalId
+          sucursalId: validatedData.sucursalId,
+          negocioId: validatedData.negocioId
         }
       })
 
@@ -148,6 +149,7 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit
     const search = searchParams.get('search') || ''
     const sucursalIdQuery = searchParams.get('sucursalId')
+    const negocioIdQuery = searchParams.get('negocioId')
 
     const where: any = {
       deleted: false
@@ -155,6 +157,10 @@ export async function GET(request: Request) {
 
     if (sucursalIdQuery) {
       where.sucursalId = sucursalIdQuery
+    }
+
+    if (negocioIdQuery) {
+      where.negocioId = negocioIdQuery
     }
 
     if (search) {
@@ -186,6 +192,7 @@ export async function GET(request: Request) {
           salarioBase: true,
           fechaContratacion: true,
           sucursalId: true,
+          negocioId: true,
           usuarioId: true,
           createdAt: true
         }

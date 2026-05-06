@@ -38,6 +38,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         salarioBase: true,
         fechaContratacion: true,
         sucursalId: true,
+        negocioId: true,
         usuarioId: true,
         createdAt: true,
         updatedAt: true,
@@ -125,6 +126,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       if (datosEmpleado.salarioBase !== undefined) datosActualizar.salarioBase = datosEmpleado.salarioBase
       if (datosEmpleado.fechaContratacion !== undefined) datosActualizar.fechaContratacion = datosEmpleado.fechaContratacion
       if (datosEmpleado.sucursalId !== undefined) datosActualizar.sucursalId = datosEmpleado.sucursalId
+      if (datosEmpleado.negocioId !== undefined) datosActualizar.negocioId = datosEmpleado.negocioId
 
       if (Object.keys(datosActualizar).length > 0) {
         await tx.empleado.update({

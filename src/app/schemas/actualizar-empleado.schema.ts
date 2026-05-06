@@ -31,6 +31,7 @@ export const actualizarEmpleadoSchema = yup.object({
   salarioBase: yup.number().nullable(),
   fechaContratacion: yup.date().nullable(),
   sucursalId: yup.string(),
+  negocioId: yup.string(),
   horario: yup.array().of(horarioSchema).nullable(),
   bloqueos: yup.array().of(bloqueoSchema).nullable(),
   servicios: yup.array().of(servicioSchema).nullable()
