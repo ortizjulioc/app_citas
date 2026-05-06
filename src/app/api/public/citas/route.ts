@@ -85,7 +85,9 @@ export async function POST(request: Request) {
         servicioCitas: {
           include: {
             servicio: {
-              select: { id: true, nombre: true }
+              include: {
+                servicioSucursals: true
+              }
             }
           }
         },

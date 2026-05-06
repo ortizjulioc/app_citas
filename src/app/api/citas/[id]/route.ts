@@ -26,7 +26,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         servicioCitas: {
           include: {
             servicio: {
-              select: { id: true, nombre: true, precio: true, duracionMinutos: true }
+              include: {
+                servicioSucursals: true
+              }
             }
           }
         }

@@ -129,26 +129,27 @@ model Negocio {
   movimientoCajas     MovimientoCaja[]
   productos           Producto[]
   movimientoProductos MovimientoProducto[]
+  servicios           Servicio[]
 
   @@index([deleted])
   @@map("negocio")
 }
 
 model Sucursal {
-  id               String            @id @default(uuid())
-  nombre           String
-  negocioId        String
-  deleted          Boolean           @default(false)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  negocio          Negocio           @relation(fields: [negocioId], references: [id])
-  servicios        Servicio[]
-  citas            Cita[]
-  facturas         Factura[]
-  productos        Producto[]
-  cajas            Caja[]
-  empleados        Empleado[]
-  horarioSucursals HorarioSucursal[]
+  id                String             @id @default(uuid())
+  nombre            String
+  negocioId         String
+  deleted           Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  negocio           Negocio            @relation(fields: [negocioId], references: [id])
+  citas             Cita[]
+  facturas          Factura[]
+  productos         Producto[]
+  cajas             Caja[]
+  empleados         Empleado[]
+  horarioSucursals  HorarioSucursal[]
+  servicioSucursals ServicioSucursal[]
 
   @@unique([negocioId, nombre])
   @@map("sucursal")
@@ -295,25 +296,41 @@ model ComisionEmpleado {
 }
 
 model Servicio {
-  id              String   @id @default(uuid())
-  sucursalId      String
+  id              String  @id @default(uuid())
+  negocioId       String
   nombre          String
   descripcion     String?
-  precio          Float?
-  costo           Float?
-  activo          Boolean  @default(true)
   duracionMinutos Int
-  deleted         Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  sucursal        Sucursal @relation(fields: [sucursalId], references: [id])
+  deleted         Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  negocio   Negocio  @relation(fields: [negocioId], references: [id])
 
   comisionEmpleados ComisionEmpleado[]
   servicioEmpleados ServicioEmpleado[]
   servicioCitas     ServicioCita[]
   detalleFacturas   DetalleFactura[]
+  servicioSucursals ServicioSucursal[]
 
   @@map("servicio")
+}
+
+model ServicioSucursal {
+  id         String  @id @default(uuid())
+  servicioId String
+  sucursalId String
+  precio     Float?
+  costo      Float?
+  activo     Boolean @default(true)
+
+  servicio Servicio @relation(fields: [servicioId], references: [id])
+  sucursal Sucursal @relation(fields: [sucursalId], references: [id])
+
+  @@unique([servicioId, sucursalId])
+  @@index([servicioId])
+  @@index([sucursalId])
+  @@map("servicio_sucursal")
 }
 
 model ServicioEmpleado {

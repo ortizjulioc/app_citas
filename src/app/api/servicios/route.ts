@@ -11,8 +11,35 @@ export async function POST(request: Request) {
       stripUnknown: true
     })
 
+    const { sucursales, ...servicioData } = validatedData
+
+    // Si no viene negocioId en el body, podríamos intentar sacarlo del usuario autenticado
+    // Por ahora asumimos que viene o se maneja en el middleware/auth
+    if (!servicioData.negocioId) {
+      // Intento básico de obtener el negocioId si no viene
+      const primerSucursal = await prisma.sucursal.findUnique({
+        where: { id: sucursales![0].sucursalId },
+        select: { negocioId: true }
+      })
+      servicioData.negocioId = primerSucursal?.negocioId || ''
+    }
+
     const nuevoServicio = await prisma.servicio.create({
-      data: validatedData
+      data: {
+        ...servicioData,
+        negocioId: servicioData.negocioId!,
+        servicioSucursals: {
+          create: sucursales?.map((s: any) => ({
+            sucursalId: s.sucursalId,
+            precio: s.precio,
+            costo: s.costo,
+            activo: s.activo
+          }))
+        }
+      },
+      include: {
+        servicioSucursals: true
+      }
     })
 
     return createdResponse(nuevoServicio)
@@ -29,22 +56,22 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit
     const search = searchParams.get('search') || ''
     const sucursalIdQuery = searchParams.get('sucursalId')
-    const activoQuery = searchParams.get('activo')
 
     const where: any = {
       deleted: false
     }
 
     if (sucursalIdQuery) {
-      where.sucursalId = sucursalIdQuery
-    }
-
-    if (activoQuery !== null && activoQuery !== undefined) {
-      where.activo = activoQuery === 'true'
+      where.servicioSucursals = {
+        some: {
+          sucursalId: sucursalIdQuery
+        }
+      }
     }
 
     if (search) {
       where.AND = [
+        ...(where.AND || []),
         {
           OR: [
             { nombre: { contains: search, mode: 'insensitive' } },
@@ -60,16 +87,17 @@ export async function GET(request: Request) {
         take: limit,
         where,
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          nombre: true,
-          descripcion: true,
-          precio: true,
-          costo: true,
-          duracionMinutos: true,
-          activo: true,
-          sucursalId: true,
-          createdAt: true
+        include: {
+          servicioSucursals: {
+            include: {
+              sucursal: {
+                select: {
+                  id: true,
+                  nombre: true
+                }
+              }
+            }
+          }
         }
       }),
       prisma.servicio.count({ where })

@@ -12,17 +12,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         id,
         deleted: false
       },
-      select: {
-        id: true,
-        nombre: true,
-        descripcion: true,
-        precio: true,
-        costo: true,
-        duracionMinutos: true,
-        activo: true,
-        sucursalId: true,
-        createdAt: true,
-        updatedAt: true
+      include: {
+        servicioSucursals: {
+          include: {
+            sucursal: {
+              select: {
+                id: true,
+                nombre: true
+              }
+            }
+          }
+        }
       }
     })
 
@@ -46,9 +46,28 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       stripUnknown: true
     })
 
+    const { sucursales, ...servicioData } = validatedData
+
+    const updateData: any = { ...servicioData }
+
+    if (sucursales) {
+      updateData.servicioSucursals = {
+        deleteMany: {},
+        create: sucursales.map((s: any) => ({
+          sucursalId: s.sucursalId,
+          precio: s.precio,
+          costo: s.costo,
+          activo: s.activo
+        }))
+      }
+    }
+
     const servicioActualizado = await prisma.servicio.update({
       where: { id },
-      data: validatedData
+      data: updateData,
+      include: {
+        servicioSucursals: true
+      }
     })
 
     return successResponse(servicioActualizado)

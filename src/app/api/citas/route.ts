@@ -89,7 +89,9 @@ export async function GET(request: Request) {
           servicioCitas: {
             include: {
               servicio: {
-                select: { id: true, nombre: true }
+                include: {
+                  servicioSucursals: true
+                }
               }
             }
           }
