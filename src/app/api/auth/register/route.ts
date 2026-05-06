@@ -67,25 +67,10 @@ export async function POST(request: Request) {
 
     if (validatedData.tipoRegistro === 'empresa' && validatedData.negocio) {
       nuevoUsuario = await prisma.$transaction(async (tx) => {
-        const { sucursal, ...negocioData } = validatedData.negocio!
-
-        const dias = (negocioData.diasLaborables || ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES']) as string[]
-
-        const formatTimeToPrisma = (time: string) => {
-          if (!time) return null
-          const [hours, minutes] = time.split(':')
-          return new Date(`1970-01-01T${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00.000Z`)
-        }
-
-        const negocioWithDefaults = {
-          ...negocioData,
-          horaApertura: formatTimeToPrisma(negocioData.horaApertura) || new Date('1970-01-01T09:00:00.000Z'),
-          horaCierre: formatTimeToPrisma(negocioData.horaCierre) || new Date('1970-01-01T18:00:00.000Z'),
-          diasLaborables: dias
-        }
+        const { sucursal: sucursalNombre, horarios, ...negocioData } = validatedData.negocio!
 
         const nuevoNegocio = await tx.negocio.create({
-          data: negocioWithDefaults
+          data: negocioData
         })
 
         const user = await tx.usuario.create({
@@ -105,12 +90,28 @@ export async function POST(request: Request) {
           }
         })
 
-        if (validatedData.negocio.sucursal) {
-          await tx.sucursal.create({
-            data: {
-              nombre: validatedData.negocio.sucursal,
-              negocioId: nuevoNegocio.id
-            }
+        const formatTimeToPrisma = (time: string) => {
+          if (!time) return new Date('1970-01-01T00:00:00.000Z')
+          const [hours, minutes] = time.split(':')
+          return new Date(`1970-01-01T${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00.000Z`)
+        }
+
+        const nuevaSucursal = await tx.sucursal.create({
+          data: {
+            nombre: sucursalNombre || 'Casa Matriz',
+            negocioId: nuevoNegocio.id
+          }
+        })
+
+        if (horarios && horarios.length > 0) {
+          await tx.horarioSucursal.createMany({
+            data: horarios.map((h: { diaSemana: any; horaInicio: string; horaFin: string; activo?: boolean }) => ({
+              sucursalId: nuevaSucursal.id,
+              diaSemana: h.diaSemana,
+              horaInicio: formatTimeToPrisma(h.horaInicio),
+              horaFin: formatTimeToPrisma(h.horaFin),
+              activo: h.activo ?? true
+            }))
           })
         }
 

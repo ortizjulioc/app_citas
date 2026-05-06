@@ -16,6 +16,8 @@ import InputLabel from '@mui/material/InputLabel'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Box from '@mui/material/Box'
+import Switch from '@mui/material/Switch'
+import Tooltip from '@mui/material/Tooltip'
 
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
@@ -56,9 +58,15 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     direccion: '',
     categoriaServicio: '',
     sucursal: '',
-    horaApertura: '',
-    horaCierre: '',
-    diasLaborables: [] as string[]
+    horarios: [
+      { diaSemana: 'LUNES', horaInicio: '09:00', horaFin: '18:00', activo: true },
+      { diaSemana: 'MARTES', horaInicio: '09:00', horaFin: '18:00', activo: true },
+      { diaSemana: 'MIERCOLES', horaInicio: '09:00', horaFin: '18:00', activo: true },
+      { diaSemana: 'JUEVES', horaInicio: '09:00', horaFin: '18:00', activo: true },
+      { diaSemana: 'VIERNES', horaInicio: '09:00', horaFin: '18:00', activo: true },
+      { diaSemana: 'SABADO', horaInicio: '09:00', horaFin: '13:00', activo: false },
+      { diaSemana: 'DOMINGO', horaInicio: '09:00', horaFin: '13:00', activo: false }
+    ]
   })
 
   const categorias = [
@@ -71,16 +79,6 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     { value: 'TECNOLOGIA', label: 'Tecnología' },
     { value: 'FITNESS', label: 'Fitness' },
     { value: 'OTROS', label: 'Otros' }
-  ]
-
-  const diasSemana = [
-    { value: 'LUNES', label: 'Lunes' },
-    { value: 'MARTES', label: 'Martes' },
-    { value: 'MIERCOLES', label: 'Miércoles' },
-    { value: 'JUEVES', label: 'Jueves' },
-    { value: 'VIERNES', label: 'Viernes' },
-    { value: 'SABADO', label: 'Sábado' },
-    { value: 'DOMINGO', label: 'Domingo' }
   ]
 
   const [isLoading, setIsLoading] = useState(false)
@@ -114,9 +112,10 @@ const Register = ({ mode }: { mode: SystemMode }) => {
   const validateEmpresaHorario = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!negocioData.horaApertura) newErrors.horaApertura = 'Requerido'
-    if (!negocioData.horaCierre) newErrors.horaCierre = 'Requerido'
-    if (negocioData.diasLaborables.length === 0) newErrors.diasLaborables = 'Selecciona al menos un día'
+    const hasActiveDay = negocioData.horarios.some(h => h.activo)
+    if (!hasActiveDay) {
+      newErrors.horarios = 'Selecciona al menos un día laborable'
+    }
 
     setErrors(prev => ({ ...prev, ...newErrors }))
 
@@ -128,9 +127,11 @@ const Register = ({ mode }: { mode: SystemMode }) => {
 
     if (!negocioData.nombre.trim()) newErrors.nombreNegocio = 'Requerido'
     if (!negocioData.categoriaServicio) newErrors.categoriaServicio = 'Requerido'
-    if (!negocioData.horaApertura) newErrors.horaApertura = 'Requerido'
-    if (!negocioData.horaCierre) newErrors.horaCierre = 'Requerido'
-    if (negocioData.diasLaborables.length === 0) newErrors.diasLaborables = 'Selecciona al menos un día'
+
+    const hasActiveDay = negocioData.horarios.some(h => h.activo)
+    if (!hasActiveDay) {
+      newErrors.horarios = 'Selecciona al menos un día laborable'
+    }
 
     if (includeSucursal && !negocioData.sucursal.trim()) {
       newErrors.sucursal = 'Requerido'
@@ -215,8 +216,8 @@ const Register = ({ mode }: { mode: SystemMode }) => {
     <div className='flex flex-col justify-center items-center min-bs-[100dvh] bg-backgroundPaper w-full'>
       <Logo />
 
-      <div className='flex justify-center items-center bs-full is-full max-is-[800px] p-4 md:p-12 relative'>
-        <div className='flex flex-col gap-4 is-full mbs-11 sm:mbs-14 md:mbs-0 max-h-[90vh] overflow-y-auto px-1 hide-scrollbar'>
+      <div className='flex justify-center items-center min-bs-full is-full max-is-[800px] p-4 md:p-12 relative'>
+        <div className='flex flex-col gap-4 is-full mbs-11 sm:mbs-14 md:mbs-0 px-1'>
           <div className='flex flex-col gap-1'>
             <Typography variant='h4'>{`Crea tu cuenta en ${themeConfig.templateName} 🚀`}</Typography>
 
@@ -513,71 +514,107 @@ const Register = ({ mode }: { mode: SystemMode }) => {
                 )}
 
                 {activeTab === 1 && (
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in'>
-                    <CustomTextField
-                      fullWidth
-                      label='Hora de Apertura *'
-                      type='time'
-                      value={negocioData.horaApertura}
-                      onChange={e => {
-                        setNegocioData({ ...negocioData, horaApertura: e.target.value })
-                        if (errors.horaApertura) setErrors(prev => ({ ...prev, horaApertura: '' }))
-                      }}
-                      error={!!errors.horaApertura}
-                      helperText={errors.horaApertura}
-                      slotProps={{
-                        input: {
-                          inputProps: { step: 600 }
-                        }
-                      }}
-                    />
-                    <CustomTextField
-                      fullWidth
-                      label='Hora de Cierre *'
-                      type='time'
-                      value={negocioData.horaCierre}
-                      onChange={e => {
-                        setNegocioData({ ...negocioData, horaCierre: e.target.value })
-                        if (errors.horaCierre) setErrors(prev => ({ ...prev, horaCierre: '' }))
-                      }}
-                      error={!!errors.horaCierre}
-                      helperText={errors.horaCierre}
-                      slotProps={{
-                        input: {
-                          inputProps: { step: 600 }
-                        }
-                      }}
-                    />
-
-                    <FormControl fullWidth error={!!errors.diasLaborables} className='md:col-span-2'>
-                      <Typography variant='body2' sx={{ mb: 1 }}>
-                        Días Laborables *
+                  <div className='flex flex-col gap-4 animate-fade-in'>
+                    <div className='flex justify-between items-center bg-actionHover p-3 rounded-lg'>
+                      <Typography variant='subtitle2' color='text.secondary'>
+                        Configura los días y horas que tu negocio estará abierto.
                       </Typography>
-                      <div className='flex flex-wrap gap-2'>
-                        {diasSemana.map(dia => (
-                          <Button
-                            key={dia.value}
-                            variant={negocioData.diasLaborables.includes(dia.value) ? 'contained' : 'outlined'}
-                            size='small'
-                            onClick={() => {
-                              const newDias = negocioData.diasLaborables.includes(dia.value)
-                                ? negocioData.diasLaborables.filter(d => d !== dia.value)
-                                : [...negocioData.diasLaborables, dia.value]
+                      <Tooltip title='Copiar el horario del lunes a todos los días activos'>
+                        <Button
+                          size='small'
+                          variant='tonal'
+                          startIcon={<i className='tabler-copy' />}
+                          onClick={() => {
+                            const monday = negocioData.horarios.find(h => h.diaSemana === 'LUNES')
+                            if (monday) {
+                              const newHorarios = negocioData.horarios.map(h =>
+                                h.activo ? { ...h, horaInicio: monday.horaInicio, horaFin: monday.horaFin } : h
+                              )
+                              setNegocioData({ ...negocioData, horarios: newHorarios })
+                            }
+                          }}
+                        >
+                          Copiar Lunes a todos
+                        </Button>
+                      </Tooltip>
+                    </div>
 
-                              setNegocioData({ ...negocioData, diasLaborables: newDias })
-                              if (errors.diasLaborables) setErrors(prev => ({ ...prev, diasLaborables: '' }))
-                            }}
-                          >
-                            {dia.label}
-                          </Button>
-                        ))}
-                      </div>
-                      {errors.diasLaborables && (
-                        <Typography variant='caption' color='error' sx={{ ml: 2, mt: 0.5 }}>
-                          {errors.diasLaborables}
-                        </Typography>
-                      )}
-                    </FormControl>
+                    <Box className='flex flex-col gap-2'>
+                      {negocioData.horarios.map((horario, index) => (
+                        <Box
+                          key={horario.diaSemana}
+                          className='flex flex-col sm:flex-row items-center gap-3 p-3 rounded-xl border border-divider transition-all hover:border-primary'
+                          sx={{
+                            backgroundColor: horario.activo
+                              ? 'var(--mui-palette-primary-lightOpacity, rgba(102, 108, 255, 0.04))'
+                              : 'transparent',
+                            opacity: horario.activo ? 1 : 0.7
+                          }}
+                        >
+                          <Box className='flex items-center gap-2 min-is-[120px]'>
+                            <Switch
+                              checked={horario.activo}
+                              onChange={e => {
+                                const newHorarios = [...negocioData.horarios]
+                                newHorarios[index].activo = e.target.checked
+                                setNegocioData({ ...negocioData, horarios: newHorarios })
+                                if (errors.horarios) setErrors(prev => ({ ...prev, horarios: '' }))
+                              }}
+                            />
+                            <Typography
+                              variant='body1'
+                              className='font-medium'
+                              color={horario.activo ? 'text.primary' : 'text.disabled'}
+                              sx={{ minWidth: 100 }}
+                            >
+                              {horario.diaSemana === 'MIERCOLES'
+                                ? 'Miércoles'
+                                : horario.diaSemana === 'SABADO'
+                                  ? 'Sábado'
+                                  : horario.diaSemana.charAt(0) + horario.diaSemana.slice(1).toLowerCase()}
+                            </Typography>
+                          </Box>
+
+                          <div className='flex items-center gap-3 flex-1 is-full sm:is-auto'>
+                            <CustomTextField
+                              fullWidth
+                              size='small'
+                              type='time'
+                              label='Apertura'
+                              disabled={!horario.activo}
+                              value={horario.horaInicio}
+                              onChange={e => {
+                                const newHorarios = [...negocioData.horarios]
+                                newHorarios[index].horaInicio = e.target.value
+                                setNegocioData({ ...negocioData, horarios: newHorarios })
+                              }}
+                              slotProps={{ input: { inputProps: { step: 600 } } }}
+                            />
+                            <Typography color='text.secondary'>a</Typography>
+                            <CustomTextField
+                              fullWidth
+                              size='small'
+                              type='time'
+                              label='Cierre'
+                              disabled={!horario.activo}
+                              value={horario.horaFin}
+                              onChange={e => {
+                                const newHorarios = [...negocioData.horarios]
+                                newHorarios[index].horaFin = e.target.value
+                                setNegocioData({ ...negocioData, horarios: newHorarios })
+                              }}
+                              slotProps={{ input: { inputProps: { step: 600 } } }}
+                            />
+                          </div>
+                        </Box>
+                      ))}
+                    </Box>
+
+                    {errors.horarios && (
+                      <Alert severity='error' variant='outlined' className='mt-2'>
+                        {errors.horarios}
+                      </Alert>
+                    )}
                   </div>
                 )}
               </>
@@ -624,7 +661,9 @@ const Register = ({ mode }: { mode: SystemMode }) => {
               <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
                 {isLoading ? (
                   <CircularProgress size={24} color='inherit' />
-                ) : step === 1 || (step === 2 && tipoRegistro === 'empresa') || (step === 3 && tipoRegistro === 'empresa') ? (
+                ) : step === 1 ||
+                  (step === 2 && tipoRegistro === 'empresa') ||
+                  (step === 3 && tipoRegistro === 'empresa') ? (
                   'Siguiente'
                 ) : (
                   'Registrarse'

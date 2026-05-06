@@ -13,7 +13,8 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
     "postinstall": "npm run build:icons",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "prisma:sync": "npx prisma db push && npx prisma generate"
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
