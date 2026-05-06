@@ -25,10 +25,23 @@ export async function POST(request: Request) {
 
     const negocioId = getNegocioId(body, user)
 
+    const { horarios, ...rest } = validatedData
+
     const nuevaSucursal = await prisma.sucursal.create({
       data: {
-        nombre: validatedData.nombre,
-        negocioId
+        ...rest,
+        negocioId,
+        horarioSucursals: {
+          create: horarios?.map(h => ({
+            diaSemana: h.diaSemana,
+            horaInicio: new Date(`1970-01-01T${h.horaInicio}:00Z`),
+            horaFin: new Date(`1970-01-01T${h.horaFin}:00Z`),
+            activo: h.activo
+          }))
+        }
+      },
+      include: {
+        horarioSucursals: true
       }
     })
 
@@ -72,11 +85,10 @@ export async function GET(request: Request) {
         take: limit,
         where,
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          nombre: true,
-          negocioId: true,
-          createdAt: true
+        include: {
+          horarioSucursals: {
+            orderBy: { diaSemana: 'asc' }
+          }
         }
       }),
       prisma.sucursal.count({ where })

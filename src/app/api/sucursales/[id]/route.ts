@@ -23,12 +23,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         id,
         deleted: false
       },
-      select: {
-        id: true,
-        nombre: true,
-        negocioId: true,
-        createdAt: true,
-        updatedAt: true
+      include: {
+        horarioSucursals: {
+          orderBy: { diaSemana: 'asc' }
+        }
       }
     })
 
@@ -53,7 +51,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       stripUnknown: true
     })
 
-    const updateData: any = { nombre: validatedData.nombre }
+    const { horarios, ...rest } = validatedData
+    const updateData: any = { ...rest }
 
     if (body.negocioId) {
       const negocioId = getNegocioId(body, user)
@@ -62,7 +61,21 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const sucursalActualizada = await prisma.sucursal.update({
       where: { id },
-      data: updateData
+      data: {
+        ...updateData,
+        horarioSucursals: {
+          deleteMany: {},
+          create: horarios?.map(h => ({
+            diaSemana: h.diaSemana,
+            horaInicio: new Date(`1970-01-01T${h.horaInicio}:00Z`),
+            horaFin: new Date(`1970-01-01T${h.horaFin}:00Z`),
+            activo: h.activo
+          }))
+        }
+      },
+      include: {
+        horarioSucursals: true
+      }
     })
 
     return successResponse(sucursalActualizada)
