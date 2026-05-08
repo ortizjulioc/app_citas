@@ -105,20 +105,21 @@ export default function EmpleadosList() {
         const res = await fetch(`/api/empleados/${empleado.id}`)
         const json = await res.json()
         if (res.ok) {
+          const fetchedData = json.data || json;
           setInitialData({
-            ...data,
-            horario: data.horarioEmpleados?.map((h: any) => ({
+            ...fetchedData,
+            horario: fetchedData.horarioEmpleados?.map((h: any) => ({
               diaSemana: h.diaSemana,
               horaInicio: h.horaInicio?.substring(0, 5) || '',
               horaFin: h.horaFin?.substring(0, 5) || ''
             })) || [],
-            bloqueos: data.bloqueoHorarios?.map((b: any) => ({
+            bloqueos: fetchedData.bloqueoHorarios?.map((b: any) => ({
               id: b.id,
               inicio: b.inicio?.split('T')[0] || '',
               fin: b.fin?.split('T')[0] || '',
               motivo: b.motivo || ''
             })) || [],
-            servicios: data.comisionEmpleados?.map((c: any) => ({
+            servicios: fetchedData.comisionEmpleados?.map((c: any) => ({
               servicioId: c.servicioId,
               nombre: c.servicio?.nombre || '',
               porcentaje: c.porcentaje
@@ -256,7 +257,7 @@ export default function EmpleadosList() {
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <DialogTitle sx={{ px: 6, py: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant='h5'>{editingId ? 'Editar Perfil de Empleado' : 'Registro de Nuevo Empleado'}</Typography>
+          <Typography variant='h5' component='span'>{editingId ? 'Editar Perfil de Empleado' : 'Registro de Nuevo Empleado'}</Typography>
           <IconButton onClick={handleClose} size='small'>
             <i className='tabler-x' />
           </IconButton>
