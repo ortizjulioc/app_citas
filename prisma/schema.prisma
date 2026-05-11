@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -13,110 +13,218 @@ datasource db {
   provider = "postgresql"
 }
 
-// USUARIOS Y SEGURIDAD 
+// USUARIOS Y SEGURIDAD
 
 model Usuario {
   id        String   @id @default(uuid())
   email     String   @unique
+  negocioId String?
   password  String
   nombre    String
   apellido  String
-  telefono  String
+  telefono  String?
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  notificacions Notificacion[]
+  negocio       Negocio?       @relation(fields: [negocioId], references: [id])
+  usuarioRols   UsuarioRol[]
+  empleados     Empleado[]
+  pagos         Pago[]
+  facturas      Factura[]
+
+  // Sesiones donde el usuario es operador
+  sesionCajas SesionCaja[] @relation("SesionUsuario")
+
+  // Sesiones que abrió
+  CajaAbiertaPor SesionCaja[] @relation("CajaAbiertaPor")
+
+  // Sesiones que cerró
+  CajaCerradaPor SesionCaja[] @relation("CajaCerradaPor")
+  // usuarioNegocios UsuarioNegocio[]
+
+  @@map("usuario")
 }
 
 model Rol {
-  id          String   @id @default(uuid())
-  nombre      String   @unique
+  id          String       @id @default(uuid())
+  nombre      String       @unique
   descripcion String
-  deleted     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  deleted     Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  usuarioRols UsuarioRol[]
+  rolPermisos RolPermiso[]
+
+  @@map("rol")
 }
 
 model UsuarioRol {
   id        String   @id @default(uuid())
-  usuarioId Int
-  rolId     Int
+  usuarioId String
+  rolId     String
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  rol       Rol      @relation(fields: [rolId], references: [id])
+
+  @@unique([usuarioId, rolId])
+  @@index([usuarioId])
+  @@map("usuario_rol")
 }
 
 model Permiso {
-  id          String   @id @default(uuid())
-  nombre      String   @unique
+  id          String       @id @default(uuid())
+  nombre      String       @unique
   descripcion String
-  deleted     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  deleted     Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  rolPermisos RolPermiso[]
+
+  @@map("permiso")
 }
 
 model RolPermiso {
   id        String   @id @default(uuid())
-  rolId     Int
-  permisoId Int
+  rolId     String
+  permisoId String
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  rol       Rol      @relation(fields: [rolId], references: [id])
+  permiso   Permiso  @relation(fields: [permisoId], references: [id])
+
+  @@unique([rolId, permisoId])
+  @@index([rolId, permisoId])
+  @@map("rol_permiso")
 }
 
 // NEGOCIO Y SUCURSALES
 
 model Negocio {
-  id          String     @id @default(uuid())
-  nombre      String
-  descripcion String?
-  RNC         String?
-  telefono    String?
-  email       String?
-  direccion   String?
-  deleted     Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  sucursals   Sucursal[]
+  id                String            @id @default(uuid())
+  nombre            String
+  descripcion       String?
+  RNC               String?
+  telefono          String?
+  email             String?
+  direccion         String?
+  categoriaServicio CategoriaServicio
+
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sucursals           Sucursal[]
+  clienteNegocios     ClienteNegocio[]
+  usuarios            Usuario[]
+  facturas            Factura[]
+  pagos               Pago[]
+  metodoPagos         MetodoPago[]
+  cajas               Caja[]
+  sesionCajas         SesionCaja[]
+  movimientoCajas     MovimientoCaja[]
+  productos           Producto[]
+  movimientoProductos MovimientoProducto[]
+  servicios           Servicio[]
+  empleados           Empleado[]
+
+  @@index([deleted])
+  @@map("negocio")
 }
 
 model Sucursal {
-  id        String     @id @default(uuid())
-  nombre    String     @unique
-  negocioId String
-  deleted   Boolean    @default(false)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  negocio   Negocio    @relation(fields: [negocioId], references: [id])
-  servicios Servicio[]
-  citas     Cita[]
-  facturas  Factura[]
-  productos Producto[]
+  id                String             @id @default(uuid())
+  nombre            String
+  negocioId         String
+  deleted           Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  negocio           Negocio            @relation(fields: [negocioId], references: [id])
+  citas             Cita[]
+  facturas          Factura[]
+  productos         Producto[]
+  cajas             Caja[]
+  empleados         Empleado[]
+  horarioSucursals  HorarioSucursal[]
+  servicioSucursals ServicioSucursal[]
+
+  @@unique([negocioId, nombre])
+  @@map("sucursal")
+}
+
+model HorarioSucursal {
+  id         String @id @default(uuid())
+  sucursalId String
+
+  diaSemana DiaSemana
+
+  horaInicio DateTime @db.Time
+  horaFin    DateTime @db.Time
+
+  activo Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sucursal Sucursal @relation(fields: [sucursalId], references: [id], onDelete: Cascade)
+
+  @@index([sucursalId, diaSemana])
+  @@map("horarios_sucursal")
 }
 
 // CLIENTES
 
 model Cliente {
-  id              String    @id @default(uuid())
+  id              String           @id @default(uuid())
   nombre          String
   apellido        String
-  telefono        String
-  email           String
+  telefono        String?
+  email           String?
   fechaNacimiento DateTime?
   direccion       String?
   notas           String?
-  deleted         Boolean   @default(false)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  deleted         Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   citas           Cita[]
   facturas        Factura[]
+  clienteNegocios ClienteNegocio[]
+
+  @@index([telefono])
+  @@map("cliente")
+}
+
+model ClienteNegocio {
+  id        String @id @default(uuid())
+  clienteId String
+  negocioId String
+
+  totalGastado Float     @default(0)
+  ultimaVisita DateTime?
+  notas        String?
+
+  cliente Cliente @relation(fields: [clienteId], references: [id])
+  negocio Negocio @relation(fields: [negocioId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([clienteId, negocioId])
+  @@index([negocioId])
+  @@index([clienteId])
+  @@map("cliente_negocio")
 }
 
 // EMPLEADOS
 
 model Empleado {
-  id                String             @id @default(uuid())
+  id                String      @id @default(uuid())
   usuarioId         String?
   sucursalId        String
+  negocioId         String
   nombre            String
   apellido          String
   telefono          String
@@ -124,23 +232,54 @@ model Empleado {
   tipoSalario       TipoSalario
   salarioBase       Float?
   fechaContratacion DateTime?
-  deleted           Boolean            @default(false)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  deleted           Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
   comisionEmpleados ComisionEmpleado[]
   servicioEmpleados ServicioEmpleado[]
   citas             Cita[]
+  nominas           Nomina[]
+  horarioEmpleados  HorarioEmpleado[]
+  usuario           Usuario?           @relation(fields: [usuarioId], references: [id])
+  sucursal          Sucursal           @relation(fields: [sucursalId], references: [id])
+  bloqueoHorarios   BloqueoHorario[]
+  negocio           Negocio            @relation(fields: [negocioId], references: [id])
+
+  @@index([sucursalId])
+  @@index([usuarioId])
+  @@map("empleado")
+}
+
+model BloqueoHorario {
+  id         String   @id @default(uuid())
+  empleadoId String
+  inicio     DateTime
+  fin        DateTime
+  motivo     String?
+  deleted    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  empleado   Empleado @relation(fields: [empleadoId], references: [id])
+
+  @@index([empleadoId])
+  @@map("bloqueo_horario")
 }
 
 model HorarioEmpleado {
   id         String    @id @default(uuid())
   empleadoId String
   diaSemana  DiaSemana
-  horaInicio String
-  horaFin    String
+  horaInicio DateTime  @db.Time
+  horaFin    DateTime  @db.Time
   deleted    Boolean   @default(false)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+
+  empleado Empleado @relation(fields: [empleadoId], references: [id])
+
+  @@index([empleadoId])
+  @@map("horario_empleado")
 }
 
 model ComisionEmpleado {
@@ -154,28 +293,48 @@ model ComisionEmpleado {
 
   empleado Empleado @relation(fields: [empleadoId], references: [id])
   servicio Servicio @relation(fields: [servicioId], references: [id])
+
+  @@index([empleadoId])
+  @@index([servicioId])
+  @@map("comision_empleado")
 }
 
-// SERVICIOS
-
 model Servicio {
-  id              String   @id @default(uuid())
-  sucursalId      String
+  id              String  @id @default(uuid())
+  negocioId       String
   nombre          String
   descripcion     String?
-  precio          Float?
-  costo           Float?
-  activo          Boolean  @default(true)
   duracionMinutos Int
-  deleted         Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  sucursal        Sucursal @relation(fields: [sucursalId], references: [id])
+  deleted         Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  negocio   Negocio  @relation(fields: [negocioId], references: [id])
 
   comisionEmpleados ComisionEmpleado[]
   servicioEmpleados ServicioEmpleado[]
   servicioCitas     ServicioCita[]
   detalleFacturas   DetalleFactura[]
+  servicioSucursals ServicioSucursal[]
+
+  @@map("servicio")
+}
+
+model ServicioSucursal {
+  id         String  @id @default(uuid())
+  servicioId String
+  sucursalId String
+  precio     Float?
+  costo      Float?
+  activo     Boolean @default(true)
+
+  servicio Servicio @relation(fields: [servicioId], references: [id])
+  sucursal Sucursal @relation(fields: [sucursalId], references: [id])
+
+  @@unique([servicioId, sucursalId])
+  @@index([servicioId])
+  @@index([sucursalId])
+  @@map("servicio_sucursal")
 }
 
 model ServicioEmpleado {
@@ -188,6 +347,10 @@ model ServicioEmpleado {
 
   servicio Servicio @relation(fields: [servicioId], references: [id])
   empleado Empleado @relation(fields: [empleadoId], references: [id])
+
+  @@index([servicioId])
+  @@index([empleadoId])
+  @@map("servicio_empleado")
 }
 
 // AGENDA/CITAS
@@ -197,19 +360,37 @@ model Cita {
   clienteId  String
   empleadoId String
   sucursalId String
-  fecha      DateTime
-  horaInicio String
-  horaFin    String
+  inicio     DateTime
+  fin        DateTime
   estado     EstadoCita
   deleted    Boolean    @default(false)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
-  cliente       Cliente        @relation(fields: [clienteId], references: [id])
-  empleado      Empleado       @relation(fields: [empleadoId], references: [id])
-  sucursal      Sucursal       @relation(fields: [sucursalId], references: [id])
-  servicioCitas ServicioCita[]
-  facturas      Factura[]
+  cliente        Cliente         @relation(fields: [clienteId], references: [id])
+  empleado       Empleado        @relation(fields: [empleadoId], references: [id])
+  sucursal       Sucursal        @relation(fields: [sucursalId], references: [id])
+  servicioCitas  ServicioCita[]
+  facturas       Factura[]
+  historialCitas HistorialCita[]
+
+  @@unique([empleadoId, inicio])
+  @@index([clienteId])
+  @@index([empleadoId])
+  @@index([sucursalId])
+  @@map("cita")
+}
+
+model HistorialCita {
+  id     String     @id @default(uuid())
+  citaId String
+  estado EstadoCita
+  fecha  DateTime   @default(now())
+  nota   String?
+
+  cita Cita @relation(fields: [citaId], references: [id])
+
+  @@map("historial_cita")
 }
 
 model ServicioCita {
@@ -222,98 +403,157 @@ model ServicioCita {
 
   cita     Cita     @relation(fields: [citaId], references: [id])
   servicio Servicio @relation(fields: [servicioId], references: [id])
+
+  @@unique([citaId, servicioId])
+  @@map("servicio_cita")
 }
 
-// FACTURACION 
+// FACTURACION
 
 model Factura {
   id            String        @id @default(uuid())
+  numeroFactura String
   clienteId     String
-  citaId        String
+  citaId        String?
   sucursalId    String
-  numeroFactura String?
   subtotal      Float
   impuestos     Float
-  descuentos    Float?
-  total         Float
+  descuentos    Float
   estado        EstadoFactura
-  deleted       Boolean       @default(false)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  negocioId     String
+  negocio       Negocio       @relation(fields: [negocioId], references: [id])
 
-  cita            Cita             @relation(fields: [citaId], references: [id])
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
+  usuario         Usuario          @relation(fields: [createdBy], references: [id])
   cliente         Cliente          @relation(fields: [clienteId], references: [id])
   sucursal        Sucursal         @relation(fields: [sucursalId], references: [id])
   detalleFacturas DetalleFactura[]
   pagos           Pago[]
+  cita            Cita?            @relation(fields: [citaId], references: [id])
+
+  @@index([clienteId])
+  @@index([citaId])
+  @@index([sucursalId])
+  @@index([numeroFactura])
+  @@map("factura")
 }
 
 model DetalleFactura {
-  id         String   @id @default(uuid())
-  facturaId  String
-  servicioId String
-  cantidad   Int
-  precio     Float
-  subtotal   Float
-  total      Float
-  deleted    Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String  @id @default(uuid())
+  facturaId   String
+  servicioId  String
+  descripcion String?
+  cantidad    Int
+  precio      Float
+  subtotal    Float
+
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   factura  Factura  @relation(fields: [facturaId], references: [id])
   servicio Servicio @relation(fields: [servicioId], references: [id])
+
+  @@unique([facturaId, servicioId])
+  @@map("detalle_factura")
 }
 
-// PAGOS 
+// PAGOS
 
 model Pago {
-  id           String   @id @default(uuid())
+  id           String  @id @default(uuid())
   facturaId    String
   metodoPagoId String
   monto        Float
   referencia   String?
-  deleted      Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  negocioId    String
+  negocio      Negocio @relation(fields: [negocioId], references: [id])
+
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
 
   factura    Factura    @relation(fields: [facturaId], references: [id])
   metodoPago MetodoPago @relation(fields: [metodoPagoId], references: [id])
+  usuario    Usuario?   @relation(fields: [createdBy], references: [id])
+
+  @@index([facturaId])
+  @@map("pago")
 }
 
 model MetodoPago {
-  id          String   @id @default(uuid())
-  nombre      String   @unique
+  id          String  @id @default(uuid())
+  nombre      String  @unique
   descripcion String?
-  deleted     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  pagos       Pago[]
+  negocioId   String
+  negocio     Negocio @relation(fields: [negocioId], references: [id])
+
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pagos     Pago[]
+
+  @@map("metodo_pago")
 }
 
-// CAJA 
+// CAJA
 
 model Caja {
   id         String     @id @default(uuid())
   sucursalId String
   nombre     String
   estado     EstadoCaja
-  deleted    Boolean    @default(false)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  negocioId  String
+  negocio    Negocio    @relation(fields: [negocioId], references: [id])
+
+  deleted     Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sucursal    Sucursal     @relation(fields: [sucursalId], references: [id])
+  sesionCajas SesionCaja[]
+
+  @@map("caja")
 }
 
 model SesionCaja {
-  id               String   @id @default(uuid())
-  cajaId           String
-  abiertoPor       String?
-  cerradoPor       String?
+  id           String  @id @default(uuid())
+  cajaId       String
+  usuarioId    String?
+  abiertoPorId String?
+  cerradoPorId String?
+
   cantidadApertura Float
   cantidadAlCerrar Float
-  horaApetura      DateTime
-  horaCerradura    DateTime
-  deleted          Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+
+  horaApertura DateTime
+  horaCierre   DateTime?
+
+  negocioId String
+  negocio   Negocio @relation(fields: [negocioId], references: [id])
+
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  caja Caja @relation(fields: [cajaId], references: [id])
+
+  movimientoCajas MovimientoCaja[]
+
+  // quien abrió la caja
+  abiertoPor Usuario? @relation("CajaAbiertaPor", fields: [abiertoPorId], references: [id])
+
+  // quien cerró la caja
+  cerradoPor Usuario? @relation("CajaCerradaPor", fields: [cerradoPorId], references: [id])
+
+  // usuario que operó la sesión
+  usuario Usuario? @relation("SesionUsuario", fields: [usuarioId], references: [id])
+
+  @@map("sesion_caja")
 }
 
 model MovimientoCaja {
@@ -323,76 +563,117 @@ model MovimientoCaja {
   cantidad     Float
   descripcion  String?
   referenciaId String?
-  deleted      Boolean            @default(false)
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  negocioId    String
+  negocio      Negocio            @relation(fields: [negocioId], references: [id])
+
+  deleted    Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  sesionCaja SesionCaja @relation(fields: [sesionCajaId], references: [id])
+
+  @@index([sesionCajaId])
+  @@map("movimiento_caja")
 }
 
 // PRODUCTOS
 
 model Producto {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   sucursalId  String
   nombre      String
   descripcion String?
   precio      Float
-  costo       String
-  stock       String
-  deleted     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  sucursal    Sucursal @relation(fields: [sucursalId], references: [id])
+  costo       Float
+  stock       Int
+  negocioId   String
+  negocio     Negocio @relation(fields: [negocioId], references: [id])
+
+  deleted              Boolean              @default(false)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  sucursal             Sucursal             @relation(fields: [sucursalId], references: [id])
+  movimientosProductos MovimientoProducto[]
+
+  @@index([sucursalId])
+  @@map("producto")
 }
 
-model MoviminetoProducto {
-  id         String         @id @default(uuid())
-  productoId String
-  tipo       tipoMovimiento
-  cantidad   String
-  referencia String
-  deleted    Boolean        @default(false)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-}
+model MovimientoProducto {
+  id               String         @id @default(uuid())
+  productoId       String
+  tipo             TipoMovimiento
+  cantidadAnterior Int
+  cantidad         Int
+  cantidadNueva    Int
+  referencia       String
+  negocioId        String
+  negocio          Negocio        @relation(fields: [negocioId], references: [id])
 
-//NOMINA 
-model PeriodoNomina {
-  id          String   @id @default(uuid())
-  fechaInicio DateTime
-  fechaFin    DateTime
-  estado      String?
-}
-
-model Nomina {
-  id              String   @id @default(uuid())
-  empleadoId      String
-  periodonominaId String
-  salarioBase     Float
-  comision        String
-  bonos           Float?
-  total           Float
-  deleted         Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model DetalleNomina {
-  id          String @id @default(uuid())
-  nominaId    String
-  tipo        String
-  descripcion String
-  cantidad    String
-}
-
-model notificacion {
-  id        String   @id @default(uuid())
-  userId    String
-  titulo    String
-  mensaje   String
-  leido     String
   deleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  producto  Producto @relation(fields: [productoId], references: [id])
+
+  @@index([productoId])
+  @@map("movimiento_producto")
+}
+
+//NOMINA
+model PeriodoNomina {
+  id          String               @id @default(uuid())
+  fechaInicio DateTime
+  fechaFin    DateTime
+  estado      EstadoPeriodoNomina?
+  nominas     Nomina[]
+
+  @@map("periodo_nomina")
+}
+
+model Nomina {
+  id              String          @id @default(uuid())
+  empleadoId      String
+  periodonominaId String
+  salarioBase     Float
+  comision        Float
+  bonos           Float?
+  total           Float
+  deleted         Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  empleado        Empleado        @relation(fields: [empleadoId], references: [id])
+  periodoNomina   PeriodoNomina   @relation(fields: [periodonominaId], references: [id])
+  detalleNominas  DetalleNomina[]
+
+  @@index([empleadoId])
+  @@index([periodonominaId])
+  @@map("nomina")
+}
+
+model DetalleNomina {
+  id          String            @id @default(uuid())
+  nominaId    String
+  tipo        TipoDetalleNomina
+  descripcion String
+  cantidad    Float
+  nomina      Nomina            @relation(fields: [nominaId], references: [id])
+
+  @@index([nominaId])
+  @@map("detalle_nomina")
+}
+
+// NOTIFICACIONES
+model Notificacion {
+  id        String   @id @default(uuid())
+  usuarioId String
+  titulo    String
+  mensaje   String
+  leido     Boolean  @default(false)
+  deleted   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@map("notificacion")
 }
 
 //*************************************************************************************************
@@ -435,7 +716,32 @@ enum TipoMovimientoCaja {
   GASTO
 }
 
-enum tipoMovimiento {
+enum TipoMovimiento {
   ENTRADA
   SALIDA
+  AJUSTE
+}
+
+enum TipoDetalleNomina {
+  INGRESO
+  DEDUCCIONaun
+  AJUSTE
+}
+
+enum EstadoPeriodoNomina {
+  ABIERTO
+  CERRADO
+  PAGADO
+}
+
+enum CategoriaServicio {
+  SALUD
+  BELLEZA
+  AUTOMOTRIZ
+  PROFESIONAL
+  EDUCACION
+  HOGAR
+  TECNOLOGIA
+  FITNESS
+  OTROS
 }

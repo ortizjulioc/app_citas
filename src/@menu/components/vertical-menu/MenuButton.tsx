@@ -1,5 +1,5 @@
 // React Imports
-import { cloneElement, createElement, forwardRef } from 'react'
+import React, { cloneElement, createElement, forwardRef } from 'react'
 import type { ForwardRefRenderFunction } from 'react'
 
 // Third-party Imports
@@ -79,18 +79,15 @@ const MenuButton: ForwardRefRenderFunction<HTMLAnchorElement, MenuButtonProps> =
       )
     } else {
       // Otherwise, clone the element
-      const { className: classNameProp, ...props } = component.props
+      const componentAny = component as React.ReactElement<Record<string, unknown>>
+      const classNameProp = (componentAny.props as { className?: string })?.className
 
-      return cloneElement(
-        component,
-        {
-          className: classnames(className, classNameProp),
-          ...rest,
-          ...props,
-          ref
-        },
-        children
-      )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return cloneElement(component as any, {
+        className: classnames(className, classNameProp),
+        ...rest,
+        ref
+      }, children)
     }
   } else {
     // If there is no component but href is defined, render RouterLink
