@@ -32,16 +32,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const body = await request.json()
     const { accion, inicio, fin } = body
 
-    const cliente = await prisma.cliente.findFirst({
-      where: { email: user.email, deleted: false }
-    })
 
-    if (!cliente) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'No autorizado' } },
-        { status: 401 }
-      )
-    }
 
     const cita = await prisma.cita.findFirst({
       where: {

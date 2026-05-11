@@ -34,7 +34,8 @@ export async function GET(
       return badRequestResponse('Fecha requerida')
     }
 
-    const fechaDate = new Date(fecha)
+    const [year, month, day] = fecha.split('-').map(Number)
+    const fechaDate = new Date(year, month - 1, day)
     const diaSemana = getDiaSemana(fechaDate)
 
     const sucursal = await prisma.sucursal.findFirst({
