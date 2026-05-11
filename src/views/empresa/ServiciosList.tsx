@@ -380,13 +380,15 @@ export default function ServiciosList() {
                         <Box display='flex' flexWrap='wrap' gap={1}>
                           {s.servicioSucursals.map(ss => (
                             <Tooltip key={ss.id} title={ss.activo ? 'Activo' : 'Inactivo'} arrow>
-                              <Chip
-                                size='small'
-                                label={`${ss.sucursal.nombre}: ${formatCurrency(ss.precio)}`}
-                                color={ss.activo ? 'success' : 'default'}
-                                variant={ss.activo ? 'tonal' : 'outlined'}
-                                sx={{ borderRadius: 1 }}
-                              />
+                              <span>
+                                <Chip
+                                  size='small'
+                                  label={`${ss.sucursal.nombre}: ${formatCurrency(ss.precio)}`}
+                                  color={ss.activo ? 'success' : 'default'}
+                                  variant={ss.activo ? 'tonal' : 'outlined'}
+                                  sx={{ borderRadius: 1 }}
+                                />
+                              </span>
                             </Tooltip>
                           ))}
                         </Box>
@@ -575,9 +577,11 @@ export default function ServiciosList() {
                       </Grid>
                       <Grid size={{ xs: 2 }}>
                         <Tooltip title='Aplicar a seleccionados'>
-                          <IconButton color='primary' onClick={handleApplyBulk} disabled={!bulkPrice && !bulkCosto}>
-                            <i className='tabler-check' />
-                          </IconButton>
+                          <span>
+                            <IconButton color='primary' onClick={handleApplyBulk} disabled={!bulkPrice && !bulkCosto}>
+                              <i className='tabler-check' />
+                            </IconButton>
+                          </span>
                         </Tooltip>
                       </Grid>
                     </Grid>
