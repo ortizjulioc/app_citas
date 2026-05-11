@@ -30,6 +30,32 @@ export function handleApiError(error: unknown) {
     )
   }
 
+  if ((error as any)?.name === 'PrismaClientValidationError') {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Error de validación en la consulta a la base de datos'
+        }
+      },
+      { status: 400 }
+    )
+  }
+
+  if ((error as any)?.name === 'PrismaClientValidationError') {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Error de validación en la consulta a la base de datos'
+        }
+      },
+      { status: 400 }
+    )
+  }
+
   if ((error as any)?.code?.startsWith('P')) {
     const prismaError = error as { code: string; message: string; meta?: any }
 
@@ -64,7 +90,8 @@ export function handleApiError(error: unknown) {
     }
   }
 
-  console.error('Error no manejado:', error)
+  const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+  console.error('Error no manejado:', errorMessage)
 
   return NextResponse.json(
     {

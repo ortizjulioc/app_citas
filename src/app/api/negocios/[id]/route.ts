@@ -47,14 +47,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       stripUnknown: true
     })
 
-    const updateData: any = { ...validatedData }
-    if (validatedData.diasLaborables) {
-      updateData.diasLaborables = validatedData.diasLaborables as string[]
-    }
-
     const negocioActualizado = await prisma.negocio.update({
       where: { id },
-      data: updateData
+      data: validatedData
     })
 
     return successResponse(negocioActualizado)

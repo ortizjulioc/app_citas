@@ -1,5 +1,5 @@
 import prisma from '@/utils/lib/prisma'
-import { handleApiError, successResponse, notFoundResponse } from '@/utils/api-response'
+import { handleApiError, successResponse, notFoundResponse, badRequestResponse } from '@/utils/api-response'
 
 const DIA_SEMANA_MAP: Record<number, string> = {
   0: 'DOMINGO',
@@ -30,40 +30,19 @@ export async function GET(
     const duracion = parseInt(searchParams.get('duracion') || '60')
 
     if (!fecha) {
-      return handleApiError(new Error('Fecha requerida'))
+      return badRequestResponse('Fecha requerida')
     }
 
     const fechaDate = new Date(fecha)
     const diaSemana = getDiaSemana(fechaDate)
 
     const sucursal = await prisma.sucursal.findFirst({
-      where: { id: sucursalId, deleted: false },
-      include: {
-        negocio: {
-          select: {
-            horaApertura: true,
-            horaCierre: true,
-            diasLaborables: true
-          }
-        }
-      }
+      where: { id: sucursalId, deleted: false }
     })
 
     if (!sucursal) {
       return notFoundResponse('Sucursal no encontrada')
     }
-
-    const { horaApertura, horaCierre, diasLaborables } = sucursal.negocio
-    if (!diasLaborables.includes(diaSemana)) {
-      return successResponse({
-        disponibles: false,
-        mensaje: 'La empresa no labora este día',
-        empleados: []
-      })
-    }
-
-    const inicioDia = timeToMinutes(horaApertura)
-    const finDia = timeToMinutes(horaCierre)
 
     const empleados = await prisma.empleado.findMany({
       where: {
@@ -114,8 +93,8 @@ export async function GET(
             deleted: false,
             estado: { not: 'CANCELADA' },
             inicio: {
-              gte: new Date(fechaDate.setHours(0, 0, 0, 0)),
-              lt: new Date(fechaDate.setHours(23, 59, 59, 999))
+              gte: new Date(fechaDate.getTime()),
+              lt: new Date(fechaDate.getTime() + 24 * 60 * 60 * 1000)
             }
           },
           select: {
@@ -124,13 +103,10 @@ export async function GET(
           }
         })
 
-        const trabajoInicio = Math.max(inicio, inicioDia)
-        const trabajoFin = Math.min(fin, finDia)
-
         const slots: { inicio: string; fin: string }[] = []
 
-        for (let time = trabajoInicio; time + duracion <= trabajoFin; time += 30) {
-          const slotInicio = new Date(fecha)
+        for (let time = inicio; time + duracion <= fin; time += 30) {
+          const slotInicio = new Date(fechaDate.getTime())
           slotInicio.setHours(Math.floor(time / 60), time % 60, 0, 0)
 
           const slotFin = new Date(slotInicio)

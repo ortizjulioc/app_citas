@@ -12,13 +12,8 @@ export async function POST(request: Request) {
       stripUnknown: true
     })
 
-    const createData: any = { ...validatedData }
-    if (validatedData.diasLaborables) {
-      createData.diasLaborables = validatedData.diasLaborables as string[]
-    }
-
     const nuevoNegocio = await prisma.negocio.create({
-      data: createData
+      data: validatedData
     })
 
     return createdResponse(nuevoNegocio)
