@@ -68,7 +68,7 @@ const estadoColores: Record<string, string> = {
 }
 
 export default function EmpresaCitasPage() {
-  const { isAuthenticated, hasRole, isLoading, user } = useAuth()
+  const { isAuthenticated, hasRole, isLoading, user, token } = useAuth()
 
   const [citas, setCitas] = useState<Cita[]>([])
   const [loading, setLoading] = useState(true)
@@ -112,7 +112,9 @@ export default function EmpresaCitasPage() {
 
   const fetchSucursales = async () => {
     try {
-      const res = await fetch('/api/sucursales')
+      const res = await fetch('/api/sucursales', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       const data = await res.json()
       if (data.success && data.data?.sucursales) {
         setSucursales(data.data.sucursales)

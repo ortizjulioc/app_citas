@@ -20,7 +20,6 @@ import TextField from '@mui/material/TextField'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import FormLabel from '@mui/material/FormLabel'
 import Alert from '@mui/material/Alert'
 import Stepper from '@mui/material/Stepper'
 import Step from '@mui/material/Step'
@@ -38,10 +37,15 @@ interface Negocio {
   email: string | null
   direccion: string | null
   categoriaServicio: string
-  horaApertura: string
-  horaCierre: string
-  diasLaborables: string[]
-  sucursals: { id: string; nombre: string; direccion: string | null }[]
+  sucursals: { id: string; nombre: string }[]
+}
+
+interface Servicio {
+  id: string
+  nombre: string
+  descripcion: string | null
+  duracionMinutos: number
+  precio: number | null
 }
 
 interface HorarioSlot {
@@ -61,7 +65,7 @@ interface Disponibilidad {
   empleadosDisponibles: number
 }
 
-const steps = ['Sucursal', 'Fecha y Hora', 'Confirmar']
+const steps = ['Sucursal', 'Servicio', 'Fecha y Hora', 'Confirmar']
 
 const categoriaColores: Record<string, string> = {
   SALUD: '#4caf50',
@@ -87,6 +91,9 @@ export default function EmpresaDetallePage() {
   const [submitting, setSubmitting] = useState(false)
 
   const [sucursalId, setSucursalId] = useState('')
+  const [servicios, setServicios] = useState<Servicio[]>([])
+  const [loadingServicios, setLoadingServicios] = useState(false)
+  const [selectedServicioId, setSelectedServicioId] = useState('')
   const [selectedEmpleadoId, setSelectedEmpleadoId] = useState<string | 'cualquiera'>('cualquiera')
   const [fecha, setFecha] = useState('')
   const [horarioSeleccionado, setHorarioSeleccionado] = useState<{ inicio: string; fin: string } | null>(null)
@@ -125,8 +132,34 @@ export default function EmpresaDetallePage() {
     }
   }, [isAuthenticated, hasRole, negocioId, fetchNegocio])
 
+  useEffect(() => {
+    if (sucursalId) {
+      fetchServicios()
+      setSelectedServicioId('')
+      setSelectedEmpleadoId('cualquiera')
+      setFecha('')
+      setDisponibilidad(null)
+      setHorarioSeleccionado(null)
+    }
+  }, [sucursalId])
+
+  const fetchServicios = async () => {
+    setLoadingServicios(true)
+    try {
+      const res = await fetch(`/api/servicios?sucursalId=${sucursalId}&limit=100`)
+      const data = await res.json()
+      if (res.ok) {
+        setServicios(data.data?.servicios || [])
+      }
+    } catch (err) {
+      console.error('Error fetching servicios', err)
+    } finally {
+      setLoadingServicios(false)
+    }
+  }
+
   const fetchDisponibilidad = async () => {
-    if (!sucursalId || !fecha) return
+    if (!sucursalId || !fecha || !selectedServicioId) return
 
     setLoadingDisponibilidad(true)
     setError('')
@@ -134,7 +167,10 @@ export default function EmpresaDetallePage() {
     setHorarioSeleccionado(null)
 
     try {
-      const res = await fetch(`/api/public/sucursales/${sucursalId}/disponibilidad?fecha=${fecha}&duracion=60`)
+      const selectedServicio = servicios.find(s => s.id === selectedServicioId)
+      const duracion = selectedServicio?.duracionMinutos || 60
+
+      const res = await fetch(`/api/public/sucursales/${sucursalId}/disponibilidad?fecha=${fecha}&duracion=${duracion}&servicioId=${selectedServicioId}`)
       const data = await res.json()
 
       if (data.success) {
@@ -158,12 +194,19 @@ export default function EmpresaDetallePage() {
       setError('')
       setActiveStep(1)
     } else if (activeStep === 1) {
+      if (!selectedServicioId) {
+        setError('Selecciona un servicio')
+        return
+      }
+      setError('')
+      setActiveStep(2)
+    } else if (activeStep === 2) {
       if (!fecha || !horarioSeleccionado) {
         setError('Selecciona una fecha y hora')
         return
       }
       setError('')
-      setActiveStep(2)
+      setActiveStep(3)
     }
   }
 
@@ -173,7 +216,7 @@ export default function EmpresaDetallePage() {
   }
 
   const handleSubmit = async () => {
-    if (!negocio || !sucursalId || !horarioSeleccionado || !user) return
+    if (!negocio || !sucursalId || !horarioSeleccionado || !user || !selectedServicioId) return
 
     setSubmitting(true)
     setError('')
@@ -193,7 +236,8 @@ export default function EmpresaDetallePage() {
           clienteApellido: user.apellido,
           clienteTelefono: user.telefono || null,
           inicio: horarioSeleccionado.inicio,
-          fin: horarioSeleccionado.fin
+          fin: horarioSeleccionado.fin,
+          servicioIds: [selectedServicioId]
         })
       })
 
@@ -205,31 +249,13 @@ export default function EmpresaDetallePage() {
           router.push('/cliente/citas')
         }, 2000)
       } else {
-        setError(data.message || 'Error al agendar la cita')
+        setError(data.message || data.error?.message || 'Error al agendar la cita')
       }
     } catch (err) {
       setError('Error al agendar la cita')
     } finally {
       setSubmitting(false)
     }
-  }
-
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':')
-    return `${hours}:${minutes}`
-  }
-
-  const formatDias = (dias: string[]) => {
-    const diasMap: Record<string, string> = {
-      LUNES: 'Lunes',
-      MARTES: 'Martes',
-      MIERCOLES: 'Miércoles',
-      JUEVES: 'Jueves',
-      VIERNES: 'Viernes',
-      SABADO: 'Sábado',
-      DOMINGO: 'Domingo'
-    }
-    return dias.map(d => diasMap[d]).join(', ')
   }
 
   const formatDateTime = (iso: string) => {
@@ -243,6 +269,11 @@ export default function EmpresaDetallePage() {
   const getMinDate = () => {
     const today = new Date()
     return today.toISOString().split('T')[0]
+  }
+
+  const formatPrecio = (precio: number | null) => {
+    if (precio === null || precio === undefined) return 'Precio no disponible'
+    return new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(precio)
   }
 
   if (isLoading || !isAuthenticated || !hasRole('cliente')) {
@@ -308,10 +339,10 @@ export default function EmpresaDetallePage() {
             </Grid>
             <Grid item xs={12} md={6}>
               <Typography variant='body2'>
-                <strong>Horario:</strong> {formatTime(negocio.horaApertura)} - {formatTime(negocio.horaCierre)}
+                <strong>Teléfono:</strong> {negocio.telefono || 'No disponible'}
               </Typography>
               <Typography variant='body2'>
-                <strong>Días:</strong> {formatDias(negocio.diasLaborables)}
+                <strong>Email:</strong> {negocio.email || 'No disponible'}
               </Typography>
             </Grid>
           </Grid>
@@ -355,7 +386,7 @@ export default function EmpresaDetallePage() {
                 >
                   {negocio.sucursals.map((s) => (
                     <MenuItem key={s.id} value={s.id}>
-                      {s.nombre} - {s.direccion || 'Sin dirección'}
+                      {s.nombre}
                     </MenuItem>
                   ))}
                 </Select>
@@ -364,6 +395,84 @@ export default function EmpresaDetallePage() {
           )}
 
           {activeStep === 1 && (
+            <Box>
+              {loadingServicios ? (
+                <Box display='flex' justifyContent='center' py={4}>
+                  <CircularProgress />
+                </Box>
+              ) : servicios.length === 0 ? (
+                <Alert severity='info'>No hay servicios disponibles en esta sucursal</Alert>
+              ) : (
+                <FormControl component='fieldset' fullWidth>
+                  <Typography variant='subtitle1' gutterBottom>
+                    Selecciona un servicio:
+                  </Typography>
+                  <RadioGroup
+                    value={selectedServicioId}
+                    onChange={(e) => {
+                      setSelectedServicioId(e.target.value)
+                      setSelectedEmpleadoId('cualquiera')
+                      setDisponibilidad(null)
+                      setHorarioSeleccionado(null)
+                    }}
+                  >
+                    {servicios.map((servicio) => (
+                      <Card
+                        key={servicio.id}
+                        variant='outlined'
+                        sx={{
+                          mb: 2,
+                          borderColor: selectedServicioId === servicio.id ? 'primary.main' : 'divider',
+                          borderWidth: selectedServicioId === servicio.id ? 2 : 1,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          '&:hover': { borderColor: 'primary.light' }
+                        }}
+                        onClick={() => {
+                          setSelectedServicioId(servicio.id)
+                          setSelectedEmpleadoId('cualquiera')
+                          setDisponibilidad(null)
+                          setHorarioSeleccionado(null)
+                        }}
+                      >
+                        <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                          <FormControlLabel
+                            value={servicio.id}
+                            control={<Radio />}
+                            label={
+                              <Box display='flex' justifyContent='space-between' alignItems='center' width='100%'>
+                                <Box>
+                                  <Typography variant='subtitle1' fontWeight={600}>
+                                    {servicio.nombre}
+                                  </Typography>
+                                  {servicio.descripcion && (
+                                    <Typography variant='body2' color='text.secondary'>
+                                      {servicio.descripcion}
+                                    </Typography>
+                                  )}
+                                  <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>
+                                    Duración: {servicio.duracionMinutos} minutos
+                                  </Typography>
+                                </Box>
+                                <Box textAlign='right'>
+                                  <Typography variant='h6' color='primary'>
+                                    {formatPrecio(servicio.precio)}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            }
+                            sx={{ width: '100%', mr: 0, alignItems: 'flex-start' }}
+                          />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+              )}
+            </Box>
+          )}
+
+          {activeStep === 2 && (
             <Box>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
@@ -376,6 +485,7 @@ export default function EmpresaDetallePage() {
                       setFecha(e.target.value)
                       setHorarioSeleccionado(null)
                     }}
+                    InputLabelProps={{ shrink: true }}
                     inputProps={{
                       min: getMinDate()
                     }}
@@ -407,7 +517,7 @@ export default function EmpresaDetallePage() {
                   </Grid>
                 )}
 
-                {fecha && (
+                {fecha && selectedServicioId && (
                   <Grid item xs={12}>
                     <Button
                       variant='contained'
@@ -478,7 +588,7 @@ export default function EmpresaDetallePage() {
             </Box>
           )}
 
-          {activeStep === 2 && (
+          {activeStep === 3 && (
             <Box>
               <Typography variant='h6' gutterBottom>
                 Confirmar cita
@@ -489,6 +599,15 @@ export default function EmpresaDetallePage() {
                     <i className='tabler-building-store' />
                   </ListItemIcon>
                   <ListItemText primary='Sucursal' secondary={negocio.sucursals.find((s) => s.id === sucursalId)?.nombre} />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <i className='tabler-scissors' />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary='Servicio'
+                    secondary={servicios.find((s) => s.id === selectedServicioId)?.nombre}
+                  />
                 </ListItem>
                 <ListItem>
                   <ListItemIcon>

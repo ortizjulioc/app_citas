@@ -28,6 +28,7 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const fecha = searchParams.get('fecha')
     const duracion = parseInt(searchParams.get('duracion') || '60')
+    const servicioId = searchParams.get('servicioId')
 
     if (!fecha) {
       return badRequestResponse('Fecha requerida')
@@ -47,7 +48,15 @@ export async function GET(
     const empleados = await prisma.empleado.findMany({
       where: {
         sucursalId,
-        deleted: false
+        deleted: false,
+        ...(servicioId && {
+          servicioEmpleados: {
+            some: {
+              servicioId,
+              deleted: false
+            }
+          }
+        })
       },
       select: {
         id: true,
