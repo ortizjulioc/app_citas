@@ -22,6 +22,7 @@ import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 
 import { useConfirmDialog } from '@/components/shared/confirm-dialog'
+import { useAuth } from '@/contexts/AuthContext'
 import EmpleadoForm from '@/components/empleados/EmpleadoForm'
 
 interface Empleado {
@@ -40,12 +41,32 @@ interface Empleado {
 interface Sucursal {
   id: string
   nombre: string
+  direccion: string | null
+  telefono: string | null
+  email: string | null
+  horarioSucursals: {
+    diaSemana: string
+    horaInicio: string | Date
+    horaFin: string | Date
+    activo: boolean
+  }[]
+}
+
+interface NegocioInfo {
+  id: string
+  nombre: string
+  horaApertura: string
+  horaCierre: string
+  diasLaborables: string[]
 }
 
 export default function EmpleadosList() {
   const { confirm } = useConfirmDialog()
+  const { user, token } = useAuth()
   const [empleados, setEmpleados] = useState<Empleado[]>([])
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
+  const [selectedSucursal, setSelectedSucursal] = useState<Sucursal | null>(null)
+  const [negocioInfo, setNegocioInfo] = useState<NegocioInfo | null>(null)
   const [sucursalId, setSucursalId] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [openDialog, setOpenDialog] = useState(false)
@@ -64,6 +85,16 @@ export default function EmpleadosList() {
         setSucursales(sucursalesData)
         if (sucursalesData.length > 0 && !sucursalId) {
           setSucursalId(sucursalesData[0].id)
+          setSelectedSucursal(sucursalesData[0])
+        }
+        if (token) {
+          const negocioRes = await fetch('/api/negocios/mi-negocio', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          if (negocioRes.ok) {
+            const negocioJson = await negocioRes.json()
+            setNegocioInfo(negocioJson.data)
+          }
         }
       }
     } catch (err) {
@@ -269,6 +300,13 @@ export default function EmpleadosList() {
                 initialData={initialData}
                 isEditing={!!editingId}
                 sucursalId={sucursalId}
+                sucursalNombre={selectedSucursal?.nombre || ''}
+                negocioNombre={negocioInfo?.nombre || ''}
+                negocioHorario={{
+                  horaApertura: negocioInfo?.horaApertura || '09:00',
+                  horaCierre: negocioInfo?.horaCierre || '18:00',
+                  diasLaborables: negocioInfo?.diasLaborables || []
+                }}
                 onSave={handleSave}
                 onCancel={handleClose}
               />

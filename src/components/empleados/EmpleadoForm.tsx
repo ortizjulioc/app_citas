@@ -65,6 +65,9 @@ interface Props {
   initialData?: any
   isEditing: boolean
   sucursalId: string
+  sucursalNombre: string
+  negocioNombre: string
+  negocioHorario: { horaApertura: string; horaCierre: string; diasLaborables: string[] }
   onSave: (data: any) => Promise<void>
   onCancel: () => void
 }
@@ -85,7 +88,7 @@ const tipoSalarioOptions = [
   { value: 'POR_COMISION', label: 'Por Comisión', icon: 'tabler:percentage' }
 ]
 
-export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSave, onCancel }: Props) {
+export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucursalNombre, negocioNombre, negocioHorario, onSave, onCancel }: Props) {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -107,17 +110,19 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
   })
 
   const [horario, setHorario] = useState<HorarioDia[]>(
-    initialData?.horario?.map((h: any) => ({
-      diaSemana: h.diaSemana,
-      activo: true,
-      horaInicio: h.horaInicio?.substring(0, 5) || '09:00',
-      horaFin: h.horaFin?.substring(0, 5) || '18:00'
-    })) || diasSemana.map(d => ({
-      diaSemana: d.value,
-      activo: false,
-      horaInicio: '09:00',
-      horaFin: '18:00'
-    }))
+    initialData?.horario?.length > 0
+      ? initialData.horario.map((h: any) => ({
+          diaSemana: h.diaSemana,
+          activo: true,
+          horaInicio: h.horaInicio?.substring(0, 5) || '09:00',
+          horaFin: h.horaFin?.substring(0, 5) || '18:00'
+        }))
+      : diasSemana.map(d => ({
+          diaSemana: d.value,
+          activo: negocioHorario.diasLaborables.includes(d.value),
+          horaInicio: negocioHorario.horaApertura?.substring(0, 5) || '09:00',
+          horaFin: negocioHorario.horaCierre?.substring(0, 5) || '18:00'
+        }))
   )
 
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>(initialData?.bloqueos || [])
@@ -378,7 +383,7 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                     fullWidth
                     disabled
                     label='Negocio'
-                    value={formData.negocioId}
+                    value={negocioNombre}
                     helperText='El empleado se vinculará a este negocio'
                   />
                 </Grid>
@@ -387,7 +392,7 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                     fullWidth
                     disabled
                     label='Sucursal Actual'
-                    value={sucursalId}
+                    value={sucursalNombre}
                     helperText='Sede de trabajo principal'
                   />
                 </Grid>
