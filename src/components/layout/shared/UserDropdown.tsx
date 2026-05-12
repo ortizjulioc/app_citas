@@ -45,7 +45,7 @@ const UserDropdown = () => {
   // Hooks
   const router = useRouter()
   const { settings } = useSettings()
-  const { user, logout } = useAuth()
+  const { user, logout, hasRole } = useAuth()
 
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
@@ -119,22 +119,16 @@ const UserDropdown = () => {
                     </div>
                   </div>
                   <Divider className='mlb-1' />
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
+                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e, '/perfil-usuario')}>
                     <i className='tabler-user' />
-                    <Typography color='text.primary'>My Profile</Typography>
+                    <Typography color='text.primary'>Perfil Usuario</Typography>
                   </MenuItem>
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='tabler-settings' />
-                    <Typography color='text.primary'>Settings</Typography>
-                  </MenuItem>
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='tabler-currency-dollar' />
-                    <Typography color='text.primary'>Pricing</Typography>
-                  </MenuItem>
-                  <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='tabler-help-circle' />
-                    <Typography color='text.primary'>FAQ</Typography>
-                  </MenuItem>
+                  {(user?.negocioId || hasRole('admin')) && (
+                    <MenuItem className='mli-2 gap-3' onClick={e => handleDropdownClose(e, '/perfil-empresa')}>
+                      <i className='tabler-building' />
+                      <Typography color='text.primary'>Perfil Empresa</Typography>
+                    </MenuItem>
+                  )}
                   <div className='flex items-center plb-2 pli-3'>
                     <Button
                       fullWidth
