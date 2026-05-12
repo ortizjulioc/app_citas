@@ -40,12 +40,20 @@ interface Negocio {
   sucursals: { id: string; nombre: string }[]
 }
 
+interface ServicioSucursal {
+  sucursalId: string
+  precio: number | null
+  costo: number | null
+  activo: boolean
+}
+
 interface Servicio {
   id: string
   nombre: string
   descripcion: string | null
   duracionMinutos: number
-  precio: number | null
+  precio?: number | null
+  servicioSucursals?: ServicioSucursal[]
 }
 
 interface HorarioSlot {
@@ -271,8 +279,30 @@ export default function EmpresaDetallePage() {
     return today.toISOString().split('T')[0]
   }
 
+  const getPrecioServicio = (servicio: Servicio): number | null => {
+    // El precio vive en la tabla intermedia ServicioSucursal (es por sucursal).
+    // Buscamos el precio correspondiente a la sucursal seleccionada.
+    const ss = servicio.servicioSucursals?.find((s) => s.sucursalId === sucursalId)
+    if (ss && ss.precio !== null && ss.precio !== undefined) {
+      return Number(ss.precio)
+    }
+    // Fallback: primer precio disponible o precio plano del servicio (compat)
+    const fallback = servicio.servicioSucursals?.find(
+      (s) => s.precio !== null && s.precio !== undefined
+    )
+    if (fallback && fallback.precio !== null && fallback.precio !== undefined) {
+      return Number(fallback.precio)
+    }
+    if (servicio.precio !== null && servicio.precio !== undefined) {
+      return Number(servicio.precio)
+    }
+    return null
+  }
+
   const formatPrecio = (precio: number | null) => {
-    if (precio === null || precio === undefined) return 'Precio no disponible'
+    if (precio === null || precio === undefined || Number.isNaN(precio)) {
+      return 'Precio no disponible'
+    }
     return new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(precio)
   }
 
@@ -302,6 +332,8 @@ export default function EmpresaDetallePage() {
       </Box>
     )
   }
+
+  const servicioSeleccionado = servicios.find((s) => s.id === selectedServicioId) || null
 
   return (
     <Box p={4}>
@@ -456,7 +488,7 @@ export default function EmpresaDetallePage() {
                                 </Box>
                                 <Box textAlign='right'>
                                   <Typography variant='h6' color='primary'>
-                                    {formatPrecio(servicio.precio)}
+                                    {formatPrecio(getPrecioServicio(servicio))}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -607,6 +639,15 @@ export default function EmpresaDetallePage() {
                   <ListItemText
                     primary='Servicio'
                     secondary={servicios.find((s) => s.id === selectedServicioId)?.nombre}
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <i className='tabler-cash' />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary='Precio'
+                    secondary={servicioSeleccionado ? formatPrecio(getPrecioServicio(servicioSeleccionado)) : '-'}
                   />
                 </ListItem>
                 <ListItem>

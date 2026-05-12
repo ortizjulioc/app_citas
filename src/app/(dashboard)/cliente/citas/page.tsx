@@ -114,7 +114,8 @@ export default function ClienteCitasPage() {
       params.append('page', String(page + 1))
       params.append('limit', String(rowsPerPage))
       const res = await fetch(`/api/cliente/citas?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store'
       })
       const data = await res.json()
       if (data.success) {
@@ -253,9 +254,20 @@ export default function ClienteCitasPage() {
 
   return (
     <Box p={4}>
-      <Typography variant='h4' gutterBottom>
-        Mis Citas
-      </Typography>
+      <Box display='flex' justifyContent='space-between' alignItems='center' mb={2} flexWrap='wrap' gap={2}>
+        <Typography variant='h4'>
+          Mis Citas
+        </Typography>
+        <Button
+          variant='outlined'
+          size='small'
+          onClick={fetchCitas}
+          disabled={loading}
+          startIcon={<i className='tabler-refresh' />}
+        >
+          Actualizar
+        </Button>
+      </Box>
 
       {error && (
         <Alert severity='error' sx={{ mb: 2 }}>
