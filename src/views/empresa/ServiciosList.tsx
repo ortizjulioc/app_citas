@@ -452,7 +452,7 @@ export default function ServiciosList() {
         <DialogContent sx={{ p: 4 }}>
           <Grid container spacing={4}>
             {/* Left Side: General Info */}
-            <Grid size={{ xs: 12, md: 5 }}>
+            <Grid item xs={12} md={5}>
               <StyledPaper elevation={0}>
                 <Box display='flex' flexDirection='column' gap={3}>
                   <Box display='flex' alignItems='center' gap={1}>
@@ -524,7 +524,7 @@ export default function ServiciosList() {
             </Grid>
 
             {/* Right Side: Branch Settings */}
-            <Grid size={{ xs: 12, md: 7 }}>
+            <Grid item xs={12} md={7}>
               <StyledPaper elevation={0}>
                 <Box display='flex' flexDirection='column' gap={3}>
                   <Box display='flex' justifyContent='space-between' alignItems='center'>
@@ -553,7 +553,7 @@ export default function ServiciosList() {
                       Ingresa valores aquí para aplicarlos a todas las sucursales seleccionadas
                     </Typography>
                     <Grid container spacing={2} alignItems='center'>
-                      <Grid size={{ xs: 5 }}>
+                      <Grid item xs={5}>
                         <TextField
                           label='Precio Global'
                           size='small'
@@ -564,7 +564,7 @@ export default function ServiciosList() {
                           InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                         />
                       </Grid>
-                      <Grid size={{ xs: 5 }}>
+                      <Grid item xs={5}>
                         <TextField
                           label='Costo Global'
                           size='small'
@@ -575,7 +575,7 @@ export default function ServiciosList() {
                           InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                         />
                       </Grid>
-                      <Grid size={{ xs: 2 }}>
+                      <Grid item xs={2}>
                         <Tooltip title='Aplicar a seleccionados'>
                           <span>
                             <IconButton color='primary' onClick={handleApplyBulk} disabled={!bulkPrice && !bulkCosto}>
@@ -635,7 +635,7 @@ export default function ServiciosList() {
                           {isSelected && (
                             <Box mt={2} display='flex' flexDirection='column' gap={2}>
                               <Grid container spacing={2}>
-                                <Grid size={{ xs: 6 }}>
+                                <Grid item xs={6}>
                                   <TextField
                                     label='Precio'
                                     size='small'
@@ -646,7 +646,7 @@ export default function ServiciosList() {
                                     InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                                   />
                                 </Grid>
-                                <Grid size={{ xs: 6 }}>
+                                <Grid item xs={6}>
                                   <TextField
                                     label='Costo'
                                     size='small'
