@@ -12,11 +12,13 @@ const DIA_SEMANA_MAP: Record<number, string> = {
 }
 
 function getDiaSemana(date: Date): string {
-  return DIA_SEMANA_MAP[date.getDay()]
+  return DIA_SEMANA_MAP[date.getUTCDay()]
 }
 
+// Prisma devuelve @db.Time como Date con la hora en UTC (e.g. 08:00 → T08:00:00Z)
+// Usamos getUTCHours/getUTCMinutes para leer el valor real independiente del TZ del servidor
 function timeToMinutes(time: Date): number {
-  return time.getHours() * 60 + time.getMinutes()
+  return time.getUTCHours() * 60 + time.getUTCMinutes()
 }
 
 export async function GET(
@@ -35,7 +37,8 @@ export async function GET(
     }
 
     const [year, month, day] = fecha.split('-').map(Number)
-    const fechaDate = new Date(year, month - 1, day)
+    // Crear la fecha en UTC para que getDiaSemana y los slots sean consistentes
+    const fechaDate = new Date(Date.UTC(year, month - 1, day))
     const diaSemana = getDiaSemana(fechaDate)
 
     const sucursal = await prisma.sucursal.findFirst({
@@ -117,7 +120,8 @@ export async function GET(
 
         for (let time = inicio; time + duracion <= fin; time += 30) {
           const slotInicio = new Date(fechaDate.getTime())
-          slotInicio.setHours(Math.floor(time / 60), time % 60, 0, 0)
+          // setUTCHours para ser consistente con cómo leemos los tiempos del DB
+          slotInicio.setUTCHours(Math.floor(time / 60), time % 60, 0, 0)
 
           const slotFin = new Date(slotInicio)
           slotFin.setMinutes(slotFin.getMinutes() + duracion)

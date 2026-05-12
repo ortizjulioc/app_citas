@@ -15,10 +15,9 @@ function getUserFromRequest(request: Request): JwtPayload | null {
 }
 
 function parseTimeToDate(timeString: string): Date {
+  // Usar UTC para que sea consistente con la lectura en disponibilidad
   const [hours, minutes] = timeString.split(':').map(Number)
-  const date = new Date()
-  date.setHours(hours, minutes, 0, 0)
-  return date
+  return new Date(`1970-01-01T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00Z`)
 }
 
 export async function POST(request: Request) {

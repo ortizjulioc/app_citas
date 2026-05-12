@@ -7,7 +7,10 @@ import bcrypt from 'bcryptjs'
 
 function formatTime(date: Date | null): string {
   if (!date) return ''
-  return date.toTimeString().substring(0, 5)
+  // getUTCHours/getUTCMinutes para leer consistente con cómo se almacena (UTC)
+  const h = String(date.getUTCHours()).padStart(2, '0')
+  const m = String(date.getUTCMinutes()).padStart(2, '0')
+  return `${h}:${m}`
 }
 
 function parseTimeToDate(timeString: string): Date {
@@ -15,9 +18,8 @@ function parseTimeToDate(timeString: string): Date {
   if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
     throw new Error(`Invalid time string: ${timeString}`)
   }
-  const date = new Date()
-  date.setHours(hours, minutes, 0, 0)
-  return date
+  // Almacenar como UTC para ser consistente con la lectura en disponibilidad
+  return new Date(`1970-01-01T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00Z`)
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
