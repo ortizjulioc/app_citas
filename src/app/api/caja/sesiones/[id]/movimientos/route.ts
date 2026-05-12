@@ -13,20 +13,21 @@ function getUserFromRequest(request: Request): JwtPayload | null {
 }
 
 // GET /api/caja/sesiones/[id]/movimientos — listar movimientos de una sesión
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const user = getUserFromRequest(request)
     if (!user || !user.negocioId) {
       return handleApiError(new BadRequestError('No autorizado'))
     }
 
     const sesion = await prisma.sesionCaja.findFirst({
-      where: { id: params.id, negocioId: user.negocioId, deleted: false }
+      where: { id, negocioId: user.negocioId, deleted: false }
     })
     if (!sesion) throw new NotFoundError('Sesión de caja no encontrada')
 
     const movimientos = await prisma.movimientoCaja.findMany({
-      where: { sesionCajaId: params.id, deleted: false },
+      where: { sesionCajaId: id, deleted: false },
       orderBy: { createdAt: 'asc' },
       include: {
         metodoPago: { select: { id: true, nombre: true } },
@@ -46,8 +47,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 // POST /api/caja/sesiones/[id]/movimientos — registrar gasto o retiro manual
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const user = getUserFromRequest(request)
     if (!user || !user.negocioId) {
       return handleApiError(new BadRequestError('No autorizado'))
@@ -57,14 +59,14 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const data = await movimientoManualSchema.validate(body, { abortEarly: false, stripUnknown: true })
 
     const sesion = await prisma.sesionCaja.findFirst({
-      where: { id: params.id, negocioId: user.negocioId, deleted: false }
+      where: { id, negocioId: user.negocioId, deleted: false }
     })
     if (!sesion) throw new NotFoundError('Sesión de caja no encontrada')
     if (sesion.horaCierre) throw new BadRequestError('No se pueden registrar movimientos en una sesión cerrada')
 
     const movimiento = await prisma.movimientoCaja.create({
       data: {
-        sesionCajaId: params.id,
+        sesionCajaId: id,
         tipo: data.tipo, // GASTO o RETIRO
         monto: data.monto,
         descripcion: data.descripcion,

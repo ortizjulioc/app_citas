@@ -12,15 +12,16 @@ function getUserFromRequest(request: Request): JwtPayload | null {
 }
 
 // PATCH /api/facturas/[id]/cancelar
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const user = getUserFromRequest(request)
     if (!user || !user.negocioId) {
       return handleApiError(new BadRequestError('No autorizado'))
     }
 
     const factura = await prisma.factura.findFirst({
-      where: { id: params.id, negocioId: user.negocioId, deleted: false },
+      where: { id, negocioId: user.negocioId, deleted: false },
       include: {
         pagos: { where: { deleted: false, estado: 'COMPLETADO' } },
         detalleFacturas: { where: { deleted: false, tipo: 'PRODUCTO' } }
@@ -62,7 +63,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       }
 
       await tx.factura.update({
-        where: { id: params.id },
+        where: { id },
         data: { estado: 'CANCELADA' }
       })
     })

@@ -12,15 +12,16 @@ function getUserFromRequest(request: Request): JwtPayload | null {
 }
 
 // PATCH /api/pagos/[id]/anular — anula un pago y revierte el movimiento de caja
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const user = getUserFromRequest(request)
     if (!user || !user.negocioId) {
       return handleApiError(new BadRequestError('No autorizado'))
     }
 
     const pago = await prisma.pago.findFirst({
-      where: { id: params.id, negocioId: user.negocioId, deleted: false },
+      where: { id, negocioId: user.negocioId, deleted: false },
       include: {
         factura: true,
         movimientoCaja: true,
@@ -37,7 +38,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     await prisma.$transaction(async (tx) => {
       // Anular el pago
       await tx.pago.update({
-        where: { id: params.id },
+        where: { id },
         data: { estado: 'ANULADO' }
       })
 
@@ -47,7 +48,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
           facturaId: pago.facturaId,
           deleted: false,
           estado: 'COMPLETADO',
-          id: { not: params.id }
+          id: { not: id }
         }
       })
       const nuevoMontoPagado = Math.round(

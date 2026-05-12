@@ -13,8 +13,9 @@ function getUserFromRequest(request: Request): JwtPayload | null {
 }
 
 // POST /api/caja/sesiones/[id]/cerrar
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const user = getUserFromRequest(request)
     if (!user || !user.negocioId) {
       return handleApiError(new BadRequestError('No autorizado'))
@@ -24,7 +25,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const data = await cerrarSesionCajaSchema.validate(body, { abortEarly: false, stripUnknown: true })
 
     const sesion = await prisma.sesionCaja.findFirst({
-      where: { id: params.id, negocioId: user.negocioId, deleted: false },
+      where: { id, negocioId: user.negocioId, deleted: false },
       include: {
         movimientoCajas: { where: { deleted: false } }
       }
@@ -50,7 +51,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const sesionCerrada = await prisma.$transaction(async (tx) => {
       // Cerrar la sesión
       const updated = await tx.sesionCaja.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           horaCierre: new Date(),
           cerradoPorId: user.userId,

@@ -12,8 +12,9 @@ function getUserFromRequest(request: Request): JwtPayload | null {
 }
 
 // GET /api/facturas/[id] — detalle completo de una factura
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const user = getUserFromRequest(request)
     if (!user || !user.negocioId) {
       return handleApiError(new BadRequestError('No autorizado'))
@@ -21,7 +22,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     const factura = await prisma.factura.findFirst({
       where: {
-        id: params.id,
+        id,
         negocioId: user.negocioId,
         deleted: false
       },

@@ -12,15 +12,16 @@ function getUserFromRequest(request: Request): JwtPayload | null {
 }
 
 // GET /api/caja/sesiones/[id] — detalle de una sesión con resumen financiero
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const user = getUserFromRequest(request)
     if (!user || !user.negocioId) {
       return handleApiError(new BadRequestError('No autorizado'))
     }
 
     const sesion = await prisma.sesionCaja.findFirst({
-      where: { id: params.id, negocioId: user.negocioId, deleted: false },
+      where: { id, negocioId: user.negocioId, deleted: false },
       include: {
         caja: { select: { id: true, nombre: true } },
         abiertoPor: { select: { id: true, nombre: true, apellido: true } },

@@ -19,15 +19,16 @@ const actualizarMetodoPagoSchema = Yup.object({
 })
 
 // PATCH /api/metodos-pago/[id]
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const user = getUserFromRequest(request)
     if (!user || !user.negocioId) {
       return handleApiError(new BadRequestError('No autorizado'))
     }
 
     const metodoPago = await prisma.metodoPago.findFirst({
-      where: { id: params.id, negocioId: user.negocioId, deleted: false }
+      where: { id, negocioId: user.negocioId, deleted: false }
     })
     if (!metodoPago) throw new NotFoundError('Método de pago no encontrado')
 
@@ -35,7 +36,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const data = await actualizarMetodoPagoSchema.validate(body, { abortEarly: false, stripUnknown: true })
 
     const actualizado = await prisma.metodoPago.update({
-      where: { id: params.id },
+      where: { id },
       data
     })
 
@@ -46,28 +47,29 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 }
 
 // DELETE /api/metodos-pago/[id] — soft delete
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const user = getUserFromRequest(request)
     if (!user || !user.negocioId) {
       return handleApiError(new BadRequestError('No autorizado'))
     }
 
     const metodoPago = await prisma.metodoPago.findFirst({
-      where: { id: params.id, negocioId: user.negocioId, deleted: false }
+      where: { id, negocioId: user.negocioId, deleted: false }
     })
     if (!metodoPago) throw new NotFoundError('Método de pago no encontrado')
 
     // Verificar que no tenga pagos activos
     const pagosActivos = await prisma.pago.count({
-      where: { metodoPagoId: params.id, deleted: false, estado: 'COMPLETADO' }
+      where: { metodoPagoId: id, deleted: false, estado: 'COMPLETADO' }
     })
     if (pagosActivos > 0) {
       throw new BadRequestError('No se puede eliminar un método de pago con transacciones registradas')
     }
 
     await prisma.metodoPago.update({
-      where: { id: params.id },
+      where: { id },
       data: { deleted: true }
     })
 
