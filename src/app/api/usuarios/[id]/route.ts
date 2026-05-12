@@ -62,6 +62,26 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       data: validatedData
     })
 
+    if (usuarioActualizado.email) {
+      await prisma.cliente.updateMany({
+        where: { email: usuarioActualizado.email, deleted: false },
+        data: {
+          nombre: usuarioActualizado.nombre,
+          apellido: usuarioActualizado.apellido,
+          telefono: usuarioActualizado.telefono
+        }
+      })
+
+      await prisma.empleado.updateMany({
+        where: { email: usuarioActualizado.email, deleted: false },
+        data: {
+          nombre: usuarioActualizado.nombre,
+          apellido: usuarioActualizado.apellido,
+          telefono: usuarioActualizado.telefono || ''
+        }
+      })
+    }
+
     const { password, ...sinPassword } = usuarioActualizado
 
     return successResponse(sinPassword)
