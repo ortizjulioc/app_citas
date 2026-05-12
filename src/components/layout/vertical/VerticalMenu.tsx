@@ -66,7 +66,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
             <MenuItem href='/cliente/citas' icon={<i className='tabler-calendar' />}>
               Mis Citas
             </MenuItem>
-            <MenuItem href='/cliente/perfil' icon={<i className='tabler-user' />}>
+            <MenuItem href='/perfil-usuario/' icon={<i className='tabler-user' />}>
               Perfil
             </MenuItem>
           </>

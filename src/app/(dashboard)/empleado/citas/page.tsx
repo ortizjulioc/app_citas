@@ -171,7 +171,7 @@ export default function EmpleadoCitasPage() {
       </Typography>
       {user && (
         <Typography variant='h6' color='primary' sx={{ mb: 1, fontWeight: 'bold' }}>
-          Agenda de: <Chip variant='outlined' color='primary' label={`${user.nombre} ${user.apellido}`} />
+          Agenda de: <Chip variant='outlined' color='primary' label={`${user.nombre} ${user.apellido}`} onClick={() => router.push('/perfil-usuario')} sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }} />
         </Typography>
       )}
       <Typography variant='body1' color='text.secondary' sx={{ mb: 4 }}>
