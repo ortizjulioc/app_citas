@@ -10,6 +10,7 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
+import Menu from '@mui/material/Menu'
 import Grid from '@mui/material/Grid'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -57,7 +58,7 @@ const estadoColores: Record<string, string> = {
 }
 
 export default function EmpleadoCitasPage() {
-  const { isAuthenticated, hasRole, isLoading } = useAuth()
+  const { user, isAuthenticated, hasRole, isLoading } = useAuth()
   const router = useRouter()
 
   const [citas, setCitas] = useState<Cita[]>([])
@@ -65,6 +66,9 @@ export default function EmpleadoCitasPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [estado, setEstado] = useState('')
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [selectedCitaId, setSelectedCitaId] = useState<string | null>(null)
 
   const fetchCitas = useCallback(async () => {
     setLoading(true)
@@ -115,6 +119,34 @@ export default function EmpleadoCitasPage() {
     })
   }
 
+  const handleStatusClick = (event: React.MouseEvent<HTMLElement>, citaId: string) => {
+    setAnchorEl(event.currentTarget)
+    setSelectedCitaId(citaId)
+  }
+
+  const handleStatusClose = () => {
+    setAnchorEl(null)
+    setSelectedCitaId(null)
+  }
+
+  const handleStatusChangeSubmit = async (newEstado: string) => {
+    if (!selectedCitaId) return
+    try {
+      const res = await fetch(`/api/citas/${selectedCitaId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: newEstado })
+      })
+      if (res.ok) {
+        fetchCitas()
+      }
+    } catch (error) {
+      console.error('Error updating status:', error)
+    } finally {
+      handleStatusClose()
+    }
+  }
+
   const getEstadoLabel = (estado: string) => {
     const labels: Record<string, string> = {
       PENDIENTE: 'Pendiente',
@@ -125,14 +157,23 @@ export default function EmpleadoCitasPage() {
     return labels[estado] || estado
   }
 
-  const upcomingCitas = citas.filter((c) => new Date(c.inicio) >= new Date() && c.estado !== 'CANCELADA')
-  const pastCitas = citas.filter((c) => new Date(c.inicio) < new Date() || c.estado === 'CANCELADA')
+  const upcomingCitas = citas.filter(
+    c => new Date(c.inicio) >= new Date() && c.estado !== 'CANCELADA' && c.estado !== 'FINALIZADA'
+  )
+  const pastCitas = citas.filter(
+    c => new Date(c.inicio) < new Date() || c.estado === 'CANCELADA' || c.estado === 'FINALIZADA'
+  )
 
   return (
     <Box p={4}>
       <Typography variant='h4' gutterBottom>
         Mis Citas
       </Typography>
+      {user && (
+        <Typography variant='h6' color='primary' sx={{ mb: 1, fontWeight: 'bold' }}>
+          Agenda de: <Chip variant='outlined' color='primary' label={`${user.nombre} ${user.apellido}`} />
+        </Typography>
+      )}
       <Typography variant='body1' color='text.secondary' sx={{ mb: 4 }}>
         Aquí puedes ver todas tus citas programadas
       </Typography>
@@ -144,7 +185,7 @@ export default function EmpleadoCitasPage() {
             <Select
               value={estado}
               label='Filtrar por estado'
-              onChange={(e) => {
+              onChange={e => {
                 setEstado(e.target.value)
                 setPage(1)
               }}
@@ -186,7 +227,7 @@ export default function EmpleadoCitasPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {upcomingCitas.map((cita) => (
+                  {upcomingCitas.map(cita => (
                     <TableRow key={cita.id}>
                       <TableCell>{formatDateTime(cita.inicio)}</TableCell>
                       <TableCell>
@@ -198,15 +239,18 @@ export default function EmpleadoCitasPage() {
                       </TableCell>
                       <TableCell>{cita.sucursal.nombre}</TableCell>
                       <TableCell>
-                        {cita.servicioCitas.map((sc) => sc.servicio.nombre).join(', ') || 'Sin servicios'}
+                        {cita.servicioCitas.map(sc => sc.servicio.nombre).join(', ') || 'Sin servicios'}
                       </TableCell>
                       <TableCell>
                         <Chip
                           label={getEstadoLabel(cita.estado)}
                           size='small'
+                          onClick={e => handleStatusClick(e, cita.id)}
                           sx={{
                             bgcolor: estadoColores[cita.estado] || '#607d8b',
-                            color: 'white'
+                            color: 'white',
+                            cursor: 'pointer',
+                            '&:hover': { opacity: 0.8 }
                           }}
                         />
                       </TableCell>
@@ -222,9 +266,7 @@ export default function EmpleadoCitasPage() {
           </Typography>
 
           {pastCitas.length === 0 ? (
-            <Alert severity='info'>
-              No tienes citas pasadas
-            </Alert>
+            <Alert severity='info'>No tienes citas pasadas</Alert>
           ) : (
             <TableContainer component={Paper}>
               <Table>
@@ -238,7 +280,7 @@ export default function EmpleadoCitasPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {pastCitas.map((cita) => (
+                  {pastCitas.map(cita => (
                     <TableRow key={cita.id}>
                       <TableCell>{formatDateTime(cita.inicio)}</TableCell>
                       <TableCell>
@@ -250,15 +292,18 @@ export default function EmpleadoCitasPage() {
                       </TableCell>
                       <TableCell>{cita.sucursal.nombre}</TableCell>
                       <TableCell>
-                        {cita.servicioCitas.map((sc) => sc.servicio.nombre).join(', ') || 'Sin servicios'}
+                        {cita.servicioCitas.map(sc => sc.servicio.nombre).join(', ') || 'Sin servicios'}
                       </TableCell>
                       <TableCell>
                         <Chip
                           label={getEstadoLabel(cita.estado)}
                           size='small'
+                          onClick={e => handleStatusClick(e, cita.id)}
                           sx={{
                             bgcolor: estadoColores[cita.estado] || '#607d8b',
-                            color: 'white'
+                            color: 'white',
+                            cursor: 'pointer',
+                            '&:hover': { opacity: 0.8 }
                           }}
                         />
                       </TableCell>
@@ -271,14 +316,16 @@ export default function EmpleadoCitasPage() {
 
           {totalPages > 1 && (
             <Box display='flex' justifyContent='center' mt={4}>
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
-                color='primary'
-              />
+              <Pagination count={totalPages} page={page} onChange={(_, value) => setPage(value)} color='primary' />
             </Box>
           )}
+
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleStatusClose}>
+            <MenuItem onClick={() => handleStatusChangeSubmit('PENDIENTE')}>Pendiente</MenuItem>
+            <MenuItem onClick={() => handleStatusChangeSubmit('CONFIRMADA')}>Confirmada</MenuItem>
+            <MenuItem onClick={() => handleStatusChangeSubmit('CANCELADA')}>Cancelada</MenuItem>
+            <MenuItem onClick={() => handleStatusChangeSubmit('FINALIZADA')}>Finalizada</MenuItem>
+          </Menu>
         </>
       )}
     </Box>

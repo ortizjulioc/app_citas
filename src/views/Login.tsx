@@ -121,6 +121,8 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
 
       if (user.roles?.includes('admin')) {
         router.push('/empresa')
+      } else if (user.roles?.includes('empleado')) {
+        router.push('/empleado/citas')
       } else if (user.roles?.includes('cliente')) {
         router.push('/cliente')
       } else {

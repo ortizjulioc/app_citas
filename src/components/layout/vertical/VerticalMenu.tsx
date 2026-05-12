@@ -74,9 +74,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
 
         {isEmpleado && (
           <>
-            <MenuItem href='/home' icon={<i className='tabler-smart-home' />}>
-              Dashboard
-            </MenuItem>
             <MenuItem href='/empleado/citas' icon={<i className='tabler-calendar' />}>
               Mis Citas
             </MenuItem>
@@ -85,7 +82,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
 
         {isAdmin && (
           <>
-            <MenuItem href='/home' icon={<i className='tabler-smart-home' />}>
+            <MenuItem href='/empresa' icon={<i className='tabler-smart-home' />}>
               Dashboard
             </MenuItem>
             <MenuItem href='/empresa/sucursales' icon={<i className='tabler-building-store' />}>
@@ -115,9 +112,9 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           </>
         )}
 
-        {!isAdmin && !isCliente && (
+        {!isAdmin && !isCliente && !isEmpleado && (
           <>
-            <MenuItem href='/home' icon={<i className='tabler-smart-home' />}>
+            <MenuItem href='/' icon={<i className='tabler-smart-home' />}>
               Home
             </MenuItem>
             <MenuItem href='/about' icon={<i className='tabler-info-circle' />}>
