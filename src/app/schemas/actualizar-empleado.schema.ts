@@ -27,6 +27,7 @@ export const actualizarEmpleadoSchema = yup.object({
   apellido: yup.string(),
   telefono: yup.string().nullable(),
   email: yup.string().email('Email inválido'),
+  password: yup.string().nullable(),
   tipoSalario: yup.string().oneOf(tipoSalarioEnum, 'Tipo de salario inválido'),
   salarioBase: yup.number().nullable(),
   fechaContratacion: yup.date().nullable(),

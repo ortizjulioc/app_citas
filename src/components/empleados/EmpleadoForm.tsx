@@ -203,6 +203,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucur
       if (!formData.email.trim()) return setError('El email es requerido')
       if (!formData.password.trim()) return setError('La contraseña es requerida')
       if (formData.password.length < 6) return setError('La contraseña debe tener al menos 6 caracteres')
+    } else {
+      if (formData.password && formData.password.length < 6) return setError('La contraseña debe tener al menos 6 caracteres')
     }
 
     setLoading(true)
@@ -241,7 +243,6 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucur
 
       if (isEditing) {
         delete payload.email
-        delete payload.password
       }
 
       await onSave(payload)
@@ -281,7 +282,6 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucur
         {/* TAB 0: INFORMACIÓN */}
         {activeTab === 0 && (
           <Grid container spacing={5}>
-            {!isEditing && (
               <Grid item xs={12}>
                 <Typography variant='h6' className='mb-4 flex items-center gap-2'>
                   <i className='tabler-lock text-primary' /> Cuenta de Acceso
@@ -294,6 +294,7 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucur
                       type='email'
                       value={formData.email}
                       onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      disabled={isEditing}
                       placeholder='ejemplo@correo.com'
                       InputProps={{
                         startAdornment: (
@@ -307,11 +308,12 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucur
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label='Contraseña'
+                      label={isEditing ? 'Nueva Contraseña' : 'Contraseña'}
                       type='password'
                       value={formData.password}
                       onChange={e => setFormData({ ...formData, password: e.target.value })}
                       placeholder='••••••'
+                      helperText={isEditing ? 'Déjalo en blanco para mantener la actual' : ''}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position='start'>
@@ -324,7 +326,6 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucur
                 </Grid>
                 <Divider className='my-6' />
               </Grid>
-            )}
 
             <Grid item xs={12}>
               <Typography variant='h6' className='mb-4 flex items-center gap-2'>

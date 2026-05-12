@@ -3,6 +3,7 @@ import { actualizarEmpleadoSchema } from '@/app/schemas/actualizar-empleado.sche
 import { handleApiError, successResponse } from '@/utils/api-response'
 import { NotFoundError } from '@/utils/errors'
 import { $Enums } from '@/generated/prisma'
+import bcrypt from 'bcryptjs'
 
 function formatTime(date: Date | null): string {
   if (!date) return ''
@@ -116,7 +117,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const resultado = await prisma.$transaction(async (tx) => {
-      const { horario, bloqueos, servicios, ...datosEmpleado } = validatedData
+      const { horario, bloqueos, servicios, password, ...datosEmpleado } = validatedData
 
       const datosActualizar: any = {}
       if (datosEmpleado.nombre !== undefined) datosActualizar.nombre = datosEmpleado.nombre
@@ -132,6 +133,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         await tx.empleado.update({
           where: { id },
           data: datosActualizar
+        })
+      }
+
+      if (password && empleadoExiste.usuarioId) {
+        const hashedPassword = await bcrypt.hash(password, 10)
+        await tx.usuario.update({
+          where: { id: empleadoExiste.usuarioId },
+          data: { password: hashedPassword }
         })
       }
 
