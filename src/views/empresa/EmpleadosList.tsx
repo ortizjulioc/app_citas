@@ -130,6 +130,13 @@ export default function EmpleadosList() {
     }
   }, [sucursalId])
 
+  useEffect(() => {
+    if (sucursalId && sucursales.length > 0) {
+      const found = sucursales.find(s => s.id === sucursalId)
+      if (found) setSelectedSucursal(found)
+    }
+  }, [sucursalId, sucursales])
+
   const handleOpen = async (empleado?: Empleado) => {
     if (empleado) {
       try {
@@ -302,11 +309,7 @@ export default function EmpleadosList() {
                 sucursalId={sucursalId}
                 sucursalNombre={selectedSucursal?.nombre || ''}
                 negocioNombre={negocioInfo?.nombre || ''}
-                negocioHorario={{
-                  horaApertura: negocioInfo?.horaApertura || '09:00',
-                  horaCierre: negocioInfo?.horaCierre || '18:00',
-                  diasLaborables: negocioInfo?.diasLaborables || []
-                }}
+                sucursalHorario={selectedSucursal?.horarioSucursals || []}
                 onSave={handleSave}
                 onCancel={handleClose}
               />

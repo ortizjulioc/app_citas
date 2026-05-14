@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Box,
   TextField,
@@ -61,13 +61,20 @@ interface ServicioConPorcentaje {
   porcentaje: number
 }
 
+interface HorarioSucursalItem {
+  diaSemana: string
+  horaInicio: string | Date
+  horaFin: string | Date
+  activo: boolean
+}
+
 interface Props {
   initialData?: any
   isEditing: boolean
   sucursalId: string
   sucursalNombre: string
   negocioNombre: string
-  negocioHorario: { horaApertura: string; horaCierre: string; diasLaborables: string[] }
+  sucursalHorario: HorarioSucursalItem[]
   onSave: (data: any) => Promise<void>
   onCancel: () => void
 }
@@ -88,7 +95,7 @@ const tipoSalarioOptions = [
   { value: 'POR_COMISION', label: 'Por Comisión', icon: 'tabler:percentage' }
 ]
 
-export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucursalNombre, negocioNombre, negocioHorario, onSave, onCancel }: Props) {
+export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucursalNombre, negocioNombre, sucursalHorario, onSave, onCancel }: Props) {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -109,21 +116,52 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucur
     negocioId: initialData?.negocioId || user?.negocioId || ''
   })
 
-  const [horario, setHorario] = useState<HorarioDia[]>(
-    initialData?.horario?.length > 0
-      ? initialData.horario.map((h: any) => ({
-          diaSemana: h.diaSemana,
-          activo: true,
-          horaInicio: h.horaInicio?.substring(0, 5) || '09:00',
-          horaFin: h.horaFin?.substring(0, 5) || '18:00'
-        }))
-      : diasSemana.map(d => ({
+  const extractTimeFromUTC = (dateStr: string | Date | undefined, defaultTime: string): string => {
+    if (!dateStr) return defaultTime
+    if (typeof dateStr === 'string' && dateStr.length === 5 && dateStr.includes(':')) {
+      return dateStr
+    }
+    try {
+      const d = new Date(dateStr)
+      const h = String(d.getUTCHours()).padStart(2, '0')
+      const m = String(d.getUTCMinutes()).padStart(2, '0')
+      return `${h}:${m}`
+    } catch {
+      return defaultTime
+    }
+  }
+
+  const isSucursalActiveOnDay = (dia: string) => {
+    const sucHorario = sucursalHorario?.find(h => h.diaSemana === dia)
+    return sucHorario?.activo || false
+  }
+
+  const [horario, setHorario] = useState<HorarioDia[]>(() => {
+    return diasSemana.map(d => {
+      const sucHorario = sucursalHorario?.find(h => h.diaSemana === d.value)
+      const sucursalActiva = sucHorario?.activo || false
+      
+      let defaultInicio = extractTimeFromUTC(sucHorario?.horaInicio, '09:00')
+      let defaultFin = extractTimeFromUTC(sucHorario?.horaFin, '18:00')
+
+      if (initialData?.horario?.length > 0) {
+        const empHorario = initialData.horario.find((h: any) => h.diaSemana === d.value)
+        return {
           diaSemana: d.value,
-          activo: negocioHorario.diasLaborables.includes(d.value),
-          horaInicio: negocioHorario.horaApertura?.substring(0, 5) || '09:00',
-          horaFin: negocioHorario.horaCierre?.substring(0, 5) || '18:00'
-        }))
-  )
+          activo: !!empHorario && sucursalActiva,
+          horaInicio: empHorario?.horaInicio?.substring(0, 5) || defaultInicio,
+          horaFin: empHorario?.horaFin?.substring(0, 5) || defaultFin
+        }
+      } else {
+        return {
+          diaSemana: d.value,
+          activo: sucursalActiva,
+          horaInicio: defaultInicio,
+          horaFin: defaultFin
+        }
+      }
+    })
+  })
 
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>(initialData?.bloqueos || [])
   const [serviciosAgregados, setServiciosAgregados] = useState<ServicioConPorcentaje[]>(
@@ -498,9 +536,16 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, sucur
                                 checked={dia.activo}
                                 onChange={e => handleHorarioChange(dia.diaSemana, 'activo', e.target.checked)}
                                 color='primary'
+                                disabled={!isSucursalActiveOnDay(dia.diaSemana)}
                               />
                             }
-                            label={dia.activo ? 'Activo' : 'Inactivo'}
+                            label={
+                              !isSucursalActiveOnDay(dia.diaSemana)
+                                ? 'Cerrado por sucursal'
+                                : dia.activo
+                                  ? 'Activo'
+                                  : 'Inactivo'
+                            }
                           />
                         </TableCell>
                         <TableCell>
