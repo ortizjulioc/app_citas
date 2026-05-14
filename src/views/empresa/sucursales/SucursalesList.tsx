@@ -375,7 +375,7 @@ export default function SucursalesList() {
 
         <DialogContent sx={{ p: 4 }}>
           <Grid container spacing={4}>
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid item xs={12} md={4}>
               <Box display='flex' flexDirection='column' gap={3}>
                 <Typography variant='h6' fontWeight='600' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <i className='tabler-info-circle' style={{ color: 'var(--mui-palette-primary-main)' }} />
@@ -393,7 +393,7 @@ export default function SucursalesList() {
               </Box>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 8 }}>
+            <Grid item xs={12} md={8}>
               <Paper variant='outlined' sx={{ p: 3, borderRadius: 2, bgcolor: 'action.hover' }}>
                 <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
                   <Typography variant='h6' fontWeight='600' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
