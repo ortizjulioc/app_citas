@@ -145,7 +145,9 @@ export default function ClienteCitasPage() {
     setActionError('')
     try {
       const duracion = selectedCita.servicioCitas[0]?.servicio.duracionMinutos || 60
-      const res = await fetch(`/api/public/sucursales/${selectedCita.sucursal.id}/disponibilidad?fecha=${newFecha}&duracion=${duracion}`)
+      const res = await fetch(
+        `/api/public/sucursales/${selectedCita.sucursal.id}/disponibilidad?fecha=${newFecha}&duracion=${duracion}`
+      )
       const data = await res.json()
       if (data.success) {
         setNewDisponibilidad(data.data)
@@ -227,15 +229,18 @@ export default function ClienteCitasPage() {
   }
 
   const formatDateTime = (iso: string) => {
-    const date = new Date(iso)
+    const isoLocal = iso.endsWith('Z') ? iso.slice(0, -1) : iso
+    const date = new Date(isoLocal)
     return date.toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' })
   }
 
   const canCancel = (cita: Cita) => {
     const now = new Date()
     const citaTime = new Date(cita.inicio)
-    return citaTime.getTime() - now.getTime() > 4 * 60 * 60 * 1000 &&
+    return (
+      citaTime.getTime() - now.getTime() > 4 * 60 * 60 * 1000 &&
       (cita.estado === 'PENDIENTE' || cita.estado === 'CONFIRMADA')
+    )
   }
 
   const canPostpone = (cita: Cita) => {
@@ -255,9 +260,7 @@ export default function ClienteCitasPage() {
   return (
     <Box p={4}>
       <Box display='flex' justifyContent='space-between' alignItems='center' mb={2} flexWrap='wrap' gap={2}>
-        <Typography variant='h4'>
-          Mis Citas
-        </Typography>
+        <Typography variant='h4'>Mis Citas</Typography>
         <Button
           variant='outlined'
           size='small'
@@ -287,11 +290,7 @@ export default function ClienteCitasPage() {
               <Typography color='text.secondary' mt={2}>
                 No tienes citas programadas
               </Typography>
-              <Button
-                variant='contained'
-                sx={{ mt: 2 }}
-                onClick={() => router.push('/cliente/empresas')}
-              >
+              <Button variant='contained' sx={{ mt: 2 }} onClick={() => router.push('/cliente/empresas')}>
                 Explorar empresas
               </Button>
             </Box>
@@ -310,14 +309,12 @@ export default function ClienteCitasPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {citas.map((cita) => (
+                    {citas.map(cita => (
                       <TableRow key={cita.id} hover>
                         <TableCell>{formatDateTime(cita.inicio)}</TableCell>
                         <TableCell>{cita.sucursal.negocio.nombre}</TableCell>
                         <TableCell>{cita.sucursal.nombre}</TableCell>
-                        <TableCell>
-                          {cita.servicioCitas.map((sc) => sc.servicio.nombre).join(', ') || '-'}
-                        </TableCell>
+                        <TableCell>{cita.servicioCitas.map(sc => sc.servicio.nombre).join(', ') || '-'}</TableCell>
                         <TableCell>
                           <Chip
                             label={estadoLabels[cita.estado] || cita.estado}
@@ -345,7 +342,10 @@ export default function ClienteCitasPage() {
                 page={page}
                 onPageChange={(_, p) => setPage(p)}
                 rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0) }}
+                onRowsPerPageChange={e => {
+                  setRowsPerPage(parseInt(e.target.value, 10))
+                  setPage(0)
+                }}
                 rowsPerPageOptions={[5, 10, 25]}
                 labelRowsPerPage='Filas por página'
               />
@@ -376,28 +376,46 @@ export default function ClienteCitasPage() {
 
               <List dense>
                 <ListItem>
-                  <ListItemIcon><i className='tabler-calendar' /></ListItemIcon>
+                  <ListItemIcon>
+                    <i className='tabler-calendar' />
+                  </ListItemIcon>
                   <ListItemText primary='Fecha y Hora' secondary={formatDateTime(selectedCita.inicio)} />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><i className='tabler-building' /></ListItemIcon>
+                  <ListItemIcon>
+                    <i className='tabler-building' />
+                  </ListItemIcon>
                   <ListItemText primary='Empresa' secondary={selectedCita.sucursal.negocio.nombre} />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><i className='tabler-building-store' /></ListItemIcon>
+                  <ListItemIcon>
+                    <i className='tabler-building-store' />
+                  </ListItemIcon>
                   <ListItemText primary='Sucursal' secondary={selectedCita.sucursal.nombre} />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><i className='tabler-user' /></ListItemIcon>
-                  <ListItemText primary='Empleado' secondary={`${selectedCita.empleado.nombre} ${selectedCita.empleado.apellido}`} />
+                  <ListItemIcon>
+                    <i className='tabler-user' />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary='Empleado'
+                    secondary={`${selectedCita.empleado.nombre} ${selectedCita.empleado.apellido}`}
+                  />
                 </ListItem>
                 <ListItem>
-                  <ListItemIcon><i className='tabler-scissors' /></ListItemIcon>
-                  <ListItemText primary='Servicio' secondary={selectedCita.servicioCitas.map((sc) => sc.servicio.nombre).join(', ') || '-'} />
+                  <ListItemIcon>
+                    <i className='tabler-scissors' />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary='Servicio'
+                    secondary={selectedCita.servicioCitas.map(sc => sc.servicio.nombre).join(', ') || '-'}
+                  />
                 </ListItem>
                 {selectedCita.sucursal.negocio.telefono && (
                   <ListItem>
-                    <ListItemIcon><i className='tabler-phone' /></ListItemIcon>
+                    <ListItemIcon>
+                      <i className='tabler-phone' />
+                    </ListItemIcon>
                     <ListItemText primary='Teléfono del negocio' secondary={selectedCita.sucursal.negocio.telefono} />
                   </ListItem>
                 )}
@@ -445,7 +463,7 @@ export default function ClienteCitasPage() {
               type='date'
               label='Nueva Fecha'
               value={newFecha}
-              onChange={(e) => {
+              onChange={e => {
                 setNewFecha(e.target.value)
                 setNewDisponibilidad(null)
                 setNewHorario(null)
@@ -466,8 +484,9 @@ export default function ClienteCitasPage() {
               </Box>
             )}
 
-            {newDisponibilidad && !loadingDisponibilidad && (
-              !newDisponibilidad.disponibles ? (
+            {newDisponibilidad &&
+              !loadingDisponibilidad &&
+              (!newDisponibilidad.disponibles ? (
                 <Alert severity='info'>No hay horarios disponibles para esta fecha</Alert>
               ) : (
                 <FormControl component='fieldset' fullWidth>
@@ -476,15 +495,15 @@ export default function ClienteCitasPage() {
                   </Typography>
                   <RadioGroup
                     value={newHorario ? `${newHorario.inicio}|${newHorario.fin}` : ''}
-                    onChange={(e) => {
+                    onChange={e => {
                       const [inicio, fin] = e.target.value.split('|')
                       setNewHorario({ inicio, fin })
                     }}
                   >
                     {newDisponibilidad.empleados
-                      .filter((e) => e.disponible)
-                      .flatMap((e) =>
-                        e.horarios.slice(0, 5).map((h) => (
+                      .filter(e => e.disponible)
+                      .flatMap(e =>
+                        e.horarios.map(h => (
                           <FormControlLabel
                             key={h.inicio}
                             value={`${h.inicio}|${h.fin}`}
@@ -495,8 +514,7 @@ export default function ClienteCitasPage() {
                       )}
                   </RadioGroup>
                 </FormControl>
-              )
-            )}
+              ))}
 
             {actionError && (
               <Alert severity='error' onClose={() => setActionError('')}>

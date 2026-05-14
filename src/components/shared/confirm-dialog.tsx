@@ -37,11 +37,13 @@ interface ConfirmDialogProviderProps {
 }
 
 export function ConfirmDialogProvider({ children }: ConfirmDialogProviderProps) {
-  const [config, setConfig] = useState<ConfirmDialogOptions & { onConfirm: () => void | Promise<void>; isPending?: boolean } | null>(null)
+  const [config, setConfig] = useState<
+    (ConfirmDialogOptions & { onConfirm: () => void | Promise<void>; isPending?: boolean }) | null
+  >(null)
   const [resolve, setResolve] = useState<((value: boolean) => void) | null>(null)
 
   const confirm = useCallback((options: ConfirmDialogOptions): Promise<boolean> => {
-    return new Promise((res) => {
+    return new Promise(res => {
       setConfig({ ...options, onConfirm: () => {} })
       setResolve(() => res)
     })
@@ -69,33 +71,22 @@ export function ConfirmDialogProvider({ children }: ConfirmDialogProviderProps) 
     <ConfirmDialogContext.Provider value={{ confirm }}>
       {children}
       {config && (
-        <Dialog
-          open={true}
-          onClose={handleCancel}
-          PaperProps={{ sx: { borderRadius: 2 } }}
-        >
+        <Dialog open={true} onClose={handleCancel} PaperProps={{ sx: { borderRadius: 2 } }}>
           <DialogTitle>{config.title}</DialogTitle>
           <DialogContent>
-            <DialogContentText
-              dangerouslySetInnerHTML={{ __html: config.message }}
-            />
+            <DialogContentText dangerouslySetInnerHTML={{ __html: config.message }} />
           </DialogContent>
           <DialogActions sx={{ px: 6, pb: 6 }}>
-            <Button
-              onClick={handleCancel}
-              color="secondary"
-              variant="outlined"
-              disabled={config.isPending}
-            >
+            <Button onClick={handleCancel} color='secondary' variant='outlined' disabled={config.isPending}>
               {config.cancelText || 'Cancelar'}
             </Button>
             <Button
               onClick={handleConfirm}
-              color="error"
-              variant="contained"
+              color='error'
+              variant='contained'
               autoFocus
               disabled={config.isPending}
-              startIcon={config.isPending ? <CircularProgress size={20} color="inherit" /> : null}
+              startIcon={config.isPending ? <CircularProgress size={20} color='inherit' /> : null}
             >
               {config.isPending ? 'Procesando...' : config.confirmText || 'Confirmar'}
             </Button>

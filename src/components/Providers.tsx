@@ -29,9 +29,7 @@ const Providers = async (props: Props) => {
       <VerticalNavProvider>
         <SettingsProvider settingsCookie={settingsCookie} mode={mode}>
           <ThemeProvider direction={direction} systemMode={systemMode}>
-            <ConfirmDialogProvider>
-              {children}
-            </ConfirmDialogProvider>
+            <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
           </ThemeProvider>
         </SettingsProvider>
       </VerticalNavProvider>

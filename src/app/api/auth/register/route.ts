@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     const baseSchema = yup.object({
       tipoRegistro: yup.string().oneOf(['cliente', 'empresa']).required('El tipo de registro es requerido'),
-      usuario: usuarioSchema,
+      usuario: usuarioSchema
     })
 
     const initialData = await baseSchema.validate(body, { stripUnknown: true })
@@ -35,7 +35,10 @@ export async function POST(request: Request) {
     const registerSchema = yup.object({
       tipoRegistro: yup.string().oneOf(['cliente', 'empresa']).required(),
       usuario: usuarioSchema,
-      negocio: initialData.tipoRegistro === 'empresa' ? negocioSchema.required('Datos de empresa requeridos') : yup.object().nullable().strip()
+      negocio:
+        initialData.tipoRegistro === 'empresa'
+          ? negocioSchema.required('Datos de empresa requeridos')
+          : yup.object().nullable().strip()
     })
 
     const validatedData = await registerSchema.validate(body, {
@@ -66,7 +69,7 @@ export async function POST(request: Request) {
     let nuevoUsuario
 
     if (validatedData.tipoRegistro === 'empresa' && validatedData.negocio) {
-      nuevoUsuario = await prisma.$transaction(async (tx) => {
+      nuevoUsuario = await prisma.$transaction(async tx => {
         const { sucursal: sucursalNombre, horarios, ...negocioData } = validatedData.negocio!
 
         const nuevoNegocio = await tx.negocio.create({
@@ -118,7 +121,7 @@ export async function POST(request: Request) {
         return user
       })
     } else {
-      nuevoUsuario = await prisma.$transaction(async (tx) => {
+      nuevoUsuario = await prisma.$transaction(async tx => {
         const user = await tx.usuario.create({
           data: {
             ...validatedData.usuario,

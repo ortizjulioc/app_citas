@@ -32,8 +32,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const body = await request.json()
     const { accion, inicio, fin } = body
 
-
-
     const cita = await prisma.cita.findFirst({
       where: {
         id,
@@ -50,7 +48,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       const now = new Date()
       const citaTime = new Date(cita.inicio)
       if (citaTime.getTime() - now.getTime() < FOUR_HOURS_MS) {
-        return handleApiError(new BadRequestError('No puedes cancelar con menos de 4 horas de anticipación. Puedes posponer la cita en su lugar.'))
+        return handleApiError(
+          new BadRequestError(
+            'No puedes cancelar con menos de 4 horas de anticipación. Puedes posponer la cita en su lugar.'
+          )
+        )
       }
 
       const actualizada = await prisma.cita.update({

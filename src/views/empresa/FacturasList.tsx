@@ -40,11 +40,31 @@ import { useConfirmDialog } from '@/components/shared/confirm-dialog'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
-interface Cliente { id: string; nombre: string; apellido: string; telefono?: string }
-interface Sucursal { id: string; nombre: string }
-interface Servicio { id: string; nombre: string }
-interface Producto { id: string; nombre: string; precio: number; stock: number }
-interface MetodoPago { id: string; nombre: string; esEfectivo: boolean }
+interface Cliente {
+  id: string
+  nombre: string
+  apellido: string
+  telefono?: string
+}
+interface Sucursal {
+  id: string
+  nombre: string
+}
+interface Servicio {
+  id: string
+  nombre: string
+}
+interface Producto {
+  id: string
+  nombre: string
+  precio: number
+  stock: number
+}
+interface MetodoPago {
+  id: string
+  nombre: string
+  esEfectivo: boolean
+}
 
 interface DetalleFactura {
   id: string
@@ -101,11 +121,9 @@ const estadoLabel: Record<string, string> = {
   CANCELADA: 'Cancelada'
 }
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n)
+const fmt = (n: number) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n)
 
-const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleString('es-DO', { dateStyle: 'short', timeStyle: 'short' })
+const fmtDate = (iso: string) => new Date(iso).toLocaleString('es-DO', { dateStyle: 'short', timeStyle: 'short' })
 
 // ─── Item row para formulario de nueva factura ────────────────────────────────
 
@@ -235,7 +253,11 @@ export default function FacturasList() {
         fetch('/api/metodos-pago', { headers: { Authorization: `Bearer ${token}` } })
       ])
       const [cJson, sJson, svJson, prJson, mpJson] = await Promise.all([
-        cRes.json(), sRes.json(), svRes.json(), prRes.json(), mpRes.json()
+        cRes.json(),
+        sRes.json(),
+        svRes.json(),
+        prRes.json(),
+        mpRes.json()
       ])
       setClientes(cJson.data?.clientes || [])
       setSucursales(sJson.data?.sucursales || [])
@@ -289,9 +311,7 @@ export default function FacturasList() {
 
   // ── Crear factura
   const calcTotales = () => {
-    const subtotal = items.reduce(
-      (acc, it) => acc + it.precioUnitario * it.cantidad - it.descuento, 0
-    )
+    const subtotal = items.reduce((acc, it) => acc + it.precioUnitario * it.cantidad - it.descuento, 0)
     const descGlobal = parseFloat(descuentoGlobal) || 0
     const base = Math.max(0, subtotal - descGlobal)
     return { subtotal, base }
@@ -302,8 +322,8 @@ export default function FacturasList() {
       setErrorMsg('Selecciona cliente y sucursal')
       return
     }
-    const validItems = items.filter(it =>
-      (it.tipo === 'SERVICIO' && it.servicioId) || (it.tipo === 'PRODUCTO' && it.productoId)
+    const validItems = items.filter(
+      it => (it.tipo === 'SERVICIO' && it.servicioId) || (it.tipo === 'PRODUCTO' && it.productoId)
     )
     if (validItems.length === 0) {
       setErrorMsg('Agrega al menos un servicio o producto')
@@ -347,8 +367,11 @@ export default function FacturasList() {
   }
 
   const resetCrearForm = () => {
-    setClienteId(''); setSucursalId(''); setDescuentoGlobal('0')
-    setNotasFactura(''); setItems([emptyItem()])
+    setClienteId('')
+    setSucursalId('')
+    setDescuentoGlobal('0')
+    setNotasFactura('')
+    setItems([emptyItem()])
   }
 
   const updateItem = (idx: number, field: keyof ItemRow, value: any) => {
@@ -370,7 +393,10 @@ export default function FacturasList() {
       // Al seleccionar producto, autocompletar precio
       if (field === 'productoId') {
         const pr = productos.find(p => p.id === value)
-        if (pr) { next[idx].precioUnitario = pr.precio; next[idx].descripcion = pr.nombre }
+        if (pr) {
+          next[idx].precioUnitario = pr.precio
+          next[idx].descripcion = pr.nombre
+        }
       }
       return next
     })
@@ -387,7 +413,10 @@ export default function FacturasList() {
   }
 
   const handleRegistrarPago = async () => {
-    if (!pagoMetodo || !pagoMonto) { setErrorMsg('Completa los campos'); return }
+    if (!pagoMetodo || !pagoMonto) {
+      setErrorMsg('Completa los campos')
+      return
+    }
     setPagoLoading(true)
     setErrorMsg(null)
     try {
@@ -437,7 +466,12 @@ export default function FacturasList() {
   // ── Render
   const { subtotal: crearSubtotal, base: crearBase } = calcTotales()
 
-  if (!token) return <Box display='flex' justifyContent='center' pt={8}><CircularProgress /></Box>
+  if (!token)
+    return (
+      <Box display='flex' justifyContent='center' pt={8}>
+        <CircularProgress />
+      </Box>
+    )
 
   return (
     <Box className='w-full'>
@@ -448,7 +482,10 @@ export default function FacturasList() {
             <Button
               variant='contained'
               startIcon={<i className='tabler-plus' />}
-              onClick={() => { resetCrearForm(); setCrearOpen(true) }}
+              onClick={() => {
+                resetCrearForm()
+                setCrearOpen(true)
+              }}
             >
               Nueva Factura
             </Button>
@@ -460,14 +497,30 @@ export default function FacturasList() {
             <TextField
               label='Buscar'
               value={search}
-              onChange={e => { setSearch(e.target.value); setPage(0) }}
+              onChange={e => {
+                setSearch(e.target.value)
+                setPage(0)
+              }}
               size='small'
               sx={{ minWidth: 220 }}
-              InputProps={{ startAdornment: <InputAdornment position='start'><i className='tabler-search' /></InputAdornment> }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <i className='tabler-search' />
+                  </InputAdornment>
+                )
+              }}
             />
             <FormControl size='small' sx={{ minWidth: 160 }}>
               <InputLabel>Estado</InputLabel>
-              <Select value={filtroEstado} label='Estado' onChange={e => { setFiltroEstado(e.target.value); setPage(0) }}>
+              <Select
+                value={filtroEstado}
+                label='Estado'
+                onChange={e => {
+                  setFiltroEstado(e.target.value)
+                  setPage(0)
+                }}
+              >
                 <MenuItem value=''>Todos</MenuItem>
                 <MenuItem value='PENDIENTE'>Pendiente</MenuItem>
                 <MenuItem value='PARCIAL'>Parcial</MenuItem>
@@ -477,20 +530,35 @@ export default function FacturasList() {
             </FormControl>
             <FormControl size='small' sx={{ minWidth: 180 }}>
               <InputLabel>Sucursal</InputLabel>
-              <Select value={filtroSucursal} label='Sucursal' onChange={e => { setFiltroSucursal(e.target.value); setPage(0) }}>
+              <Select
+                value={filtroSucursal}
+                label='Sucursal'
+                onChange={e => {
+                  setFiltroSucursal(e.target.value)
+                  setPage(0)
+                }}
+              >
                 <MenuItem value=''>Todas</MenuItem>
-                {sucursales.map(s => <MenuItem key={s.id} value={s.id}>{s.nombre}</MenuItem>)}
+                {sucursales.map(s => (
+                  <MenuItem key={s.id} value={s.id}>
+                    {s.nombre}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Box>
 
           {/* Tabla */}
           {loading ? (
-            <Box display='flex' justifyContent='center' py={6}><CircularProgress /></Box>
+            <Box display='flex' justifyContent='center' py={6}>
+              <CircularProgress />
+            </Box>
           ) : facturas.length === 0 ? (
             <Box py={6} textAlign='center'>
               <i className='tabler-receipt-off' style={{ fontSize: 48, color: '#bdbdbd' }} />
-              <Typography color='text.secondary' mt={2}>No hay facturas</Typography>
+              <Typography color='text.secondary' mt={2}>
+                No hay facturas
+              </Typography>
             </Box>
           ) : (
             <>
@@ -515,14 +583,20 @@ export default function FacturasList() {
                       return (
                         <TableRow key={f.id} hover sx={{ cursor: 'pointer' }}>
                           <TableCell onClick={() => openDetalle(f)}>
-                            <Typography variant='body2' fontWeight={600} color='primary'>{f.numeroFactura}</Typography>
+                            <Typography variant='body2' fontWeight={600} color='primary'>
+                              {f.numeroFactura}
+                            </Typography>
                           </TableCell>
                           <TableCell onClick={() => openDetalle(f)}>
                             {f.cliente.nombre} {f.cliente.apellido}
                           </TableCell>
                           <TableCell onClick={() => openDetalle(f)}>{f.sucursal.nombre}</TableCell>
-                          <TableCell align='right' onClick={() => openDetalle(f)}>{fmt(f.total)}</TableCell>
-                          <TableCell align='right' onClick={() => openDetalle(f)}>{fmt(f.montoPagado)}</TableCell>
+                          <TableCell align='right' onClick={() => openDetalle(f)}>
+                            {fmt(f.total)}
+                          </TableCell>
+                          <TableCell align='right' onClick={() => openDetalle(f)}>
+                            {fmt(f.montoPagado)}
+                          </TableCell>
                           <TableCell align='right' onClick={() => openDetalle(f)}>
                             <Typography color={saldo > 0 ? 'error' : 'success.main'} variant='body2' fontWeight={600}>
                               {fmt(saldo)}
@@ -567,7 +641,10 @@ export default function FacturasList() {
                 page={page}
                 onPageChange={(_, p) => setPage(p)}
                 rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value)); setPage(0) }}
+                onRowsPerPageChange={e => {
+                  setRowsPerPage(parseInt(e.target.value))
+                  setPage(0)
+                }}
                 rowsPerPageOptions={[10, 20, 50]}
                 labelRowsPerPage='Filas'
               />
@@ -583,33 +660,49 @@ export default function FacturasList() {
             <i className='tabler-receipt' style={{ fontSize: 22 }} />
             <span>{facturaDetalle?.numeroFactura || '...'}</span>
             {facturaDetalle && (
-              <Chip label={estadoLabel[facturaDetalle.estado]} color={estadoColor[facturaDetalle.estado]} size='small' />
+              <Chip
+                label={estadoLabel[facturaDetalle.estado]}
+                color={estadoColor[facturaDetalle.estado]}
+                size='small'
+              />
             )}
           </Box>
-          <IconButton onClick={() => setDetalleOpen(false)} size='small'><i className='tabler-x' /></IconButton>
+          <IconButton onClick={() => setDetalleOpen(false)} size='small'>
+            <i className='tabler-x' />
+          </IconButton>
         </DialogTitle>
         <DialogContent dividers>
           {loadingDetalle ? (
-            <Box display='flex' justifyContent='center' py={4}><CircularProgress /></Box>
+            <Box display='flex' justifyContent='center' py={4}>
+              <CircularProgress />
+            </Box>
           ) : facturaDetalle ? (
             <Box display='flex' flexDirection='column' gap={2}>
               {/* Info general */}
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant='caption' color='text.secondary'>Cliente</Typography>
+                  <Typography variant='caption' color='text.secondary'>
+                    Cliente
+                  </Typography>
                   <Typography variant='body1' fontWeight={600}>
                     {facturaDetalle.cliente.nombre} {facturaDetalle.cliente.apellido}
                   </Typography>
                   {facturaDetalle.cliente.telefono && (
-                    <Typography variant='caption' color='text.secondary'>{facturaDetalle.cliente.telefono}</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      {facturaDetalle.cliente.telefono}
+                    </Typography>
                   )}
                 </Grid>
                 <Grid item xs={12} sm={3}>
-                  <Typography variant='caption' color='text.secondary'>Sucursal</Typography>
+                  <Typography variant='caption' color='text.secondary'>
+                    Sucursal
+                  </Typography>
                   <Typography variant='body2'>{facturaDetalle.sucursal.nombre}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={3}>
-                  <Typography variant='caption' color='text.secondary'>Fecha</Typography>
+                  <Typography variant='caption' color='text.secondary'>
+                    Fecha
+                  </Typography>
                   <Typography variant='body2'>{fmtDate(facturaDetalle.createdAt)}</Typography>
                 </Grid>
               </Grid>
@@ -634,8 +727,12 @@ export default function FacturasList() {
                       <TableRow key={d.id}>
                         <TableCell>
                           <Box display='flex' alignItems='center' gap={1}>
-                            <Chip label={d.tipo === 'SERVICIO' ? 'Srv' : 'Prod'} size='small'
-                              color={d.tipo === 'SERVICIO' ? 'primary' : 'secondary'} variant='outlined' />
+                            <Chip
+                              label={d.tipo === 'SERVICIO' ? 'Srv' : 'Prod'}
+                              size='small'
+                              color={d.tipo === 'SERVICIO' ? 'primary' : 'secondary'}
+                              variant='outlined'
+                            />
                             {d.descripcion}
                           </Box>
                         </TableCell>
@@ -653,18 +750,26 @@ export default function FacturasList() {
               <Box display='flex' justifyContent='flex-end'>
                 <Box minWidth={260}>
                   <Box display='flex' justifyContent='space-between' py={0.5}>
-                    <Typography variant='body2' color='text.secondary'>Subtotal</Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Subtotal
+                    </Typography>
                     <Typography variant='body2'>{fmt(facturaDetalle.subtotal)}</Typography>
                   </Box>
                   {facturaDetalle.descuentos > 0 && (
                     <Box display='flex' justifyContent='space-between' py={0.5}>
-                      <Typography variant='body2' color='text.secondary'>Descuento</Typography>
-                      <Typography variant='body2' color='error'>-{fmt(facturaDetalle.descuentos)}</Typography>
+                      <Typography variant='body2' color='text.secondary'>
+                        Descuento
+                      </Typography>
+                      <Typography variant='body2' color='error'>
+                        -{fmt(facturaDetalle.descuentos)}
+                      </Typography>
                     </Box>
                   )}
                   {facturaDetalle.itbisAplicado > 0 && (
                     <Box display='flex' justifyContent='space-between' py={0.5}>
-                      <Typography variant='body2' color='text.secondary'>ITBIS ({(facturaDetalle as any).tasaItbis * 100}%)</Typography>
+                      <Typography variant='body2' color='text.secondary'>
+                        ITBIS ({(facturaDetalle as any).tasaItbis * 100}%)
+                      </Typography>
                       <Typography variant='body2'>{fmt(facturaDetalle.itbisAplicado)}</Typography>
                     </Box>
                   )}
@@ -674,11 +779,17 @@ export default function FacturasList() {
                     <Typography variant='subtitle2'>{fmt(facturaDetalle.total)}</Typography>
                   </Box>
                   <Box display='flex' justifyContent='space-between' py={0.5}>
-                    <Typography variant='body2' color='text.secondary'>Pagado</Typography>
-                    <Typography variant='body2' color='success.main'>{fmt(facturaDetalle.montoPagado)}</Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Pagado
+                    </Typography>
+                    <Typography variant='body2' color='success.main'>
+                      {fmt(facturaDetalle.montoPagado)}
+                    </Typography>
                   </Box>
                   <Box display='flex' justifyContent='space-between' py={0.5}>
-                    <Typography variant='body2' color='text.secondary'>Saldo</Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Saldo
+                    </Typography>
                     <Typography variant='body2' color='error' fontWeight={700}>
                       {fmt(facturaDetalle.saldoPendiente ?? facturaDetalle.total - facturaDetalle.montoPagado)}
                     </Typography>
@@ -732,14 +843,18 @@ export default function FacturasList() {
                   </Table>
                 </TableContainer>
               ) : (
-                <Typography variant='body2' color='text.secondary'>Sin pagos registrados</Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  Sin pagos registrados
+                </Typography>
               )}
 
               {facturaDetalle.notas && (
                 <>
                   <Divider />
                   <Box>
-                    <Typography variant='caption' color='text.secondary'>Notas</Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      Notas
+                    </Typography>
                     <Typography variant='body2'>{facturaDetalle.notas}</Typography>
                   </Box>
                 </>
@@ -750,8 +865,22 @@ export default function FacturasList() {
         <DialogActions sx={{ px: 3, py: 2 }}>
           {facturaDetalle && (facturaDetalle.estado === 'PENDIENTE' || facturaDetalle.estado === 'PARCIAL') && (
             <>
-              <Button color='error' onClick={() => handleCancelar(facturaDetalle)}>Cancelar Factura</Button>
-              <Button variant='contained' color='success' startIcon={<i className='tabler-cash' />} onClick={() => { setPagoOpen(true); setPagoFactura(facturaDetalle); const s = facturaDetalle.total - facturaDetalle.montoPagado; setPagoMonto(s.toFixed(2)); setPagoMetodo(metodosPago[0]?.id || ''); setPagoReferencia('') }}>
+              <Button color='error' onClick={() => handleCancelar(facturaDetalle)}>
+                Cancelar Factura
+              </Button>
+              <Button
+                variant='contained'
+                color='success'
+                startIcon={<i className='tabler-cash' />}
+                onClick={() => {
+                  setPagoOpen(true)
+                  setPagoFactura(facturaDetalle)
+                  const s = facturaDetalle.total - facturaDetalle.montoPagado
+                  setPagoMonto(s.toFixed(2))
+                  setPagoMetodo(metodosPago[0]?.id || '')
+                  setPagoReferencia('')
+                }}
+              >
                 Registrar Pago
               </Button>
             </>
@@ -764,7 +893,9 @@ export default function FacturasList() {
       <Dialog open={crearOpen} onClose={() => setCrearOpen(false)} maxWidth='md' fullWidth>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Nueva Factura
-          <IconButton onClick={() => setCrearOpen(false)} size='small'><i className='tabler-x' /></IconButton>
+          <IconButton onClick={() => setCrearOpen(false)} size='small'>
+            <i className='tabler-x' />
+          </IconButton>
         </DialogTitle>
         <DialogContent dividers>
           <Box display='flex' flexDirection='column' gap={2.5}>
@@ -774,7 +905,9 @@ export default function FacturasList() {
                   <InputLabel>Cliente</InputLabel>
                   <Select value={clienteId} label='Cliente' onChange={e => setClienteId(e.target.value)}>
                     {clientes.map(c => (
-                      <MenuItem key={c.id} value={c.id}>{c.nombre} {c.apellido}</MenuItem>
+                      <MenuItem key={c.id} value={c.id}>
+                        {c.nombre} {c.apellido}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -784,14 +917,18 @@ export default function FacturasList() {
                   <InputLabel>Sucursal</InputLabel>
                   <Select value={sucursalId} label='Sucursal' onChange={e => setSucursalId(e.target.value)}>
                     {sucursales.map(s => (
-                      <MenuItem key={s.id} value={s.id}>{s.nombre}</MenuItem>
+                      <MenuItem key={s.id} value={s.id}>
+                        {s.nombre}
+                      </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
               </Grid>
             </Grid>
 
-            <Divider><Typography variant='caption'>Ítems</Typography></Divider>
+            <Divider>
+              <Typography variant='caption'>Ítems</Typography>
+            </Divider>
 
             {items.map((item, idx) => (
               <Paper key={idx} variant='outlined' sx={{ p: 2 }}>
@@ -809,37 +946,63 @@ export default function FacturasList() {
                     {item.tipo === 'SERVICIO' ? (
                       <FormControl fullWidth size='small'>
                         <InputLabel>Servicio</InputLabel>
-                        <Select value={item.servicioId} label='Servicio' onChange={e => updateItem(idx, 'servicioId', e.target.value)}>
-                          {servicios.map(s => <MenuItem key={s.id} value={s.id}>{s.nombre}</MenuItem>)}
+                        <Select
+                          value={item.servicioId}
+                          label='Servicio'
+                          onChange={e => updateItem(idx, 'servicioId', e.target.value)}
+                        >
+                          {servicios.map(s => (
+                            <MenuItem key={s.id} value={s.id}>
+                              {s.nombre}
+                            </MenuItem>
+                          ))}
                         </Select>
                       </FormControl>
                     ) : (
                       <FormControl fullWidth size='small'>
                         <InputLabel>Producto</InputLabel>
-                        <Select value={item.productoId} label='Producto' onChange={e => updateItem(idx, 'productoId', e.target.value)}>
+                        <Select
+                          value={item.productoId}
+                          label='Producto'
+                          onChange={e => updateItem(idx, 'productoId', e.target.value)}
+                        >
                           {productos.map(p => (
-                            <MenuItem key={p.id} value={p.id}>{p.nombre} (Stock: {p.stock})</MenuItem>
+                            <MenuItem key={p.id} value={p.id}>
+                              {p.nombre} (Stock: {p.stock})
+                            </MenuItem>
                           ))}
                         </Select>
                       </FormControl>
                     )}
                   </Grid>
                   <Grid item xs={6} sm={2}>
-                    <TextField size='small' label='Precio' type='number' fullWidth
+                    <TextField
+                      size='small'
+                      label='Precio'
+                      type='number'
+                      fullWidth
                       value={item.precioUnitario}
                       onChange={e => updateItem(idx, 'precioUnitario', parseFloat(e.target.value) || 0)}
                       InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                     />
                   </Grid>
                   <Grid item xs={6} sm={1}>
-                    <TextField size='small' label='Cant.' type='number' fullWidth
+                    <TextField
+                      size='small'
+                      label='Cant.'
+                      type='number'
+                      fullWidth
                       value={item.cantidad}
                       onChange={e => updateItem(idx, 'cantidad', parseInt(e.target.value) || 1)}
                       inputProps={{ min: 1 }}
                     />
                   </Grid>
                   <Grid item xs={6} sm={2}>
-                    <TextField size='small' label='Desc.' type='number' fullWidth
+                    <TextField
+                      size='small'
+                      label='Desc.'
+                      type='number'
+                      fullWidth
                       value={item.descuento}
                       onChange={e => updateItem(idx, 'descuento', parseFloat(e.target.value) || 0)}
                       InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
@@ -852,7 +1015,11 @@ export default function FacturasList() {
                   </Grid>
                   <Grid item xs={12} sm={0.5} display='flex' alignItems='center'>
                     {items.length > 1 && (
-                      <IconButton size='small' color='error' onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}>
+                      <IconButton
+                        size='small'
+                        color='error'
+                        onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}
+                      >
                         <i className='tabler-trash' />
                       </IconButton>
                     )}
@@ -861,7 +1028,13 @@ export default function FacturasList() {
               </Paper>
             ))}
 
-            <Button startIcon={<i className='tabler-plus' />} onClick={() => setItems(prev => [...prev, emptyItem()])} variant='outlined' size='small' sx={{ alignSelf: 'flex-start' }}>
+            <Button
+              startIcon={<i className='tabler-plus' />}
+              onClick={() => setItems(prev => [...prev, emptyItem()])}
+              variant='outlined'
+              size='small'
+              sx={{ alignSelf: 'flex-start' }}
+            >
               Agregar ítem
             </Button>
 
@@ -880,7 +1053,15 @@ export default function FacturasList() {
                 />
               </Grid>
               <Grid item xs={12} sm={8}>
-                <TextField label='Notas' fullWidth size='small' value={notasFactura} onChange={e => setNotasFactura(e.target.value)} multiline rows={2} />
+                <TextField
+                  label='Notas'
+                  fullWidth
+                  size='small'
+                  value={notasFactura}
+                  onChange={e => setNotasFactura(e.target.value)}
+                  multiline
+                  rows={2}
+                />
               </Grid>
             </Grid>
 
@@ -888,13 +1069,19 @@ export default function FacturasList() {
             <Box display='flex' justifyContent='flex-end'>
               <Paper variant='outlined' sx={{ p: 2, minWidth: 220 }}>
                 <Box display='flex' justifyContent='space-between' mb={0.5}>
-                  <Typography variant='body2' color='text.secondary'>Subtotal</Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Subtotal
+                  </Typography>
                   <Typography variant='body2'>{fmt(crearSubtotal)}</Typography>
                 </Box>
                 {parseFloat(descuentoGlobal) > 0 && (
                   <Box display='flex' justifyContent='space-between' mb={0.5}>
-                    <Typography variant='body2' color='text.secondary'>Descuento</Typography>
-                    <Typography variant='body2' color='error'>-{fmt(parseFloat(descuentoGlobal))}</Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Descuento
+                    </Typography>
+                    <Typography variant='body2' color='error'>
+                      -{fmt(parseFloat(descuentoGlobal))}
+                    </Typography>
                   </Box>
                 )}
                 <Divider sx={{ my: 1 }} />
@@ -902,7 +1089,9 @@ export default function FacturasList() {
                   <Typography variant='subtitle2'>Estimado</Typography>
                   <Typography variant='subtitle2'>{fmt(crearBase)}</Typography>
                 </Box>
-                <Typography variant='caption' color='text.secondary'>(sin ITBIS, se aplica según configuración del negocio)</Typography>
+                <Typography variant='caption' color='text.secondary'>
+                  (sin ITBIS, se aplica según configuración del negocio)
+                </Typography>
               </Paper>
             </Box>
           </Box>
@@ -919,14 +1108,20 @@ export default function FacturasList() {
       <Dialog open={pagoOpen} onClose={() => setPagoOpen(false)} maxWidth='xs' fullWidth>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Registrar Pago
-          <IconButton onClick={() => setPagoOpen(false)} size='small'><i className='tabler-x' /></IconButton>
+          <IconButton onClick={() => setPagoOpen(false)} size='small'>
+            <i className='tabler-x' />
+          </IconButton>
         </DialogTitle>
         <DialogContent dividers>
           <Box display='flex' flexDirection='column' gap={2}>
             {pagoFactura && (
               <Box sx={{ bgcolor: 'action.hover', borderRadius: 1, p: 1.5 }}>
-                <Typography variant='caption' color='text.secondary'>Factura</Typography>
-                <Typography variant='body2' fontWeight={600}>{pagoFactura.numeroFactura}</Typography>
+                <Typography variant='caption' color='text.secondary'>
+                  Factura
+                </Typography>
+                <Typography variant='body2' fontWeight={600}>
+                  {pagoFactura.numeroFactura}
+                </Typography>
                 <Typography variant='caption'>
                   Total: {fmt(pagoFactura.total)} · Saldo: {fmt(pagoFactura.total - pagoFactura.montoPagado)}
                 </Typography>
@@ -970,10 +1165,14 @@ export default function FacturasList() {
 
       {/* Notificaciones */}
       <Snackbar open={!!errorMsg} autoHideDuration={6000} onClose={() => setErrorMsg(null)}>
-        <Alert severity='error' onClose={() => setErrorMsg(null)}>{errorMsg}</Alert>
+        <Alert severity='error' onClose={() => setErrorMsg(null)}>
+          {errorMsg}
+        </Alert>
       </Snackbar>
       <Snackbar open={!!successMsg} autoHideDuration={4000} onClose={() => setSuccessMsg(null)}>
-        <Alert severity='success' onClose={() => setSuccessMsg(null)}>{successMsg}</Alert>
+        <Alert severity='success' onClose={() => setSuccessMsg(null)}>
+          {successMsg}
+        </Alert>
       </Snackbar>
     </Box>
   )

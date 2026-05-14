@@ -24,9 +24,7 @@ export const crearFacturaSchema = Yup.object({
   citaId: Yup.string().nullable().optional(),
   descuentos: Yup.number().min(0).default(0),
   notas: Yup.string().nullable().optional(),
-  items: Yup.array(detalleItemSchema)
-    .min(1, 'Debe incluir al menos un ítem')
-    .required('Los ítems son requeridos')
+  items: Yup.array(detalleItemSchema).min(1, 'Debe incluir al menos un ítem').required('Los ítems son requeridos')
 })
 
 export const crearFacturaDesdeCitaSchema = Yup.object({

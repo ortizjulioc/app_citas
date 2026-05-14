@@ -57,13 +57,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       .filter(m => m.tipo === 'INGRESO')
       .reduce((acc, m) => acc + m.monto, 0)
 
-    const gastos = sesion.movimientoCajas
-      .filter(m => m.tipo === 'GASTO')
-      .reduce((acc, m) => acc + m.monto, 0)
+    const gastos = sesion.movimientoCajas.filter(m => m.tipo === 'GASTO').reduce((acc, m) => acc + m.monto, 0)
 
-    const retiros = sesion.movimientoCajas
-      .filter(m => m.tipo === 'RETIRO')
-      .reduce((acc, m) => acc + m.monto, 0)
+    const retiros = sesion.movimientoCajas.filter(m => m.tipo === 'RETIRO').reduce((acc, m) => acc + m.monto, 0)
 
     const montoEsperado = Math.round((sesion.montoApertura + ingresoEfectivo - gastos - retiros) * 100) / 100
 

@@ -52,9 +52,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!factura) throw new NotFoundError('Factura no encontrada')
 
     // Calcular saldo pendiente
-    const montoPagadoActivo = factura.pagos
-      .filter(p => p.estado === 'COMPLETADO')
-      .reduce((acc, p) => acc + p.monto, 0)
+    const montoPagadoActivo = factura.pagos.filter(p => p.estado === 'COMPLETADO').reduce((acc, p) => acc + p.monto, 0)
 
     const saldoPendiente = Math.round((factura.total - montoPagadoActivo) * 100) / 100
 

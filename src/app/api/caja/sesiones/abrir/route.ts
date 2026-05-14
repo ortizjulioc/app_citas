@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       throw new BadRequestError('Esta caja ya tiene una sesión abierta. Ciérrela antes de abrir una nueva.')
     }
 
-    const sesion = await prisma.$transaction(async (tx) => {
+    const sesion = await prisma.$transaction(async tx => {
       // Actualizar estado de la caja
       await tx.caja.update({
         where: { id: data.cajaId },

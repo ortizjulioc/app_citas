@@ -83,7 +83,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       throw new NotFoundError('Empleado no encontrado o inactivo')
     }
 
-    const horarioFormateado = empleado.horarioEmpleados.map((h) => ({
+    const horarioFormateado = empleado.horarioEmpleados.map(h => ({
       ...h,
       horaInicio: formatTime(h.horaInicio),
       horaFin: formatTime(h.horaFin)
@@ -118,16 +118,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       throw new NotFoundError('Empleado no encontrado')
     }
 
-    const resultado = await prisma.$transaction(async (tx) => {
+    const resultado = await prisma.$transaction(async tx => {
       const { horario, bloqueos, servicios, password, ...datosEmpleado } = validatedData
 
       const datosActualizar: any = {}
       if (datosEmpleado.nombre !== undefined) datosActualizar.nombre = datosEmpleado.nombre
       if (datosEmpleado.apellido !== undefined) datosActualizar.apellido = datosEmpleado.apellido
       if (datosEmpleado.telefono !== undefined) datosActualizar.telefono = datosEmpleado.telefono
-      if (datosEmpleado.tipoSalario !== undefined) datosActualizar.tipoSalario = datosEmpleado.tipoSalario as $Enums.TipoSalario
+      if (datosEmpleado.tipoSalario !== undefined)
+        datosActualizar.tipoSalario = datosEmpleado.tipoSalario as $Enums.TipoSalario
       if (datosEmpleado.salarioBase !== undefined) datosActualizar.salarioBase = datosEmpleado.salarioBase
-      if (datosEmpleado.fechaContratacion !== undefined) datosActualizar.fechaContratacion = datosEmpleado.fechaContratacion
+      if (datosEmpleado.fechaContratacion !== undefined)
+        datosActualizar.fechaContratacion = datosEmpleado.fechaContratacion
       if (datosEmpleado.sucursalId !== undefined) datosActualizar.sucursalId = datosEmpleado.sucursalId
       if (datosEmpleado.negocioId !== undefined) datosActualizar.negocioId = datosEmpleado.negocioId
 
@@ -153,7 +155,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         })
 
         if (horario && horario.length > 0) {
-          const horariosData = horario.map((h) => ({
+          const horariosData = horario.map(h => ({
             empleadoId: id,
             diaSemana: h.diaSemana as $Enums.DiaSemana,
             horaInicio: parseTimeToDate(h.horaInicio),
@@ -171,7 +173,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         })
 
         if (bloqueos && bloqueos.length > 0) {
-          const bloqueosData = bloqueos.map((b) => ({
+          const bloqueosData = bloqueos.map(b => ({
             empleadoId: id,
             inicio: new Date(b.inicio),
             fin: new Date(b.fin),

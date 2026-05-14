@@ -128,7 +128,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
       } else {
         router.push('/cliente')
       }
-      
+
       router.refresh()
     } catch (error: any) {
       setErrorMsg(error.message)
@@ -165,17 +165,12 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
             <Typography variant='h4'>{`Welcome to ${themeConfig.templateName}! 👋🏻`}</Typography>
             <Typography>Please sign-in to your account and start the adventure</Typography>
           </div>
-          <form
-            noValidate
-            autoComplete='off'
-            onSubmit={handleLogin}
-            className='flex flex-col gap-5'
-          >
-            <CustomTextField 
-              autoFocus 
-              fullWidth 
-              label='Email' 
-              placeholder='usuario@gmail.com' 
+          <form noValidate autoComplete='off' onSubmit={handleLogin} className='flex flex-col gap-5'>
+            <CustomTextField
+              autoFocus
+              fullWidth
+              label='Email'
+              placeholder='usuario@gmail.com'
               type='email'
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -235,7 +230,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
           </form>
         </div>
       </div>
-      
+
       <Snackbar open={!!errorMsg} autoHideDuration={6000} onClose={() => setErrorMsg(null)}>
         <Alert onClose={() => setErrorMsg(null)} severity='error' sx={{ width: '100%' }}>
           {errorMsg}

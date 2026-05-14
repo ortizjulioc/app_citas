@@ -112,7 +112,8 @@ export default function EmpleadoCitasPage() {
   }
 
   const formatDateTime = (iso: string) => {
-    const date = new Date(iso)
+    const isoLocal = iso.endsWith('Z') ? iso.slice(0, -1) : iso
+    const date = new Date(isoLocal)
     return date.toLocaleString('es-DO', {
       dateStyle: 'medium',
       timeStyle: 'short'
@@ -171,7 +172,14 @@ export default function EmpleadoCitasPage() {
       </Typography>
       {user && (
         <Typography variant='h6' color='primary' sx={{ mb: 1, fontWeight: 'bold' }}>
-          Agenda de: <Chip variant='outlined' color='primary' label={`${user.nombre} ${user.apellido}`} onClick={() => router.push('/perfil-usuario')} sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }} />
+          Agenda de:{' '}
+          <Chip
+            variant='outlined'
+            color='primary'
+            label={`${user.nombre} ${user.apellido}`}
+            onClick={() => router.push('/perfil-usuario')}
+            sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+          />
         </Typography>
       )}
       <Typography variant='body1' color='text.secondary' sx={{ mb: 4 }}>

@@ -408,30 +408,43 @@ export default function ProductosList() {
           <Box display='flex' gap={2} mb={3} flexWrap='wrap'>
             <FormControl sx={{ minWidth: 200 }}>
               <InputLabel>Sucursal</InputLabel>
-              <Select value={sucursalFiltro} label='Sucursal' onChange={(e) => setSucursalFiltro(e.target.value)}>
+              <Select value={sucursalFiltro} label='Sucursal' onChange={e => setSucursalFiltro(e.target.value)}>
                 <MenuItem value=''>Todas</MenuItem>
                 {sucursales.map(s => (
-                  <MenuItem key={s.id} value={s.id}>{s.nombre}</MenuItem>
+                  <MenuItem key={s.id} value={s.id}>
+                    {s.nombre}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
             <TextField
               label='Buscar'
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0) }}
+              onChange={e => {
+                setSearch(e.target.value)
+                setPage(0)
+              }}
               InputProps={{
-                startAdornment: <InputAdornment position='start'><i className='tabler-search' /></InputAdornment>
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <i className='tabler-search' />
+                  </InputAdornment>
+                )
               }}
               sx={{ minWidth: 250 }}
             />
           </Box>
 
           {loading ? (
-            <Box display='flex' justifyContent='center' py={4}><CircularProgress /></Box>
+            <Box display='flex' justifyContent='center' py={4}>
+              <CircularProgress />
+            </Box>
           ) : productos.length === 0 ? (
             <Box py={4} textAlign='center'>
               <i className='tabler-package-off' style={{ fontSize: 48, color: '#bdbdbd' }} />
-              <Typography color='text.secondary' mt={2}>No hay productos registrados</Typography>
+              <Typography color='text.secondary' mt={2}>
+                No hay productos registrados
+              </Typography>
             </Box>
           ) : (
             <>
@@ -452,30 +465,67 @@ export default function ProductosList() {
                       <TableRow key={p.id} hover>
                         <TableCell>
                           <Typography variant='subtitle2'>{p.nombre}</Typography>
-                          {p.descripcion && <Typography variant='caption' color='text.secondary'>{p.descripcion}</Typography>}
+                          {p.descripcion && (
+                            <Typography variant='caption' color='text.secondary'>
+                              {p.descripcion}
+                            </Typography>
+                          )}
                         </TableCell>
                         <TableCell>{formatCurrency(p.precio)}</TableCell>
                         <TableCell>{formatCurrency(p.costo)}</TableCell>
                         <TableCell>
                           <Box display='flex' alignItems='center' gap={0.5}>
                             <Tooltip title='-5'>
-                              <Button size='small' variant='outlined' color='error' sx={{ minWidth: 32, p: 0.5, height: 28 }} onClick={() => quickAdjustStock(p.id, 5, 'SALIDA')}>-5</Button>
+                              <Button
+                                size='small'
+                                variant='outlined'
+                                color='error'
+                                sx={{ minWidth: 32, p: 0.5, height: 28 }}
+                                onClick={() => quickAdjustStock(p.id, 5, 'SALIDA')}
+                              >
+                                -5
+                              </Button>
                             </Tooltip>
                             <Tooltip title='-1'>
-                              <Button size='small' variant='outlined' color='error' sx={{ minWidth: 32, p: 0.5, height: 28 }} onClick={() => quickAdjustStock(p.id, 1, 'SALIDA')}>-1</Button>
+                              <Button
+                                size='small'
+                                variant='outlined'
+                                color='error'
+                                sx={{ minWidth: 32, p: 0.5, height: 28 }}
+                                onClick={() => quickAdjustStock(p.id, 1, 'SALIDA')}
+                              >
+                                -1
+                              </Button>
                             </Tooltip>
                             <TextField
                               size='small'
                               type='number'
                               value={p.stock}
-                              inputProps={{ readOnly: true, style: { width: 50, textAlign: 'center', padding: '4px 8px' } }}
+                              inputProps={{
+                                readOnly: true,
+                                style: { width: 50, textAlign: 'center', padding: '4px 8px' }
+                              }}
                               sx={{ '& input': { MozAppearance: 'textfield' } }}
                             />
                             <Tooltip title='+1'>
-                              <Button size='small' variant='contained' sx={{ minWidth: 32, p: 0.5, height: 28 }} onClick={() => quickAdjustStock(p.id, 1, 'ENTRADA')}>+1</Button>
+                              <Button
+                                size='small'
+                                variant='contained'
+                                sx={{ minWidth: 32, p: 0.5, height: 28 }}
+                                onClick={() => quickAdjustStock(p.id, 1, 'ENTRADA')}
+                              >
+                                +1
+                              </Button>
                             </Tooltip>
                             <Tooltip title='+5'>
-                              <Button size='small' variant='contained' sx={{ minWidth: 32, p: 0.5, height: 28 }} onClick={() => quickAdjustStock(p.id, 5, 'ENTRADA')}>+5</Button>
+                              <Button
+                                size='small'
+                                variant='contained'
+                                sx={{ minWidth: 32, p: 0.5, height: 28 }}
+                                onClick={() => quickAdjustStock(p.id, 5, 'ENTRADA')}
+                              >
+                                +5
+                              </Button>
                             </Tooltip>
                             <Tooltip title='Ver histórico'>
                               <IconButton size='small' color='default' onClick={() => openHistorial(p)}>
@@ -486,8 +536,12 @@ export default function ProductosList() {
                         </TableCell>
                         <TableCell>{p.sucursal.nombre}</TableCell>
                         <TableCell align='center'>
-                          <IconButton color='primary' onClick={() => handleOpenEdit(p)}><i className='tabler-edit' /></IconButton>
-                          <IconButton color='error' onClick={() => handleDelete(p)}><i className='tabler-trash' /></IconButton>
+                          <IconButton color='primary' onClick={() => handleOpenEdit(p)}>
+                            <i className='tabler-edit' />
+                          </IconButton>
+                          <IconButton color='error' onClick={() => handleDelete(p)}>
+                            <i className='tabler-trash' />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -501,7 +555,10 @@ export default function ProductosList() {
                 page={page}
                 onPageChange={(_, p) => setPage(p)}
                 rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0) }}
+                onRowsPerPageChange={e => {
+                  setRowsPerPage(parseInt(e.target.value, 10))
+                  setPage(0)
+                }}
                 rowsPerPageOptions={[10, 20, 50]}
                 labelRowsPerPage='Filas'
               />
@@ -513,28 +570,75 @@ export default function ProductosList() {
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth='sm' fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {editingProducto ? 'Editar Producto' : 'Nuevo Producto'}
-          <IconButton onClick={handleCloseDialog} size='small'><i className='tabler-x' /></IconButton>
+          <IconButton onClick={handleCloseDialog} size='small'>
+            <i className='tabler-x' />
+          </IconButton>
         </DialogTitle>
         <DialogContent dividers>
           <Box display='flex' flexDirection='column' gap={2}>
-            <TextField label='Nombre' value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} fullWidth required />
-            <TextField label='Descripción' value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })} fullWidth multiline rows={2} />
+            <TextField
+              label='Nombre'
+              value={formData.nombre}
+              onChange={e => setFormData({ ...formData, nombre: e.target.value })}
+              fullWidth
+              required
+            />
+            <TextField
+              label='Descripción'
+              value={formData.descripcion}
+              onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
+              fullWidth
+              multiline
+              rows={2}
+            />
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField label='Precio' type='number' value={formData.precio} onChange={e => setFormData({ ...formData, precio: e.target.value })} fullWidth required inputProps={{ min: 0 }} InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }} />
+                <TextField
+                  label='Precio'
+                  type='number'
+                  value={formData.precio}
+                  onChange={e => setFormData({ ...formData, precio: e.target.value })}
+                  fullWidth
+                  required
+                  inputProps={{ min: 0 }}
+                  InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField label='Costo' type='number' value={formData.costo} onChange={e => setFormData({ ...formData, costo: e.target.value })} fullWidth required inputProps={{ min: 0 }} InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }} />
+                <TextField
+                  label='Costo'
+                  type='number'
+                  value={formData.costo}
+                  onChange={e => setFormData({ ...formData, costo: e.target.value })}
+                  fullWidth
+                  required
+                  inputProps={{ min: 0 }}
+                  InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
+                />
               </Grid>
             </Grid>
             {!editingProducto && (
-              <TextField label='Stock Inicial' type='number' value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} fullWidth required inputProps={{ min: 0 }} />
+              <TextField
+                label='Stock Inicial'
+                type='number'
+                value={formData.stock}
+                onChange={e => setFormData({ ...formData, stock: e.target.value })}
+                fullWidth
+                required
+                inputProps={{ min: 0 }}
+              />
             )}
             <FormControl fullWidth required>
               <InputLabel>Sucursal</InputLabel>
-              <Select value={formData.sucursalId} label='Sucursal' onChange={e => setFormData({ ...formData, sucursalId: e.target.value })}>
+              <Select
+                value={formData.sucursalId}
+                label='Sucursal'
+                onChange={e => setFormData({ ...formData, sucursalId: e.target.value })}
+              >
                 {sucursales.map(s => (
-                  <MenuItem key={s.id} value={s.id}>{s.nombre}</MenuItem>
+                  <MenuItem key={s.id} value={s.id}>
+                    {s.nombre}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -551,7 +655,9 @@ export default function ProductosList() {
       <Dialog open={stockAdjustOpen} onClose={() => setStockAdjustOpen(false)} maxWidth='xs' fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           Ajustar Stock: {stockAdjustProducto?.nombre}
-          <IconButton onClick={() => setStockAdjustOpen(false)} size='small'><i className='tabler-x' /></IconButton>
+          <IconButton onClick={() => setStockAdjustOpen(false)} size='small'>
+            <i className='tabler-x' />
+          </IconButton>
         </DialogTitle>
         <DialogContent dividers>
           <Box display='flex' flexDirection='column' gap={2}>
@@ -563,9 +669,23 @@ export default function ProductosList() {
                 <MenuItem value='AJUSTE'>Ajuste (stock exacto)</MenuItem>
               </Select>
             </FormControl>
-            <TextField label='Cantidad' type='number' value={stockCantidad} onChange={e => setStockCantidad(e.target.value)} fullWidth required inputProps={{ min: 1 }} />
+            <TextField
+              label='Cantidad'
+              type='number'
+              value={stockCantidad}
+              onChange={e => setStockCantidad(e.target.value)}
+              fullWidth
+              required
+              inputProps={{ min: 1 }}
+            />
             {stockTipo !== 'AJUSTE' && (
-              <TextField label='Referencia' value={stockReferencia} onChange={e => setStockReferencia(e.target.value)} fullWidth placeholder='Factura, nota, etc.' />
+              <TextField
+                label='Referencia'
+                value={stockReferencia}
+                onChange={e => setStockReferencia(e.target.value)}
+                fullWidth
+                placeholder='Factura, nota, etc.'
+              />
             )}
           </Box>
         </DialogContent>
@@ -580,15 +700,21 @@ export default function ProductosList() {
       <Dialog open={historialOpen} onClose={() => setHistorialOpen(false)} maxWidth='sm' fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           Historial: {selectedProducto?.nombre}
-          <IconButton onClick={() => setHistorialOpen(false)} size='small'><i className='tabler-x' /></IconButton>
+          <IconButton onClick={() => setHistorialOpen(false)} size='small'>
+            <i className='tabler-x' />
+          </IconButton>
         </DialogTitle>
         <DialogContent dividers>
           {loadingMovimientos ? (
-            <Box display='flex' justifyContent='center' py={4}><CircularProgress /></Box>
+            <Box display='flex' justifyContent='center' py={4}>
+              <CircularProgress />
+            </Box>
           ) : movimientos.length === 0 ? (
             <Box py={4} textAlign='center'>
               <i className='tabler-history-off' style={{ fontSize: 40, color: '#bdbdbd' }} />
-              <Typography color='text.secondary' mt={1}>Sin movimientos</Typography>
+              <Typography color='text.secondary' mt={1}>
+                Sin movimientos
+              </Typography>
             </Box>
           ) : (
             <TableContainer component={Paper} variant='outlined'>
@@ -608,9 +734,15 @@ export default function ProductosList() {
                     <TableRow key={m.id}>
                       <TableCell>{formatDateTime(m.createdAt)}</TableCell>
                       <TableCell>
-                        <Chip label={tipoLabels[m.tipo]} size='small' sx={{ bgcolor: tipoColores[m.tipo], color: 'white' }} />
+                        <Chip
+                          label={tipoLabels[m.tipo]}
+                          size='small'
+                          sx={{ bgcolor: tipoColores[m.tipo], color: 'white' }}
+                        />
                       </TableCell>
-                      <TableCell align='right'>{m.tipo === 'SALIDA' ? `-${m.cantidad}` : m.tipo === 'ENTRADA' ? `+${m.cantidad}` : m.cantidad}</TableCell>
+                      <TableCell align='right'>
+                        {m.tipo === 'SALIDA' ? `-${m.cantidad}` : m.tipo === 'ENTRADA' ? `+${m.cantidad}` : m.cantidad}
+                      </TableCell>
                       <TableCell align='right'>{m.cantidadAnterior}</TableCell>
                       <TableCell align='right'>{m.cantidadNueva}</TableCell>
                       <TableCell>{m.referencia || '-'}</TableCell>
@@ -625,7 +757,10 @@ export default function ProductosList() {
               component='div'
               count={historialTotal}
               page={historialPage}
-              onPageChange={(_, p) => { setHistorialPage(p); fetchMovimientos(selectedProducto!.id, p) }}
+              onPageChange={(_, p) => {
+                setHistorialPage(p)
+                fetchMovimientos(selectedProducto!.id, p)
+              }}
               rowsPerPage={20}
               rowsPerPageOptions={[20]}
               labelRowsPerPage='Filas'
@@ -635,10 +770,14 @@ export default function ProductosList() {
       </Dialog>
 
       <Snackbar open={!!errorMsg} autoHideDuration={6000} onClose={() => setErrorMsg(null)}>
-        <Alert severity='error' onClose={() => setErrorMsg(null)}>{errorMsg}</Alert>
+        <Alert severity='error' onClose={() => setErrorMsg(null)}>
+          {errorMsg}
+        </Alert>
       </Snackbar>
       <Snackbar open={!!successMsg} autoHideDuration={4000} onClose={() => setSuccessMsg(null)}>
-        <Alert severity='success' onClose={() => setSuccessMsg(null)}>{successMsg}</Alert>
+        <Alert severity='success' onClose={() => setSuccessMsg(null)}>
+          {successMsg}
+        </Alert>
       </Snackbar>
     </Box>
   )

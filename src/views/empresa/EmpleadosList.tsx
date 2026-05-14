@@ -143,25 +143,28 @@ export default function EmpleadosList() {
         const res = await fetch(`/api/empleados/${empleado.id}`)
         const json = await res.json()
         if (res.ok) {
-          const fetchedData = json.data || json;
+          const fetchedData = json.data || json
           setInitialData({
             ...fetchedData,
-            horario: fetchedData.horarioEmpleados?.map((h: any) => ({
-              diaSemana: h.diaSemana,
-              horaInicio: h.horaInicio?.substring(0, 5) || '',
-              horaFin: h.horaFin?.substring(0, 5) || ''
-            })) || [],
-            bloqueos: fetchedData.bloqueoHorarios?.map((b: any) => ({
-              id: b.id,
-              inicio: b.inicio?.split('T')[0] || '',
-              fin: b.fin?.split('T')[0] || '',
-              motivo: b.motivo || ''
-            })) || [],
-            servicios: fetchedData.comisionEmpleados?.map((c: any) => ({
-              servicioId: c.servicioId,
-              nombre: c.servicio?.nombre || '',
-              porcentaje: c.porcentaje
-            })) || []
+            horario:
+              fetchedData.horarioEmpleados?.map((h: any) => ({
+                diaSemana: h.diaSemana,
+                horaInicio: h.horaInicio?.substring(0, 5) || '',
+                horaFin: h.horaFin?.substring(0, 5) || ''
+              })) || [],
+            bloqueos:
+              fetchedData.bloqueoHorarios?.map((b: any) => ({
+                id: b.id,
+                inicio: b.inicio?.split('T')[0] || '',
+                fin: b.fin?.split('T')[0] || '',
+                motivo: b.motivo || ''
+              })) || [],
+            servicios:
+              fetchedData.comisionEmpleados?.map((c: any) => ({
+                servicioId: c.servicioId,
+                nombre: c.servicio?.nombre || '',
+                porcentaje: c.porcentaje
+              })) || []
           })
         }
       } catch (err) {
@@ -287,15 +290,11 @@ export default function EmpleadosList() {
         </TableContainer>
       </Card>
 
-      <Dialog
-        open={openDialog}
-        onClose={handleClose}
-        fullWidth
-        maxWidth='md'
-        PaperProps={{ sx: { borderRadius: 2 } }}
-      >
+      <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth='md' PaperProps={{ sx: { borderRadius: 2 } }}>
         <DialogTitle sx={{ px: 6, py: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant='h5' component='span'>{editingId ? 'Editar Perfil de Empleado' : 'Registro de Nuevo Empleado'}</Typography>
+          <Typography variant='h5' component='span'>
+            {editingId ? 'Editar Perfil de Empleado' : 'Registro de Nuevo Empleado'}
+          </Typography>
           <IconButton onClick={handleClose} size='small'>
             <i className='tabler-x' />
           </IconButton>

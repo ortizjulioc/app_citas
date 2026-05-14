@@ -74,9 +74,7 @@ export async function POST(request: Request) {
     // Verificar que el monto no exceda el saldo
     const saldoPendiente = Math.round((factura.total - factura.montoPagado) * 100) / 100
     if (data.monto > saldoPendiente + 0.01) {
-      throw new BadRequestError(
-        `El monto (${data.monto}) excede el saldo pendiente (${saldoPendiente})`
-      )
+      throw new BadRequestError(`El monto (${data.monto}) excede el saldo pendiente (${saldoPendiente})`)
     }
 
     // Verificar método de pago
@@ -111,13 +109,9 @@ export async function POST(request: Request) {
     }
 
     const nuevoPagado = Math.round((factura.montoPagado + data.monto) * 100) / 100
-    const nuevoEstado = nuevoPagado >= factura.total - 0.01
-      ? 'PAGADA'
-      : nuevoPagado > 0
-      ? 'PARCIAL'
-      : 'PENDIENTE'
+    const nuevoEstado = nuevoPagado >= factura.total - 0.01 ? 'PAGADA' : nuevoPagado > 0 ? 'PARCIAL' : 'PENDIENTE'
 
-    const pago = await prisma.$transaction(async (tx) => {
+    const pago = await prisma.$transaction(async tx => {
       // Crear el pago
       const nuevoPago = await tx.pago.create({
         data: {

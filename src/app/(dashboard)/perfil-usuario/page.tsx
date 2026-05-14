@@ -72,7 +72,7 @@ export default function PerfilUsuario() {
         apellido: formData.apellido,
         telefono: formData.telefono
       }
-      
+
       if (formData.password) {
         dataToUpdate.password = formData.password
       }
@@ -92,7 +92,7 @@ export default function PerfilUsuario() {
       }
 
       setSuccess('Perfil actualizado exitosamente')
-      
+
       // Actualizar el contexto de autenticación para reflejar el nuevo nombre
       if (user && token) {
         login(token, {
@@ -102,7 +102,7 @@ export default function PerfilUsuario() {
           telefono: formData.telefono
         })
       }
-      
+
       setFormData(prev => ({ ...prev, password: '' }))
     } catch (err: any) {
       setError(err.message)
@@ -126,9 +126,9 @@ export default function PerfilUsuario() {
       </Typography>
 
       <Card sx={{ maxWidth: 800, boxShadow: 3, borderRadius: 2 }}>
-        <CardHeader 
-          title="Información Personal" 
-          subheader="Actualiza tus datos básicos y contraseña"
+        <CardHeader
+          title='Información Personal'
+          subheader='Actualiza tus datos básicos y contraseña'
           sx={{ borderBottom: 1, borderColor: 'divider', pb: 2 }}
         />
         <CardContent sx={{ pt: 4 }}>
@@ -159,7 +159,11 @@ export default function PerfilUsuario() {
                   value={formData.telefono}
                   onChange={e => handleChange('telefono', e.target.value)}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><i className="tabler-phone" /></InputAdornment>
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <i className='tabler-phone' />
+                      </InputAdornment>
+                    )
                   }}
                 />
               </Grid>
@@ -171,7 +175,11 @@ export default function PerfilUsuario() {
                   disabled
                   helperText='El correo electrónico no se puede cambiar'
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><i className="tabler-mail" /></InputAdornment>
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <i className='tabler-mail' />
+                      </InputAdornment>
+                    )
                   }}
                 />
               </Grid>
@@ -184,18 +192,24 @@ export default function PerfilUsuario() {
                   onChange={e => handleChange('password', e.target.value)}
                   placeholder='Deja en blanco para no cambiarla'
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><i className="tabler-lock" /></InputAdornment>
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <i className='tabler-lock' />
+                      </InputAdornment>
+                    )
                   }}
                 />
               </Grid>
-              
+
               <Grid item xs={12} display='flex' justifyContent='flex-end' mt={2}>
-                <Button 
-                  type='submit' 
-                  variant='contained' 
+                <Button
+                  type='submit'
+                  variant='contained'
                   size='large'
                   disabled={loading}
-                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <i className="tabler-device-floppy" />}
+                  startIcon={
+                    loading ? <CircularProgress size={20} color='inherit' /> : <i className='tabler-device-floppy' />
+                  }
                   sx={{ borderRadius: 2 }}
                 >
                   {loading ? 'Guardando...' : 'Guardar Cambios'}

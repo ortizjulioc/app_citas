@@ -146,7 +146,7 @@ export default function EmpresasPage() {
             fullWidth
             placeholder='Buscar empresas...'
             value={search}
-            onChange={(e) => {
+            onChange={e => {
               setSearch(e.target.value)
               setPage(1)
             }}
@@ -167,12 +167,12 @@ export default function EmpresasPage() {
             <Select
               value={categoria}
               label='Categoría'
-              onChange={(e) => {
+              onChange={e => {
                 setCategoria(e.target.value)
                 setPage(1)
               }}
             >
-              {categorias.map((cat) => (
+              {categorias.map(cat => (
                 <MenuItem key={cat.value} value={cat.value}>
                   {cat.label}
                 </MenuItem>
@@ -208,7 +208,7 @@ export default function EmpresasPage() {
       ) : (
         <>
           <Grid container spacing={3}>
-            {negocios.map((negocio) => (
+            {negocios.map(negocio => (
               <Grid item xs={12} sm={6} md={4} key={negocio.id}>
                 <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardContent sx={{ flexGrow: 1 }}>
@@ -261,12 +261,7 @@ export default function EmpresasPage() {
 
           {totalPages > 1 && (
             <Box display='flex' justifyContent='center' mt={4}>
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
-                color='primary'
-              />
+              <Pagination count={totalPages} page={page} onChange={(_, value) => setPage(value)} color='primary' />
             </Box>
           )}
         </>

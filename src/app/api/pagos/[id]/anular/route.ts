@@ -35,7 +35,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       throw new BadRequestError('No se puede anular el pago de una factura cancelada')
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async tx => {
       // Anular el pago
       await tx.pago.update({
         where: { id },
@@ -51,16 +51,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           id: { not: id }
         }
       })
-      const nuevoMontoPagado = Math.round(
-        pagosActivos.reduce((acc, p) => acc + p.monto, 0) * 100
-      ) / 100
+      const nuevoMontoPagado = Math.round(pagosActivos.reduce((acc, p) => acc + p.monto, 0) * 100) / 100
 
       const nuevoEstado =
-        nuevoMontoPagado >= pago.factura.total - 0.01
-          ? 'PAGADA'
-          : nuevoMontoPagado > 0
-          ? 'PARCIAL'
-          : 'PENDIENTE'
+        nuevoMontoPagado >= pago.factura.total - 0.01 ? 'PAGADA' : nuevoMontoPagado > 0 ? 'PARCIAL' : 'PENDIENTE'
 
       await tx.factura.update({
         where: { id: pago.facturaId },

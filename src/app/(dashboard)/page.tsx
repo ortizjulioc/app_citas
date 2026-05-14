@@ -34,6 +34,4 @@ export default function DashboardPage() {
       <CircularProgress />
     </Box>
   )
-
-
 }

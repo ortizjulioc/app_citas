@@ -65,9 +65,7 @@ export async function POST(request: Request) {
       where: { citaId: data.citaId, deleted: false, estado: { not: 'CANCELADA' } }
     })
     if (facturaExistente) {
-      throw new BadRequestError(
-        `Esta cita ya tiene una factura generada (${facturaExistente.numeroFactura})`
-      )
+      throw new BadRequestError(`Esta cita ya tiene una factura generada (${facturaExistente.numeroFactura})`)
     }
 
     // Obtener configuración ITBIS del negocio
@@ -78,7 +76,7 @@ export async function POST(request: Request) {
 
     // Construir ítems desde los servicios de la cita
     const itemsServicio = await Promise.all(
-      cita.servicioCitas.map(async (sc) => {
+      cita.servicioCitas.map(async sc => {
         // Buscar precio en ServicioSucursal
         const ss = await prisma.servicioSucursal.findUnique({
           where: { servicioId_sucursalId: { servicioId: sc.servicioId, sucursalId: cita.sucursalId } }
@@ -105,9 +103,7 @@ export async function POST(request: Request) {
           })
           if (!producto) throw new BadRequestError(`Producto ${item.productoId} no encontrado`)
           if (producto.stock < item.cantidad) {
-            throw new BadRequestError(
-              `Stock insuficiente para "${producto.nombre}" (disponible: ${producto.stock})`
-            )
+            throw new BadRequestError(`Stock insuficiente para "${producto.nombre}" (disponible: ${producto.stock})`)
           }
           return { ...item, descripcion: item.descripcion || producto.nombre }
         } else {
@@ -123,10 +119,7 @@ export async function POST(request: Request) {
     const todosLosItems = [...itemsServicio, ...itemsExtraEnriquecidos]
     const descuentoGlobal = data.descuentos || 0
 
-    const subtotal = todosLosItems.reduce(
-      (acc, item) => acc + item.precioUnitario * item.cantidad - item.descuento,
-      0
-    )
+    const subtotal = todosLosItems.reduce((acc, item) => acc + item.precioUnitario * item.cantidad - item.descuento, 0)
     const baseImponible = Math.max(0, subtotal - descuentoGlobal)
     const itbisAplicado = negocio?.facturarConItbis
       ? Math.round(baseImponible * (negocio.tasaItbis || 0.18) * 100) / 100
@@ -135,7 +128,7 @@ export async function POST(request: Request) {
 
     const numeroFactura = await generarNumeroFactura(user.negocioId)
 
-    const factura = await prisma.$transaction(async (tx) => {
+    const factura = await prisma.$transaction(async tx => {
       const nuevaFactura = await tx.factura.create({
         data: {
           numeroFactura,
@@ -145,7 +138,7 @@ export async function POST(request: Request) {
           citaId: data.citaId,
           subtotal: Math.round(subtotal * 100) / 100,
           descuentos: descuentoGlobal,
-          tasaItbis: negocio?.facturarConItbis ? (negocio.tasaItbis || 0.18) : 0,
+          tasaItbis: negocio?.facturarConItbis ? negocio.tasaItbis || 0.18 : 0,
           itbisAplicado,
           total,
           montoPagado: 0,

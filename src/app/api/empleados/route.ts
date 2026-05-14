@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       throw new ConflictError('El correo del usuario ya está registrado')
     }
 
-    const resultado = await prisma.$transaction(async (tx) => {
+    const resultado = await prisma.$transaction(async tx => {
       const hashedPassword = await bcrypt.hash(validatedData.password, 10)
 
       const nuevoUsuario = await tx.usuario.create({
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       })
 
       if (validatedData.horario && validatedData.horario.length > 0) {
-        const horariosData = validatedData.horario.map((h) => ({
+        const horariosData = validatedData.horario.map(h => ({
           empleadoId: nuevoEmpleado.id,
           diaSemana: h.diaSemana as $Enums.DiaSemana,
           horaInicio: parseTimeToDate(h.horaInicio),
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       }
 
       if (validatedData.bloqueos && validatedData.bloqueos.length > 0) {
-        const bloqueosData = validatedData.bloqueos.map((b) => ({
+        const bloqueosData = validatedData.bloqueos.map(b => ({
           empleadoId: nuevoEmpleado.id,
           inicio: b.inicio,
           fin: b.fin,

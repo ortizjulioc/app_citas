@@ -2,8 +2,14 @@ import * as yup from 'yup'
 
 export const servicioSucursalSchema = yup.object({
   sucursalId: yup.string().required('La sucursal es requerida'),
-  precio: yup.number().nullable().transform((v) => (v === '' ? null : v)),
-  costo: yup.number().nullable().transform((v) => (v === '' ? null : v)),
+  precio: yup
+    .number()
+    .nullable()
+    .transform(v => (v === '' ? null : v)),
+  costo: yup
+    .number()
+    .nullable()
+    .transform(v => (v === '' ? null : v)),
   activo: yup.boolean().default(true)
 })
 

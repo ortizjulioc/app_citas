@@ -77,7 +77,7 @@ export default function PerfilEmpresa() {
         setFetching(false)
       }
     }
-    
+
     if (user?.negocioId) {
       fetchNegocio()
     } else {
@@ -133,9 +133,9 @@ export default function PerfilEmpresa() {
       </Typography>
 
       <Card sx={{ maxWidth: 800, boxShadow: 3, borderRadius: 2 }}>
-        <CardHeader 
-          title="Información del Negocio" 
-          subheader="Actualiza los datos públicos y de contacto de tu empresa"
+        <CardHeader
+          title='Información del Negocio'
+          subheader='Actualiza los datos públicos y de contacto de tu empresa'
           sx={{ borderBottom: 1, borderColor: 'divider', pb: 2 }}
         />
         <CardContent sx={{ pt: 4 }}>
@@ -149,7 +149,11 @@ export default function PerfilEmpresa() {
                   onChange={e => handleChange('nombre', e.target.value)}
                   required
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><i className="tabler-building-store" /></InputAdornment>
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <i className='tabler-building-store' />
+                      </InputAdornment>
+                    )
                   }}
                 />
               </Grid>
@@ -169,7 +173,7 @@ export default function PerfilEmpresa() {
                   ))}
                 </TextField>
               </Grid>
-              
+
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -189,7 +193,11 @@ export default function PerfilEmpresa() {
                   value={formData.RNC}
                   onChange={e => handleChange('RNC', e.target.value)}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><i className="tabler-id" /></InputAdornment>
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <i className='tabler-id' />
+                      </InputAdornment>
+                    )
                   }}
                 />
               </Grid>
@@ -200,20 +208,28 @@ export default function PerfilEmpresa() {
                   value={formData.telefono}
                   onChange={e => handleChange('telefono', e.target.value)}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><i className="tabler-phone" /></InputAdornment>
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <i className='tabler-phone' />
+                      </InputAdornment>
+                    )
                   }}
                 />
               </Grid>
-              
+
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
                   label='Correo Electrónico'
-                  type="email"
+                  type='email'
                   value={formData.email}
                   onChange={e => handleChange('email', e.target.value)}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><i className="tabler-mail" /></InputAdornment>
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <i className='tabler-mail' />
+                      </InputAdornment>
+                    )
                   }}
                 />
               </Grid>
@@ -224,18 +240,24 @@ export default function PerfilEmpresa() {
                   value={formData.direccion}
                   onChange={e => handleChange('direccion', e.target.value)}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><i className="tabler-map-pin" /></InputAdornment>
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <i className='tabler-map-pin' />
+                      </InputAdornment>
+                    )
                   }}
                 />
               </Grid>
-              
+
               <Grid item xs={12} display='flex' justifyContent='flex-end' mt={2}>
-                <Button 
-                  type='submit' 
-                  variant='contained' 
+                <Button
+                  type='submit'
+                  variant='contained'
                   size='large'
                   disabled={loading}
-                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <i className="tabler-device-floppy" />}
+                  startIcon={
+                    loading ? <CircularProgress size={20} color='inherit' /> : <i className='tabler-device-floppy' />
+                  }
                   sx={{ borderRadius: 2 }}
                 >
                   {loading ? 'Guardando...' : 'Guardar Cambios'}

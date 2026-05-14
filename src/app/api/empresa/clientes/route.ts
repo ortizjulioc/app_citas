@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       where: { negocioId: user.negocioId, deleted: false },
       select: { id: true }
     })
-    const sucursalIds = sucursales.map((s) => s.id)
+    const sucursalIds = sucursales.map(s => s.id)
 
     const [clientesNegocio, total] = await Promise.all([
       prisma.clienteNegocio.findMany({
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
     ])
 
     const clientesConDatos = await Promise.all(
-      clientesNegocio.map(async (cn) => {
+      clientesNegocio.map(async cn => {
         if (sucursalIds.length === 0) {
           return {
             id: cn.id,
@@ -120,9 +120,7 @@ export async function GET(request: Request) {
         let totalGastado = 0
         for (const cita of citasFinalizadas) {
           for (const sc of cita.servicioCitas) {
-            const ss = sc.servicio.servicioSucursals.find(
-              (s) => s.sucursalId === cita.sucursalId
-            )
+            const ss = sc.servicio.servicioSucursals.find(s => s.sucursalId === cita.sucursalId)
             if (ss && typeof ss.precio === 'number') {
               totalGastado += ss.precio
             }

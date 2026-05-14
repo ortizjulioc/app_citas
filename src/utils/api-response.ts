@@ -118,29 +118,17 @@ export function noContentResponse() {
 }
 
 export function notFoundResponse(message = 'No encontrado') {
-  return NextResponse.json(
-    { success: false, error: { code: 'NOT_FOUND', message } },
-    { status: 404 }
-  )
+  return NextResponse.json({ success: false, error: { code: 'NOT_FOUND', message } }, { status: 404 })
 }
 
 export function conflictResponse(message = 'Conflicto') {
-  return NextResponse.json(
-    { success: false, error: { code: 'CONFLICT', message } },
-    { status: 409 }
-  )
+  return NextResponse.json({ success: false, error: { code: 'CONFLICT', message } }, { status: 409 })
 }
 
 export function forbiddenResponse(message = 'No autorizado') {
-  return NextResponse.json(
-    { success: false, error: { code: 'FORBIDDEN', message } },
-    { status: 403 }
-  )
+  return NextResponse.json({ success: false, error: { code: 'FORBIDDEN', message } }, { status: 403 })
 }
 
 export function badRequestResponse(message = 'Solicitud incorrecta') {
-  return NextResponse.json(
-    { success: false, error: { code: 'BAD_REQUEST', message } },
-    { status: 400 }
-  )
+  return NextResponse.json({ success: false, error: { code: 'BAD_REQUEST', message } }, { status: 400 })
 }

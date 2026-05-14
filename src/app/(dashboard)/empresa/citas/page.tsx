@@ -170,7 +170,8 @@ export default function EmpresaCitasPage() {
   }
 
   const formatDateTime = (iso: string) => {
-    const date = new Date(iso)
+    const isoLocal = iso.endsWith('Z') ? iso.slice(0, -1) : iso
+    const date = new Date(isoLocal)
     return date.toLocaleString('es-DO', {
       dateStyle: 'medium',
       timeStyle: 'short'
@@ -218,9 +219,7 @@ export default function EmpresaCitasPage() {
 
       if (data.success) {
         // Actualizamos la fila localmente sin esperar al refetch
-        setCitas(prev =>
-          prev.map(c => (c.id === citaEditando.id ? { ...c, estado: nuevoEstado } : c))
-        )
+        setCitas(prev => prev.map(c => (c.id === citaEditando.id ? { ...c, estado: nuevoEstado } : c)))
         setSnackbar({ open: true, message: 'Estado actualizado correctamente' })
         setCitaEditando(null)
         setNuevoEstado('')
@@ -261,13 +260,13 @@ export default function EmpresaCitasPage() {
               <Select
                 value={sucursalFiltro}
                 label='Sucursal'
-                onChange={(e) => {
+                onChange={e => {
                   setSucursalFiltro(e.target.value)
                   setPage(0)
                 }}
               >
                 <MenuItem value=''>Todas</MenuItem>
-                {sucursales.map((s) => (
+                {sucursales.map(s => (
                   <MenuItem key={s.id} value={s.id}>
                     {s.nombre}
                   </MenuItem>
@@ -280,13 +279,13 @@ export default function EmpresaCitasPage() {
               <Select
                 value={estadoFiltro}
                 label='Estado'
-                onChange={(e) => {
+                onChange={e => {
                   setEstadoFiltro(e.target.value)
                   setPage(0)
                 }}
               >
                 <MenuItem value=''>Todos</MenuItem>
-                {ESTADOS_VALIDOS.map((estado) => (
+                {ESTADOS_VALIDOS.map(estado => (
                   <MenuItem key={estado} value={estado}>
                     {estadoLabels[estado]}
                   </MenuItem>
@@ -298,7 +297,7 @@ export default function EmpresaCitasPage() {
               type='date'
               label='Fecha'
               value={fechaFiltro}
-              onChange={(e) => {
+              onChange={e => {
                 setFechaFiltro(e.target.value)
                 setPage(0)
               }}
@@ -340,7 +339,7 @@ export default function EmpresaCitasPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {citas.map((cita) => (
+                    {citas.map(cita => (
                       <TableRow key={cita.id} hover>
                         <TableCell>
                           {cita.cliente.nombre} {cita.cliente.apellido}
@@ -366,11 +365,7 @@ export default function EmpresaCitasPage() {
                           />
                         </TableCell>
                         <TableCell align='center'>
-                          <Button
-                            size='small'
-                            variant='outlined'
-                            onClick={() => abrirEditarEstado(cita)}
-                          >
+                          <Button size='small' variant='outlined' onClick={() => abrirEditarEstado(cita)}>
                             Cambiar estado
                           </Button>
                         </TableCell>
@@ -431,12 +426,8 @@ export default function EmpresaCitasPage() {
 
               <FormControl fullWidth sx={{ mt: 1 }}>
                 <InputLabel>Nuevo estado</InputLabel>
-                <Select
-                  value={nuevoEstado}
-                  label='Nuevo estado'
-                  onChange={(e) => setNuevoEstado(e.target.value)}
-                >
-                  {ESTADOS_VALIDOS.map((estado) => (
+                <Select value={nuevoEstado} label='Nuevo estado' onChange={e => setNuevoEstado(e.target.value)}>
+                  {ESTADOS_VALIDOS.map(estado => (
                     <MenuItem key={estado} value={estado}>
                       {estadoLabels[estado]}
                     </MenuItem>
@@ -459,11 +450,7 @@ export default function EmpresaCitasPage() {
           <Button
             variant='contained'
             onClick={guardarEstado}
-            disabled={
-              guardandoEstado ||
-              !nuevoEstado ||
-              (citaEditando ? nuevoEstado === citaEditando.estado : true)
-            }
+            disabled={guardandoEstado || !nuevoEstado || (citaEditando ? nuevoEstado === citaEditando.estado : true)}
           >
             {guardandoEstado ? 'Guardando...' : 'Guardar cambios'}
           </Button>

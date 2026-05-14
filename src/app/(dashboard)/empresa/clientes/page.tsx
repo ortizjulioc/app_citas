@@ -175,7 +175,7 @@ export default function EmpresaClientesPage() {
             label='Buscar cliente'
             placeholder='Nombre, apellido, email o teléfono'
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={e => setSearchInput(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>
@@ -224,7 +224,7 @@ export default function EmpresaClientesPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {clientes.map((cn) => (
+                    {clientes.map(cn => (
                       <TableRow key={cn.id} hover>
                         <TableCell>
                           <Typography variant='body2' fontWeight={600}>
@@ -314,10 +314,7 @@ export default function EmpresaClientesPage() {
                 <ListItemIcon>
                   <i className='tabler-cake' />
                 </ListItemIcon>
-                <ListItemText
-                  primary='Fecha de nacimiento'
-                  secondary={formatFecha(detalle.cliente.fechaNacimiento)}
-                />
+                <ListItemText primary='Fecha de nacimiento' secondary={formatFecha(detalle.cliente.fechaNacimiento)} />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
@@ -329,19 +326,13 @@ export default function EmpresaClientesPage() {
                 <ListItemIcon>
                   <i className='tabler-calendar' />
                 </ListItemIcon>
-                <ListItemText
-                  primary='Cliente desde'
-                  secondary={formatFecha(detalle.registradoEn)}
-                />
+                <ListItemText primary='Cliente desde' secondary={formatFecha(detalle.registradoEn)} />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <i className='tabler-clock' />
                 </ListItemIcon>
-                <ListItemText
-                  primary='Última visita'
-                  secondary={formatDateTime(detalle.ultimaVisita)}
-                />
+                <ListItemText primary='Última visita' secondary={formatDateTime(detalle.ultimaVisita)} />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
@@ -353,10 +344,7 @@ export default function EmpresaClientesPage() {
                 <ListItemIcon>
                   <i className='tabler-cash' />
                 </ListItemIcon>
-                <ListItemText
-                  primary='Total gastado'
-                  secondary={formatMoneda(detalle.totalGastado)}
-                />
+                <ListItemText primary='Total gastado' secondary={formatMoneda(detalle.totalGastado)} />
               </ListItem>
               {detalle.notas && (
                 <ListItem>

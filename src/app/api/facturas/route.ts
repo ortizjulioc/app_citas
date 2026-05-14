@@ -180,7 +180,7 @@ export async function POST(request: Request) {
     const numeroFactura = await generarNumeroFactura(user.negocioId)
 
     // Crear factura con detalles en una transacción
-    const factura = await prisma.$transaction(async (tx) => {
+    const factura = await prisma.$transaction(async tx => {
       const nuevaFactura = await tx.factura.create({
         data: {
           numeroFactura,

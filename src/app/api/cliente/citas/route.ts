@@ -52,8 +52,8 @@ export async function GET(request: Request) {
             select: { id: true, nombre: true, apellido: true }
           },
           sucursal: {
-            select: { 
-              id: true, 
+            select: {
+              id: true,
               nombre: true,
               negocio: {
                 select: { id: true, nombre: true, telefono: true, email: true }

@@ -40,9 +40,7 @@ async function autoGenerarFactura(cita: any, negocioId: string, createdById: str
   const items = cita.servicioCitas
     .filter((sc: any) => !sc.deleted)
     .map((sc: any) => {
-      const ss = sc.servicio?.servicioSucursals?.find(
-        (s: any) => s.sucursalId === cita.sucursalId
-      )
+      const ss = sc.servicio?.servicioSucursals?.find((s: any) => s.sucursalId === cita.sucursalId)
       const precio = ss?.precio ?? 0
       return {
         servicioId: sc.servicioId,
@@ -59,7 +57,7 @@ async function autoGenerarFactura(cita: any, negocioId: string, createdById: str
 
   const numeroFactura = await generarNumeroFactura(negocioId)
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async tx => {
     const factura = await tx.factura.create({
       data: {
         numeroFactura,
@@ -99,9 +97,7 @@ async function autoGenerarFactura(cita: any, negocioId: string, createdById: str
 function calcularPrecioCita(cita: any): number {
   if (!cita?.servicioCitas?.length) return 0
   return cita.servicioCitas.reduce((acc: number, sc: any) => {
-    const ss = sc.servicio?.servicioSucursals?.find(
-      (s: any) => s.sucursalId === cita.sucursalId
-    )
+    const ss = sc.servicio?.servicioSucursals?.find((s: any) => s.sucursalId === cita.sucursalId)
     const precio = ss?.precio
     return acc + (typeof precio === 'number' ? precio : 0)
   }, 0)
@@ -223,10 +219,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           }
         }
 
-        const sucursalIds = (await prisma.sucursal.findMany({
-          where: { negocioId, deleted: false },
-          select: { id: true }
-        })).map(s => s.id)
+        const sucursalIds = (
+          await prisma.sucursal.findMany({
+            where: { negocioId, deleted: false },
+            select: { id: true }
+          })
+        ).map(s => s.id)
 
         const ultima = await prisma.cita.findFirst({
           where: { clienteId, sucursalId: { in: sucursalIds }, estado: 'FINALIZADA', deleted: false },

@@ -7,16 +7,22 @@ export const crearCajaSchema = Yup.object({
 
 export const abrirSesionCajaSchema = Yup.object({
   cajaId: Yup.string().required('La caja es requerida'),
-  montoApertura: Yup.number().min(0, 'El monto de apertura no puede ser negativo').required('El monto de apertura es requerido')
+  montoApertura: Yup.number()
+    .min(0, 'El monto de apertura no puede ser negativo')
+    .required('El monto de apertura es requerido')
 })
 
 export const cerrarSesionCajaSchema = Yup.object({
-  montoRealContado: Yup.number().min(0, 'El monto contado no puede ser negativo').required('El monto contado es requerido'),
+  montoRealContado: Yup.number()
+    .min(0, 'El monto contado no puede ser negativo')
+    .required('El monto contado es requerido'),
   notasCierre: Yup.string().nullable().optional()
 })
 
 export const movimientoManualSchema = Yup.object({
-  tipo: Yup.string().oneOf(['GASTO', 'RETIRO'], 'Tipo inválido. Solo se permiten GASTO o RETIRO').required('El tipo es requerido'),
+  tipo: Yup.string()
+    .oneOf(['GASTO', 'RETIRO'], 'Tipo inválido. Solo se permiten GASTO o RETIRO')
+    .required('El tipo es requerido'),
   monto: Yup.number().positive('El monto debe ser mayor a 0').required('El monto es requerido'),
   descripcion: Yup.string().required('La descripción es requerida')
 })

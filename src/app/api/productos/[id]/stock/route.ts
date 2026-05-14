@@ -55,7 +55,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       cantidadNueva = cantidad
     }
 
-    const resultado = await prisma.$transaction(async (tx) => {
+    const resultado = await prisma.$transaction(async tx => {
       const productoActualizado = await tx.producto.update({
         where: { id },
         data: { stock: cantidadNueva }

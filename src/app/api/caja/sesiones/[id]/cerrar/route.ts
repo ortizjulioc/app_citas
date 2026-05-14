@@ -38,17 +38,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const ingresoEfectivo = sesion.movimientoCajas
       .filter(m => m.tipo === 'INGRESO')
       .reduce((acc, m) => acc + m.monto, 0)
-    const gastos = sesion.movimientoCajas
-      .filter(m => m.tipo === 'GASTO')
-      .reduce((acc, m) => acc + m.monto, 0)
-    const retiros = sesion.movimientoCajas
-      .filter(m => m.tipo === 'RETIRO')
-      .reduce((acc, m) => acc + m.monto, 0)
+    const gastos = sesion.movimientoCajas.filter(m => m.tipo === 'GASTO').reduce((acc, m) => acc + m.monto, 0)
+    const retiros = sesion.movimientoCajas.filter(m => m.tipo === 'RETIRO').reduce((acc, m) => acc + m.monto, 0)
 
     const montoEsperado = Math.round((sesion.montoApertura + ingresoEfectivo - gastos - retiros) * 100) / 100
     const diferencia = Math.round((data.montoRealContado - montoEsperado) * 100) / 100
 
-    const sesionCerrada = await prisma.$transaction(async (tx) => {
+    const sesionCerrada = await prisma.$transaction(async tx => {
       // Cerrar la sesión
       const updated = await tx.sesionCaja.update({
         where: { id },

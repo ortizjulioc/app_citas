@@ -21,10 +21,7 @@ function timeToMinutes(time: Date): number {
   return time.getUTCHours() * 60 + time.getUTCMinutes()
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ sucursalId: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ sucursalId: string }> }) {
   try {
     const { sucursalId } = await params
     const { searchParams } = new URL(request.url)
@@ -70,7 +67,7 @@ export async function GET(
     })
 
     const disponibilidadPorEmpleado = await Promise.all(
-      empleados.map(async (empleado) => {
+      empleados.map(async empleado => {
         const horarios = await prisma.horarioEmpleado.findMany({
           where: {
             empleadoId: empleado.id,
@@ -126,15 +123,11 @@ export async function GET(
           const slotFin = new Date(slotInicio)
           slotFin.setMinutes(slotFin.getMinutes() + duracion)
 
-          const bloqueado = bloqueos.some(
-            (b) => slotInicio < b.fin && slotFin > b.inicio
-          )
+          const bloqueado = bloqueos.some(b => slotInicio < b.fin && slotFin > b.inicio)
 
           if (bloqueado) continue
 
-          const ocupado = citas.some(
-            (c) => slotInicio < c.fin && slotFin > c.inicio
-          )
+          const ocupado = citas.some(c => slotInicio < c.fin && slotFin > c.inicio)
 
           if (ocupado) continue
 
@@ -153,7 +146,7 @@ export async function GET(
       })
     )
 
-    const empleadosConSlots = disponibilidadPorEmpleado.filter((e) => e.disponible)
+    const empleadosConSlots = disponibilidadPorEmpleado.filter(e => e.disponible)
 
     return successResponse({
       disponibles: empleadosConSlots.length > 0,

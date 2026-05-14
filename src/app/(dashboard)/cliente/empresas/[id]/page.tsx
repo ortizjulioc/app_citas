@@ -178,7 +178,9 @@ export default function EmpresaDetallePage() {
       const selectedServicio = servicios.find(s => s.id === selectedServicioId)
       const duracion = selectedServicio?.duracionMinutos || 60
 
-      const res = await fetch(`/api/public/sucursales/${sucursalId}/disponibilidad?fecha=${fecha}&duracion=${duracion}&servicioId=${selectedServicioId}`)
+      const res = await fetch(
+        `/api/public/sucursales/${sucursalId}/disponibilidad?fecha=${fecha}&duracion=${duracion}&servicioId=${selectedServicioId}`
+      )
       const data = await res.json()
 
       if (data.success) {
@@ -219,7 +221,7 @@ export default function EmpresaDetallePage() {
   }
 
   const handleBack = () => {
-    setActiveStep((prev) => prev - 1)
+    setActiveStep(prev => prev - 1)
     setError('')
   }
 
@@ -267,7 +269,8 @@ export default function EmpresaDetallePage() {
   }
 
   const formatDateTime = (iso: string) => {
-    const date = new Date(iso)
+    const isoLocal = iso.endsWith('Z') ? iso.slice(0, -1) : iso
+    const date = new Date(isoLocal)
     return date.toLocaleString('es-DO', {
       dateStyle: 'medium',
       timeStyle: 'short'
@@ -282,14 +285,12 @@ export default function EmpresaDetallePage() {
   const getPrecioServicio = (servicio: Servicio): number | null => {
     // El precio vive en la tabla intermedia ServicioSucursal (es por sucursal).
     // Buscamos el precio correspondiente a la sucursal seleccionada.
-    const ss = servicio.servicioSucursals?.find((s) => s.sucursalId === sucursalId)
+    const ss = servicio.servicioSucursals?.find(s => s.sucursalId === sucursalId)
     if (ss && ss.precio !== null && ss.precio !== undefined) {
       return Number(ss.precio)
     }
     // Fallback: primer precio disponible o precio plano del servicio (compat)
-    const fallback = servicio.servicioSucursals?.find(
-      (s) => s.precio !== null && s.precio !== undefined
-    )
+    const fallback = servicio.servicioSucursals?.find(s => s.precio !== null && s.precio !== undefined)
     if (fallback && fallback.precio !== null && fallback.precio !== undefined) {
       return Number(fallback.precio)
     }
@@ -333,11 +334,15 @@ export default function EmpresaDetallePage() {
     )
   }
 
-  const servicioSeleccionado = servicios.find((s) => s.id === selectedServicioId) || null
+  const servicioSeleccionado = servicios.find(s => s.id === selectedServicioId) || null
 
   return (
     <Box p={4}>
-      <Button startIcon={<i className='tabler-arrow-left' />} onClick={() => router.push('/cliente/empresas')} sx={{ mb: 2 }}>
+      <Button
+        startIcon={<i className='tabler-arrow-left' />}
+        onClick={() => router.push('/cliente/empresas')}
+        sx={{ mb: 2 }}
+      >
         Volver
       </Button>
 
@@ -388,7 +393,7 @@ export default function EmpresaDetallePage() {
           </Typography>
 
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {steps.map((label) => (
+            {steps.map(label => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
               </Step>
@@ -411,12 +416,8 @@ export default function EmpresaDetallePage() {
             <Box>
               <FormControl fullWidth sx={{ mb: 3 }}>
                 <InputLabel>Sucursal</InputLabel>
-                <Select
-                  value={sucursalId}
-                  label='Sucursal'
-                  onChange={(e) => setSucursalId(e.target.value)}
-                >
-                  {negocio.sucursals.map((s) => (
+                <Select value={sucursalId} label='Sucursal' onChange={e => setSucursalId(e.target.value)}>
+                  {negocio.sucursals.map(s => (
                     <MenuItem key={s.id} value={s.id}>
                       {s.nombre}
                     </MenuItem>
@@ -441,14 +442,14 @@ export default function EmpresaDetallePage() {
                   </Typography>
                   <RadioGroup
                     value={selectedServicioId}
-                    onChange={(e) => {
+                    onChange={e => {
                       setSelectedServicioId(e.target.value)
                       setSelectedEmpleadoId('cualquiera')
                       setDisponibilidad(null)
                       setHorarioSeleccionado(null)
                     }}
                   >
-                    {servicios.map((servicio) => (
+                    {servicios.map(servicio => (
                       <Card
                         key={servicio.id}
                         variant='outlined'
@@ -513,7 +514,7 @@ export default function EmpresaDetallePage() {
                     type='date'
                     label='Fecha'
                     value={fecha}
-                    onChange={(e) => {
+                    onChange={e => {
                       setFecha(e.target.value)
                       setHorarioSeleccionado(null)
                     }}
@@ -531,15 +532,15 @@ export default function EmpresaDetallePage() {
                       <Select
                         value={selectedEmpleadoId}
                         label='Empleado (opcional)'
-                        onChange={(e) => {
+                        onChange={e => {
                           setSelectedEmpleadoId(e.target.value)
                           setHorarioSeleccionado(null)
                         }}
                       >
                         <MenuItem value='cualquiera'>Cualquier empleado disponible</MenuItem>
                         {disponibilidad?.empleados
-                          .filter((e) => e.disponible)
-                          .map((e) => (
+                          .filter(e => e.disponible)
+                          .map(e => (
                             <MenuItem key={e.empleado.id} value={e.empleado.id}>
                               {e.empleado.nombre} {e.empleado.apellido}
                             </MenuItem>
@@ -551,11 +552,7 @@ export default function EmpresaDetallePage() {
 
                 {fecha && selectedServicioId && (
                   <Grid item xs={12}>
-                    <Button
-                      variant='contained'
-                      onClick={fetchDisponibilidad}
-                      disabled={loadingDisponibilidad}
-                    >
+                    <Button variant='contained' onClick={fetchDisponibilidad} disabled={loadingDisponibilidad}>
                       {loadingDisponibilidad ? 'Cargando...' : 'Ver disponibilidad'}
                     </Button>
                   </Grid>
@@ -580,17 +577,19 @@ export default function EmpresaDetallePage() {
                         </Typography>
                         <FormControl component='fieldset'>
                           <RadioGroup
-                            value={horarioSeleccionado ? `${horarioSeleccionado.inicio}|${horarioSeleccionado.fin}` : ''}
-                            onChange={(e) => {
+                            value={
+                              horarioSeleccionado ? `${horarioSeleccionado.inicio}|${horarioSeleccionado.fin}` : ''
+                            }
+                            onChange={e => {
                               const [inicio, fin] = e.target.value.split('|')
                               setHorarioSeleccionado({ inicio, fin })
                             }}
                           >
                             {selectedEmpleadoId === 'cualquiera'
                               ? disponibilidad.empleados
-                                  .filter((e) => e.disponible)
-                                  .flatMap((e) =>
-                                    e.horarios.slice(0, 5).map((h) => (
+                                  .filter(e => e.disponible)
+                                  .flatMap(e =>
+                                    e.horarios.map(h => (
                                       <FormControlLabel
                                         key={h.inicio}
                                         value={`${h.inicio}|${h.fin}`}
@@ -600,9 +599,8 @@ export default function EmpresaDetallePage() {
                                     ))
                                   )
                               : disponibilidad.empleados
-                                  .find((e) => e.empleado.id === selectedEmpleadoId)
-                                  ?.horarios.slice(0, 5)
-                                  .map((h) => (
+                                  .find(e => e.empleado.id === selectedEmpleadoId)
+                                  ?.horarios.map(h => (
                                     <FormControlLabel
                                       key={h.inicio}
                                       value={`${h.inicio}|${h.fin}`}
@@ -630,7 +628,10 @@ export default function EmpresaDetallePage() {
                   <ListItemIcon>
                     <i className='tabler-building-store' />
                   </ListItemIcon>
-                  <ListItemText primary='Sucursal' secondary={negocio.sucursals.find((s) => s.id === sucursalId)?.nombre} />
+                  <ListItemText
+                    primary='Sucursal'
+                    secondary={negocio.sucursals.find(s => s.id === sucursalId)?.nombre}
+                  />
                 </ListItem>
                 <ListItem>
                   <ListItemIcon>
@@ -638,7 +639,7 @@ export default function EmpresaDetallePage() {
                   </ListItemIcon>
                   <ListItemText
                     primary='Servicio'
-                    secondary={servicios.find((s) => s.id === selectedServicioId)?.nombre}
+                    secondary={servicios.find(s => s.id === selectedServicioId)?.nombre}
                   />
                 </ListItem>
                 <ListItem>
@@ -681,12 +682,7 @@ export default function EmpresaDetallePage() {
                 Siguiente
               </Button>
             ) : (
-              <Button
-                variant='contained'
-                color='success'
-                onClick={handleSubmit}
-                disabled={submitting}
-              >
+              <Button variant='contained' color='success' onClick={handleSubmit} disabled={submitting}>
                 {submitting ? 'Agendando...' : 'Confirmar Cita'}
               </Button>
             )}

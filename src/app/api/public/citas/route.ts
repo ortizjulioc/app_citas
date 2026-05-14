@@ -12,7 +12,8 @@ export async function POST(request: Request) {
       stripUnknown: true
     })
 
-    const { servicioIds, empleadoId, clienteEmail, clienteNombre, clienteApellido, clienteTelefono, ...citaData } = validatedData
+    const { servicioIds, empleadoId, clienteEmail, clienteNombre, clienteApellido, clienteTelefono, ...citaData } =
+      validatedData
 
     let cliente = await prisma.cliente.findFirst({
       where: { email: clienteEmail, deleted: false }
@@ -76,10 +77,10 @@ export async function POST(request: Request) {
         clienteId: cliente.id,
         estado: 'PENDIENTE',
         ...(validServicioIds.length > 0 && {
-            servicioCitas: {
-              create: validServicioIds.map((servicioId) => ({ servicioId }))
-            }
-          })
+          servicioCitas: {
+            create: validServicioIds.map(servicioId => ({ servicioId }))
+          }
+        })
       },
       include: {
         servicioCitas: {

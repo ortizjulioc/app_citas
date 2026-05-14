@@ -33,13 +33,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       throw new BadRequestError('La factura ya está cancelada')
     }
     if (factura.pagos.length > 0) {
-      throw new BadRequestError(
-        'No se puede cancelar una factura con pagos registrados. Anule primero los pagos.'
-      )
+      throw new BadRequestError('No se puede cancelar una factura con pagos registrados. Anule primero los pagos.')
     }
 
     // Revertir stock de productos al cancelar
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async tx => {
       for (const detalle of factura.detalleFacturas) {
         if (detalle.productoId) {
           const producto = await tx.producto.findUnique({ where: { id: detalle.productoId } })
