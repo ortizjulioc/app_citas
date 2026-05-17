@@ -7,7 +7,6 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
-import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
@@ -140,8 +139,8 @@ export default function PerfilEmpresa() {
         />
         <CardContent sx={{ pt: 4 }}>
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={6}>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              <div className='col-span-1'>
                 <TextField
                   fullWidth
                   label='Nombre del Negocio'
@@ -156,8 +155,8 @@ export default function PerfilEmpresa() {
                     )
                   }}
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
+              </div>
+              <div className='col-span-1'>
                 <TextField
                   select
                   fullWidth
@@ -172,9 +171,9 @@ export default function PerfilEmpresa() {
                     </MenuItem>
                   ))}
                 </TextField>
-              </Grid>
+              </div>
 
-              <Grid item xs={12}>
+              <div className='col-span-1 md:col-span-2'>
                 <TextField
                   fullWidth
                   multiline
@@ -184,9 +183,9 @@ export default function PerfilEmpresa() {
                   onChange={e => handleChange('descripcion', e.target.value)}
                   placeholder='Describe brevemente a qué se dedica tu empresa...'
                 />
-              </Grid>
+              </div>
 
-              <Grid item xs={12} md={6}>
+              <div className='col-span-1'>
                 <TextField
                   fullWidth
                   label='RNC / NIT / Identificación Fiscal'
@@ -200,8 +199,8 @@ export default function PerfilEmpresa() {
                     )
                   }}
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
+              </div>
+              <div className='col-span-1'>
                 <TextField
                   fullWidth
                   label='Teléfono Principal'
@@ -215,9 +214,9 @@ export default function PerfilEmpresa() {
                     )
                   }}
                 />
-              </Grid>
+              </div>
 
-              <Grid item xs={12} md={6}>
+              <div className='col-span-1'>
                 <TextField
                   fullWidth
                   label='Correo Electrónico'
@@ -232,8 +231,8 @@ export default function PerfilEmpresa() {
                     )
                   }}
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
+              </div>
+              <div className='col-span-1'>
                 <TextField
                   fullWidth
                   label='Dirección'
@@ -247,9 +246,9 @@ export default function PerfilEmpresa() {
                     )
                   }}
                 />
-              </Grid>
+              </div>
 
-              <Grid item xs={12} display='flex' justifyContent='flex-end' mt={2}>
+              <div className='col-span-1 md:col-span-2 flex justify-end mt-2'>
                 <Button
                   type='submit'
                   variant='contained'
@@ -262,8 +261,8 @@ export default function PerfilEmpresa() {
                 >
                   {loading ? 'Guardando...' : 'Guardar Cambios'}
                 </Button>
-              </Grid>
-            </Grid>
+              </div>
+            </div>
           </form>
         </CardContent>
       </Card>

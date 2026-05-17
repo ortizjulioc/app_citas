@@ -6,7 +6,6 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
-import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
@@ -133,8 +132,8 @@ export default function PerfilUsuario() {
         />
         <CardContent sx={{ pt: 4 }}>
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={6}>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              <div className='col-span-1'>
                 <TextField
                   fullWidth
                   label='Nombre'
@@ -142,8 +141,8 @@ export default function PerfilUsuario() {
                   onChange={e => handleChange('nombre', e.target.value)}
                   required
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
+              </div>
+              <div className='col-span-1'>
                 <TextField
                   fullWidth
                   label='Apellido'
@@ -151,8 +150,8 @@ export default function PerfilUsuario() {
                   onChange={e => handleChange('apellido', e.target.value)}
                   required
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
+              </div>
+              <div className='col-span-1'>
                 <TextField
                   fullWidth
                   label='Teléfono'
@@ -166,8 +165,8 @@ export default function PerfilUsuario() {
                     )
                   }}
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
+              </div>
+              <div className='col-span-1'>
                 <TextField
                   fullWidth
                   label='Correo Electrónico'
@@ -182,8 +181,8 @@ export default function PerfilUsuario() {
                     )
                   }}
                 />
-              </Grid>
-              <Grid item xs={12}>
+              </div>
+              <div className='col-span-1 md:col-span-2'>
                 <TextField
                   fullWidth
                   label='Nueva Contraseña'
@@ -199,9 +198,9 @@ export default function PerfilUsuario() {
                     )
                   }}
                 />
-              </Grid>
+              </div>
 
-              <Grid item xs={12} display='flex' justifyContent='flex-end' mt={2}>
+              <div className='col-span-1 md:col-span-2 flex justify-end mt-2'>
                 <Button
                   type='submit'
                   variant='contained'
@@ -214,8 +213,8 @@ export default function PerfilUsuario() {
                 >
                   {loading ? 'Guardando...' : 'Guardar Cambios'}
                 </Button>
-              </Grid>
-            </Grid>
+              </div>
+            </div>
           </form>
         </CardContent>
       </Card>
