@@ -17,9 +17,9 @@ import '@/app/globals.css'
 import '@assets/iconify-icons/generated-icons.css'
 
 export const metadata = {
-  title: 'Vinculo - Software de Citas',
+  title: 'Vínculo - Software de Citas',
   description:
-    "Vinculo - Software de Citas - es el sistema de citas m'as amigable y altamente personalizable basado en MUI v5."
+    "Vínculo - Software de Citas - es el sistema de citas m'as amigable y altamente personalizable basado en MUI v5."
 }
 
 const RootLayout = async (props: ChildrenType) => {
