@@ -97,6 +97,7 @@ export default function ClienteCitasPage() {
   const [newDisponibilidad, setNewDisponibilidad] = useState<Disponibilidad | null>(null)
   const [loadingDisponibilidad, setLoadingDisponibilidad] = useState(false)
   const [newHorario, setNewHorario] = useState<{ inicio: string; fin: string } | null>(null)
+  const [selectedEmpleadoId, setSelectedEmpleadoId] = useState<string | 'cualquiera'>('cualquiera')
   const [submittingPostpone, setSubmittingPostpone] = useState(false)
 
   useEffect(() => {
@@ -142,6 +143,7 @@ export default function ClienteCitasPage() {
     setLoadingDisponibilidad(true)
     setNewDisponibilidad(null)
     setNewHorario(null)
+    setSelectedEmpleadoId('cualquiera')
     setActionError('')
     try {
       const duracion = selectedCita.servicioCitas[0]?.servicio.duracionMinutos || 60
@@ -190,13 +192,25 @@ export default function ClienteCitasPage() {
     setSubmittingPostpone(true)
     setActionError('')
     try {
+      let finalEmpleadoId: string | null = selectedEmpleadoId === 'cualquiera' ? null : selectedEmpleadoId
+
+      if (!finalEmpleadoId && newDisponibilidad) {
+        const disponiblesEnHorario = newDisponibilidad.empleados.filter(
+          e => e.disponible && e.horarios.some(h => h.inicio === newHorario.inicio)
+        )
+        if (disponiblesEnHorario.length > 0) {
+          finalEmpleadoId = disponiblesEnHorario[0].empleado.id
+        }
+      }
+
       const res = await fetch(`/api/cliente/citas/${selectedCita.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           accion: 'posponer',
           inicio: newHorario.inicio,
-          fin: newHorario.fin
+          fin: newHorario.fin,
+          empleadoId: finalEmpleadoId
         })
       })
       const data = await res.json()
@@ -233,6 +247,38 @@ export default function ClienteCitasPage() {
     const date = new Date(isoLocal)
     return date.toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' })
   }
+
+  const formatHora = (iso: string) => {
+    const isoLocal = iso.endsWith('Z') ? iso.slice(0, -1) : iso
+    const date = new Date(isoLocal)
+    return date.toLocaleTimeString('es-DO', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
+  }
+
+  const uniqueHorarios = (() => {
+    if (!newDisponibilidad) return []
+    const allHorarios = newDisponibilidad.empleados.filter(e => e.disponible).flatMap(e => e.horarios)
+
+    const unique: { inicio: string; fin: string }[] = []
+    const map = new Map<string, boolean>()
+    for (const h of allHorarios) {
+      if (!map.has(h.inicio)) {
+        map.set(h.inicio, true)
+        unique.push(h)
+      }
+    }
+    return unique.sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
+  })()
+
+  const availableEmployeesForSelectedTime = (() => {
+    if (!newDisponibilidad || !newHorario) return []
+    return newDisponibilidad.empleados
+      .filter(e => e.disponible && e.horarios.some(h => h.inicio === newHorario.inicio))
+      .map(e => e.empleado)
+  })()
 
   const canCancel = (cita: Cita) => {
     const now = new Date()
@@ -484,37 +530,141 @@ export default function ClienteCitasPage() {
               </Box>
             )}
 
-            {newDisponibilidad &&
-              !loadingDisponibilidad &&
-              (!newDisponibilidad.disponibles ? (
-                <Alert severity='info'>No hay horarios disponibles para esta fecha</Alert>
-              ) : (
-                <FormControl component='fieldset' fullWidth>
-                  <Typography variant='subtitle2' gutterBottom>
-                    Selecciona un nuevo horario:
-                  </Typography>
-                  <RadioGroup
-                    value={newHorario ? `${newHorario.inicio}|${newHorario.fin}` : ''}
-                    onChange={e => {
-                      const [inicio, fin] = e.target.value.split('|')
-                      setNewHorario({ inicio, fin })
-                    }}
-                  >
-                    {newDisponibilidad.empleados
-                      .filter(e => e.disponible)
-                      .flatMap(e =>
-                        e.horarios.map(h => (
-                          <FormControlLabel
+            {newDisponibilidad && !loadingDisponibilidad && (
+              <div>
+                {!newDisponibilidad.disponibles || uniqueHorarios.length === 0 ? (
+                  <Alert severity='info'>No hay horarios disponibles para esta fecha</Alert>
+                ) : (
+                  <>
+                    <Typography variant='subtitle1' gutterBottom fontWeight='bold' sx={{ mt: 2 }}>
+                      Selecciona la hora
+                    </Typography>
+                    <div className='flex flex-wrap gap-3'>
+                      {uniqueHorarios.map(h => {
+                        const isSelected = newHorario?.inicio === h.inicio
+                        return (
+                          <Button
                             key={h.inicio}
-                            value={`${h.inicio}|${h.fin}`}
-                            control={<Radio />}
-                            label={`${formatDateTime(h.inicio)} - ${e.empleado.nombre} ${e.empleado.apellido}`}
-                          />
-                        ))
-                      )}
-                  </RadioGroup>
-                </FormControl>
-              ))}
+                            variant={isSelected ? 'contained' : 'outlined'}
+                            onClick={() => {
+                              setNewHorario(h)
+                              setSelectedEmpleadoId('cualquiera')
+                            }}
+                            sx={{
+                              borderRadius: 2,
+                              px: 3,
+                              py: 1,
+                              textTransform: 'none',
+                              fontSize: '1rem',
+                              border: isSelected ? '1px solid transparent' : undefined
+                            }}
+                          >
+                            {formatHora(h.inicio)}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {newHorario && availableEmployeesForSelectedTime.length > 0 && (
+              <div>
+                <Typography variant='subtitle1' gutterBottom fontWeight='bold' sx={{ mt: 2 }}>
+                  Selecciona un especialista (Opcional)
+                </Typography>
+
+                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
+                  <Card
+                    variant='outlined'
+                    sx={{
+                      cursor: 'pointer',
+                      borderColor: selectedEmpleadoId === 'cualquiera' ? 'primary.main' : 'divider',
+                      borderWidth: 1,
+                      boxShadow:
+                        selectedEmpleadoId === 'cualquiera' ? '0 0 0 1px var(--mui-palette-primary-main)' : 'none',
+                      transition: 'all 0.2s',
+                      '&:hover': { borderColor: 'primary.light' }
+                    }}
+                    onClick={() => setSelectedEmpleadoId('cualquiera')}
+                  >
+                    <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                      <Box display='flex' alignItems='center' gap={2}>
+                        <Box
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '50%',
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <i className='tabler-users' />
+                        </Box>
+                        <Box>
+                          <Typography variant='subtitle2' fontWeight='bold'>
+                            Cualquiera
+                          </Typography>
+                          <Typography variant='body2' color='text.secondary'>
+                            Primer especialista disponible
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+
+                  {availableEmployeesForSelectedTime.map(emp => (
+                    <Card
+                      key={emp.id}
+                      variant='outlined'
+                      sx={{
+                        cursor: 'pointer',
+                        borderColor: selectedEmpleadoId === emp.id ? 'primary.main' : 'divider',
+                        borderWidth: 1,
+                        boxShadow: selectedEmpleadoId === emp.id ? '0 0 0 1px var(--mui-palette-primary-main)' : 'none',
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: 'primary.light' }
+                      }}
+                      onClick={() => setSelectedEmpleadoId(emp.id)}
+                    >
+                      <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                        <Box display='flex' alignItems='center' gap={2}>
+                          <Box
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              bgcolor: 'secondary.main',
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <Typography variant='button' fontWeight='bold' color='white'>
+                              {emp.nombre.charAt(0)}
+                              {emp.apellido.charAt(0)}
+                            </Typography>
+                          </Box>
+                          <Box>
+                            <Typography variant='subtitle2' fontWeight='bold'>
+                              {emp.nombre} {emp.apellido}
+                            </Typography>
+                            <Typography variant='body2' color='text.secondary'>
+                              Especialista
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {actionError && (
               <Alert severity='error' onClose={() => setActionError('')}>

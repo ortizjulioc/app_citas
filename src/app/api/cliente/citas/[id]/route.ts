@@ -76,10 +76,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         return handleApiError(new BadRequestError('La nueva fecha debe ser al menos 4 horas en el futuro'))
       }
 
+      const finalEmpleadoId = body.empleadoId || cita.empleadoId
+
       const overlapping = await prisma.cita.findFirst({
         where: {
           id: { not: id },
-          empleadoId: cita.empleadoId,
+          empleadoId: finalEmpleadoId,
           deleted: false,
           estado: { not: 'CANCELADA' },
           inicio: { lt: newFin },
@@ -96,7 +98,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         data: {
           inicio: newInicio,
           fin: newFin,
-          estado: 'PENDIENTE'
+          estado: 'PENDIENTE',
+          empleadoId: finalEmpleadoId
         }
       })
 
