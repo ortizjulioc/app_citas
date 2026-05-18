@@ -7,57 +7,49 @@ import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-
-// Colores exactos del template Vuexy
-const PRIMARY   = '#7367F0'   // primary.main del template
-const PRIMARY_L = '#8F85F3'   // primary.light
-const PRIMARY_D = '#675DD8'   // primary.dark
-const BG_DARK   = '#25293C'   // customColors.bodyBg dark
-const BG_CARD   = '#2F3349'   // background.paper dark
-const BG_NAV    = 'rgba(37,41,60,0.92)'
-const MUTED     = 'rgba(255,255,255,0.6)'
+import { useTheme, alpha } from '@mui/material/styles'
 
 const features = [
   { icon: 'tabler-calendar-check',  title: 'Agenda Online',    desc: 'Tus clientes reservan citas 24/7 desde cualquier dispositivo, sin llamadas.' },
-  { icon: 'tabler-cash-register',   title: 'Caja y Cobros',    desc: 'Abre turnos, registra ventas en efectivo o tarjeta y cuadra la caja al final del día.' },
-  { icon: 'tabler-receipt',         title: 'Facturación',      desc: 'Las facturas se generan solas al finalizar cada cita. Con ITBIS si lo necesitas.' },
-  { icon: 'tabler-users',           title: 'Empleados',        desc: 'Controla horarios, servicios por especialista y la agenda de todo tu equipo.' },
+  { icon: 'tabler-cash-register',   title: 'Caja y Cobros',    desc: 'Abre turnos, registra ventas y cuadra la caja al final del día.' },
+  { icon: 'tabler-receipt',         title: 'Facturación',      desc: 'Genera facturas al finalizar cada cita. Soporte para comprobantes fiscales.' },
+  { icon: 'tabler-users',           title: 'Equipo',           desc: 'Controla horarios, servicios y la agenda de todo tu equipo.' },
 ]
 
 export default function Landing() {
+  const theme = useTheme()
+
   return (
-    <Box sx={{ bgcolor: BG_DARK, color: 'white', minHeight: '100vh', overflowX: 'hidden' }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', overflowX: 'hidden' }}>
 
       {/* ── NAV ─────────────────────────────────────────────── */}
       <Box component='nav' sx={{
         position: 'sticky', top: 0, zIndex: 100,
-        bgcolor: 'rgba(37,41,60,0.92)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)'
+        bgcolor: alpha(theme.palette.background.paper, 0.9),
+        backdropFilter: 'blur(8px)',
+        borderBottom: `1px solid ${theme.palette.divider}`
       }}>
         <Container maxWidth='lg'>
           <Box display='flex' justifyContent='space-between' alignItems='center' py={2}>
             {/* Logo */}
-            <Box display='flex' alignItems='center' gap={1}>
-              <Box sx={{ width: 34, height: 34, borderRadius: 1.5, bgcolor: PRIMARY, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box display='flex' alignItems='center' gap={1.5}>
+              <Box sx={{ 
+                width: 34, height: 34, borderRadius: 1.5, 
+                bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center' 
+              }}>
                 <i className='tabler-calendar-check' style={{ fontSize: 18, color: 'white' }} />
               </Box>
-              <Typography variant='h6' fontWeight={800} sx={{
-                background: `linear-gradient(90deg, #fff 0%, ${PRIMARY_L} 100%)`,
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-              }}>
+              <Typography variant='h6' fontWeight={700} color='text.primary'>
                 Vínculo
               </Typography>
             </Box>
 
             {/* Botones */}
-            <Box display='flex' gap={1.5}>
-              <Button component={Link} href='/login' variant='outlined' size='small'
-                sx={{ borderColor: 'rgba(255,255,255,0.18)', color: 'white', borderRadius: 2,
-                  '&:hover': { borderColor: PRIMARY_L, bgcolor: 'rgba(115,103,240,0.08)' } }}>
+            <Box display='flex' gap={2}>
+              <Button component={Link} href='/login' variant='text' color='primary' sx={{ fontWeight: 600 }}>
                 Iniciar sesión
               </Button>
-              <Button component={Link} href='/register' variant='contained' size='small'
-                sx={{ bgcolor: PRIMARY, borderRadius: 2, fontWeight: 700, '&:hover': { bgcolor: PRIMARY_D } }}>
+              <Button component={Link} href='/register' variant='contained' color='primary' disableElevation sx={{ fontWeight: 600 }}>
                 Registrarse
               </Button>
             </Box>
@@ -67,83 +59,60 @@ export default function Landing() {
 
       {/* ── HERO ────────────────────────────────────────────── */}
       <Box sx={{
-        position: 'relative', textAlign: 'center',
-        pt: { xs: 12, md: 18 }, pb: { xs: 10, md: 16 },
-        '&::before': {
-          content: '""', position: 'absolute', top: '-30%', left: '50%', transform: 'translateX(-50%)',
-          width: '120%', height: '100%',
-          background: `radial-gradient(ellipse at center, rgba(115,103,240,0.28) 0%, transparent 65%)`,
-          pointerEvents: 'none',
-        }
+        textAlign: 'center',
+        pt: { xs: 10, md: 16 }, pb: { xs: 8, md: 12 },
       }}>
-        <Container maxWidth='sm' sx={{ position: 'relative' }}>
-          <Typography variant='h1' fontWeight={900} sx={{
-            fontSize: { xs: '2.6rem', md: '3.8rem' }, lineHeight: 1.1, mb: 3,
-            background: 'linear-gradient(135deg, #ffffff 20%, #8F85F3 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+        <Container maxWidth='md'>
+          <Typography variant='h2' fontWeight={800} color='text.primary' sx={{
+            fontSize: { xs: '2.5rem', md: '3.5rem' }, lineHeight: 1.2, mb: 3
           }}>
-            El sistema de citas para tu negocio
+            Gestión inteligente para tu negocio de servicios
           </Typography>
 
-          <Typography sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', lineHeight: 1.8, mb: 5, maxWidth: 460, mx: 'auto' }}>
-            Agenda, factura y maneja tu caja — todo desde un solo lugar. Sin complicaciones.
+          <Typography variant='h6' color='text.secondary' sx={{ mb: 6, fontWeight: 400, maxWidth: 600, mx: 'auto' }}>
+            Agenda, facturación y control de equipo en una sola plataforma. Diseñado para simplificar tu día a día.
           </Typography>
 
           <Box display='flex' gap={2} justifyContent='center' flexWrap='wrap'>
-            <Button component={Link} href='/register' size='large' variant='contained'
-              sx={{
-                bgcolor: PRIMARY, px: 5, py: 1.8, fontWeight: 800, borderRadius: 3,
-                boxShadow: `0 8px 32px rgba(115,103,240,0.45)`,
-                '&:hover': { bgcolor: PRIMARY_D, transform: 'translateY(-2px)', boxShadow: `0 12px 40px rgba(115,103,240,0.55)` },
-                transition: 'all 0.2s'
-              }}>
-              Comenzar gratis →
+            <Button component={Link} href='/register' size='large' variant='contained' disableElevation
+              sx={{ px: 4, py: 1.5, fontWeight: 600, fontSize: '1.1rem' }}>
+              Comenzar gratis
             </Button>
             <Button component={Link} href='/login' size='large' variant='outlined'
-              sx={{
-                px: 4, py: 1.8, fontWeight: 700, borderRadius: 3,
-                borderColor: 'rgba(255,255,255,0.18)', color: 'white',
-                '&:hover': { borderColor: PRIMARY_L, bgcolor: 'rgba(115,103,240,0.08)' }
-              }}>
+              sx={{ px: 4, py: 1.5, fontWeight: 600, fontSize: '1.1rem' }}>
               Iniciar sesión
             </Button>
           </Box>
-
-          <Typography sx={{ color: 'rgba(255,255,255,0.3)', mt: 2.5, fontSize: 13 }}>
-            Sin tarjeta de crédito · Listo en menos de 5 minutos
-          </Typography>
         </Container>
       </Box>
 
       {/* ── CARACTERÍSTICAS ─────────────────────────────────── */}
-      <Box sx={{ py: { xs: 8, md: 12 } }}>
+      <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: 'background.paper', borderTop: `1px solid ${theme.palette.divider}` }}>
         <Container maxWidth='lg'>
-          <Typography variant='h4' fontWeight={800} textAlign='center' mb={1}
-            sx={{ background: 'linear-gradient(135deg, #fff 30%, #8F85F3 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <Typography variant='h4' fontWeight={700} textAlign='center' mb={2} color='text.primary'>
             Todo lo que necesitas
           </Typography>
-          <Typography textAlign='center' sx={{ color: 'rgba(255,255,255,0.7)', mb: 7 }}>
-            Deja de usar WhatsApp y hojas de Excel. Vínculo lo integra todo.
+          <Typography textAlign='center' color='text.secondary' sx={{ mb: 8, fontSize: '1.1rem' }}>
+            Las herramientas esenciales para hacer crecer tu negocio.
           </Typography>
 
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6'>
             {features.map((f, i) => (
-              <Card key={i} sx={{
-                bgcolor: BG_CARD, border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: 3, height: '100%',
-                transition: 'all 0.2s',
-                '&:hover': { borderColor: 'rgba(115,103,240,0.35)', transform: 'translateY(-4px)', boxShadow: '0 16px 40px rgba(0,0,0,0.4)' }
+              <Card key={i} elevation={0} sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2, height: '100%',
               }}>
-                <CardContent sx={{ p: 3 }}>
+                <CardContent sx={{ p: 4 }}>
                   <Box sx={{
-                    width: 46, height: 46, borderRadius: 2, mb: 2.5,
-                    bgcolor: 'rgba(115,103,240,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: '1px solid rgba(115,103,240,0.22)'
+                    width: 48, height: 48, borderRadius: 2, mb: 3,
+                    bgcolor: alpha(theme.palette.primary.main, 0.1), 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'primary.main'
                   }}>
-                    <i className={f.icon} style={{ fontSize: 22, color: PRIMARY_L }} />
+                    <i className={f.icon} style={{ fontSize: 24 }} />
                   </Box>
-                  <Typography variant='h6' fontWeight={700} mb={1} sx={{ color: '#fff' }}>{f.title}</Typography>
-                  <Typography variant='body2' sx={{ color: MUTED, lineHeight: 1.7 }}>{f.desc}</Typography>
+                  <Typography variant='h6' fontWeight={600} mb={1.5} color='text.primary'>{f.title}</Typography>
+                  <Typography variant='body2' color='text.secondary' sx={{ lineHeight: 1.6, fontSize: '0.95rem' }}>{f.desc}</Typography>
                 </CardContent>
               </Card>
             ))}
@@ -152,49 +121,34 @@ export default function Landing() {
       </Box>
 
       {/* ── CTA ─────────────────────────────────────────────── */}
-      <Box sx={{ py: { xs: 10, md: 14 }, position: 'relative', overflow: 'hidden' }}>
-        <Box sx={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at center, rgba(115,103,240,0.22) 0%, transparent 70%)`, pointerEvents: 'none' }} />
-        <Container maxWidth='sm' sx={{ position: 'relative', textAlign: 'center' }}>
-          <Typography variant='h3' fontWeight={900} mb={2}
-            sx={{ background: 'linear-gradient(135deg, #fff 20%, #c084fc 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+      <Box sx={{ py: { xs: 10, md: 14 }, textAlign: 'center' }}>
+        <Container maxWidth='sm'>
+          <Typography variant='h3' fontWeight={700} mb={3} color='text.primary'>
             ¿Listo para empezar?
           </Typography>
-          <Typography sx={{ color: 'rgba(255,255,255,0.75)', mb: 4, lineHeight: 1.8 }}>
-            Crea tu cuenta gratis y organiza tu negocio desde hoy.
+          <Typography color='text.secondary' sx={{ mb: 5, fontSize: '1.1rem' }}>
+            Únete y optimiza la gestión de tus citas hoy mismo.
           </Typography>
-          <Button component={Link} href='/register' size='large' variant='contained'
-            sx={{
-              bgcolor: PRIMARY, px: 6, py: 2, fontWeight: 800, borderRadius: 3,
-              boxShadow: `0 8px 32px rgba(115,103,240,0.45)`,
-              '&:hover': { bgcolor: PRIMARY_D, transform: 'translateY(-2px)' }, transition: 'all 0.2s'
-            }}>
-            Crear mi cuenta gratis
+          <Button component={Link} href='/register' size='large' variant='contained' disableElevation
+            sx={{ px: 5, py: 1.5, fontWeight: 600 }}>
+            Crear cuenta
           </Button>
         </Container>
       </Box>
 
       {/* ── FOOTER ──────────────────────────────────────────── */}
-      <Box component='footer' sx={{ borderTop: '1px solid rgba(255,255,255,0.06)', py: 4 }}>
+      <Box component='footer' sx={{ borderTop: `1px solid ${theme.palette.divider}`, py: 4, bgcolor: 'background.paper' }}>
         <Container maxWidth='lg'>
           <Box display='flex' justifyContent='space-between' alignItems='center' flexWrap='wrap' gap={2}>
             <Box display='flex' alignItems='center' gap={1}>
-              <Box sx={{ width: 28, height: 28, borderRadius: 1, bgcolor: PRIMARY, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className='tabler-calendar-check' style={{ fontSize: 15, color: 'white' }} />
+              <Box sx={{ width: 24, height: 24, borderRadius: 1, bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <i className='tabler-calendar-check' style={{ fontSize: 14, color: 'white' }} />
               </Box>
-              <Typography variant='body2' fontWeight={700}>Vínculo</Typography>
+              <Typography variant='body1' fontWeight={600} color='text.primary'>Vínculo</Typography>
             </Box>
-            <Typography variant='body2' sx={{ color: MUTED, fontSize: 13 }}>
-              © {new Date().getFullYear()} Vínculo · Hecho en República Dominicana 🇩🇴
+            <Typography variant='body2' color='text.secondary'>
+              © {new Date().getFullYear()} Vínculo.
             </Typography>
-            <Box display='flex' gap={2.5}>
-              {['Iniciar sesión', 'Registrarse'].map(l => (
-                <Typography key={l} component={Link}
-                  href={l === 'Iniciar sesión' ? '/login' : '/register'}
-                  sx={{ color: MUTED, fontSize: 13, textDecoration: 'none', '&:hover': { color: 'white' }, transition: 'color 0.2s' }}>
-                  {l}
-                </Typography>
-              ))}
-            </Box>
           </Box>
         </Container>
       </Box>
