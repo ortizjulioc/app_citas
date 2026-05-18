@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import {
   Box,
   TextField,
@@ -29,7 +29,8 @@ import {
   Switch,
   FormControlLabel,
   Tooltip,
-  Chip
+  Chip,
+  FormHelperText
 } from '@mui/material'
 
 import { useAuth } from '@/contexts/AuthContext'
@@ -71,9 +72,8 @@ interface Props {
   initialData?: any
   isEditing: boolean
   sucursalId: string
-  sucursalNombre: string
+  sucursales: { id: string; nombre: string; horarioSucursals: HorarioSucursalItem[] }[]
   negocioNombre: string
-  sucursalHorario: HorarioSucursalItem[]
   onSave: (data: any) => Promise<void>
   onCancel: () => void
 }
@@ -98,9 +98,8 @@ export default function EmpleadoForm({
   initialData,
   isEditing,
   sucursalId,
-  sucursalNombre,
+  sucursales,
   negocioNombre,
-  sucursalHorario,
   onSave,
   onCancel
 }: Props) {
@@ -123,6 +122,14 @@ export default function EmpleadoForm({
     fechaContratacion: initialData?.fechaContratacion?.split('T')[0] || new Date().toISOString().split('T')[0],
     negocioId: initialData?.negocioId || user?.negocioId || ''
   })
+
+  const [localSucursalId, setLocalSucursalId] = useState<string>(initialData?.sucursalId || sucursalId)
+
+  const selectedSucursal = useMemo(
+    () => sucursales?.find(s => s.id === localSucursalId) || sucursales?.[0],
+    [sucursales, localSucursalId]
+  )
+  const sucursalHorario = selectedSucursal?.horarioSucursals || []
 
   const extractTimeFromUTC = (dateStr: string | Date | undefined, defaultTime: string): string => {
     if (!dateStr) return defaultTime
@@ -171,6 +178,31 @@ export default function EmpleadoForm({
     })
   })
 
+  const isFirstRender = useRef(true)
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    setHorario(
+      diasSemana.map(d => {
+        const sucHorario = sucursalHorario?.find(h => h.diaSemana === d.value)
+        const sucursalActiva = sucHorario?.activo || false
+
+        let defaultInicio = extractTimeFromUTC(sucHorario?.horaInicio, '09:00')
+        let defaultFin = extractTimeFromUTC(sucHorario?.horaFin, '18:00')
+
+        return {
+          diaSemana: d.value,
+          activo: sucursalActiva,
+          horaInicio: defaultInicio,
+          horaFin: defaultFin
+        }
+      })
+    )
+  }, [localSucursalId])
+
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>(initialData?.bloqueos || [])
   const [serviciosAgregados, setServiciosAgregados] = useState<ServicioConPorcentaje[]>(initialData?.servicios || [])
 
@@ -179,7 +211,7 @@ export default function EmpleadoForm({
 
     const fetchServicios = async () => {
       try {
-        const res = await fetch(`/api/servicios?sucursalId=${sucursalId}&limit=100`, {
+        const res = await fetch(`/api/servicios?sucursalId=${localSucursalId}&limit=100`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         const json = await res.json()
@@ -191,7 +223,7 @@ export default function EmpleadoForm({
       }
     }
     fetchServicios()
-  }, [sucursalId, token])
+  }, [localSucursalId, token])
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
@@ -285,7 +317,7 @@ export default function EmpleadoForm({
         ...formData,
         salarioBase: formData.salarioBase ? parseFloat(formData.salarioBase) : null,
         fechaContratacion: formData.fechaContratacion ? new Date(formData.fechaContratacion).toISOString() : null,
-        sucursalId,
+        sucursalId: localSucursalId,
         horario: horarioData,
         bloqueos: bloqueosData,
         servicios: serviciosData
@@ -439,13 +471,22 @@ export default function EmpleadoForm({
                   />
                 </div>
                 <div>
-                  <TextField
-                    fullWidth
-                    disabled
-                    label='Sucursal Actual'
-                    value={sucursalNombre}
-                    helperText='Sede de trabajo principal'
-                  />
+                  <FormControl fullWidth disabled={isEditing}>
+                    <InputLabel id='sucursal-label'>Sucursal Actual</InputLabel>
+                    <Select
+                      labelId='sucursal-label'
+                      value={localSucursalId}
+                      label='Sucursal Actual'
+                      onChange={e => setLocalSucursalId(e.target.value)}
+                    >
+                      {sucursales?.map(suc => (
+                        <MenuItem key={suc.id} value={suc.id}>
+                          {suc.nombre}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>Sede de trabajo principal</FormHelperText>
+                  </FormControl>
                 </div>
               </div>
               <Divider className='my-6' />

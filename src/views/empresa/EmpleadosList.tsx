@@ -307,9 +307,8 @@ export default function EmpleadosList() {
                 initialData={initialData}
                 isEditing={!!editingId}
                 sucursalId={sucursalId}
-                sucursalNombre={selectedSucursal?.nombre || ''}
+                sucursales={sucursales}
                 negocioNombre={negocioInfo?.nombre || ''}
-                sucursalHorario={selectedSucursal?.horarioSucursals || []}
                 onSave={handleSave}
                 onCancel={handleClose}
               />
