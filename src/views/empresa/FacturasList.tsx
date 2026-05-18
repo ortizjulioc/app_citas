@@ -406,9 +406,9 @@ export default function FacturasList() {
         const srv = servicios.find(s => s.id === value)
         if (srv) {
           next[idx].descripcion = srv.nombre
-          
+
           let precioServicio = srv.precio ? Number(srv.precio) : 0
-          
+
           if (srv.servicioSucursals && srv.servicioSucursals.length > 0) {
             const ss = srv.servicioSucursals.find(s => s.sucursalId === sucursalId)
             if (ss && ss.precio !== null && ss.precio !== undefined) {
@@ -420,7 +420,7 @@ export default function FacturasList() {
               }
             }
           }
-          
+
           next[idx].precioUnitario = precioServicio
         }
       }
@@ -512,18 +512,18 @@ export default function FacturasList() {
       <Card>
         <CardHeader
           title='Facturación'
-          action={
-            <Button
-              variant='contained'
-              startIcon={<i className='tabler-plus' />}
-              onClick={() => {
-                resetCrearForm()
-                setCrearOpen(true)
-              }}
-            >
-              Nueva Factura
-            </Button>
-          }
+          // action={
+          //   <Button
+          //     variant='contained'
+          //     startIcon={<i className='tabler-plus' />}
+          //     onClick={() => {
+          //       resetCrearForm()
+          //       setCrearOpen(true)
+          //     }}
+          //   >
+          //     Nueva Factura
+          //   </Button>
+          // }
         />
         <CardContent>
           {/* Filtros */}

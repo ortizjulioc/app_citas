@@ -24,7 +24,6 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import InputAdornment from '@mui/material/InputAdornment'
 import MenuItem from '@mui/material/MenuItem'
@@ -58,6 +57,8 @@ interface MetodoPago {
 interface Servicio {
   id: string
   nombre: string
+  precio?: number
+  servicioSucursals?: Array<{ sucursalId: string; precio: number }>
 }
 interface Producto {
   id: string
@@ -511,12 +512,16 @@ export default function CajaView() {
       }
       if (field === 'servicioId') {
         const s = servicios.find(x => x.id === value)
-        if (s) next[idx].descripcion = s.nombre
+        if (s) {
+          next[idx].descripcion = s.nombre
+          const precioSucursal = s.servicioSucursals?.find(ss => ss.sucursalId === sucursalVenta)?.precio
+          next[idx].precioUnitario = precioSucursal ?? s.precio ?? 0
+        }
       }
       if (field === 'productoId') {
         const p = productos.find(x => x.id === value)
         if (p) {
-          next[idx].precioUnitario = p.precio
+          next[idx].precioUnitario = p.precio ?? 0
           next[idx].descripcion = p.nombre
         }
       }
@@ -799,9 +804,9 @@ export default function CajaView() {
           </CardContent>
         </Card>
       ) : (
-        <Grid container spacing={2}>
+        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
           {cajas.map(caja => (
-            <Grid item xs={12} sm={6} md={4} key={caja.id}>
+            <div key={caja.id}>
               <Paper
                 variant='outlined'
                 sx={{
@@ -895,9 +900,9 @@ export default function CajaView() {
                   )}
                 </Box>
               </Paper>
-            </Grid>
+            </div>
           ))}
-          <Grid item xs={12} sm={6} md={4}>
+          <div>
             <Paper
               variant='outlined'
               sx={{
@@ -919,8 +924,8 @@ export default function CajaView() {
                 </Typography>
               </Box>
             </Paper>
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       )}
 
       {/* ── PANEL PRINCIPAL: sesión activa ────────────────────────────────── */}
@@ -954,8 +959,8 @@ export default function CajaView() {
                 <>
                   {/* Resumen rápido de la sesión */}
                   <Box sx={{ bgcolor: 'action.hover', borderRadius: 2, p: 2, mb: 2 }}>
-                    <Grid container spacing={2} alignItems='center'>
-                      <Grid item xs={12} sm='auto'>
+                    <div className='flex flex-wrap items-center gap-4'>
+                      <div className='w-full sm:w-auto'>
                         <Typography variant='subtitle2' color='text.secondary'>
                           Sesión activa
                         </Typography>
@@ -965,24 +970,24 @@ export default function CajaView() {
                         <Typography variant='caption' color='text.secondary'>
                           Desde {fmtDate(sesionSeleccionada.horaApertura)}
                         </Typography>
-                      </Grid>
-                      <Grid item xs={6} sm='auto'>
+                      </div>
+                      <div className='w-1/2 sm:w-auto'>
                         <Typography variant='caption' color='text.secondary'>
                           Apertura
                         </Typography>
                         <Typography variant='body2' fontWeight={600}>
                           {fmt(sesionSeleccionada.montoApertura)}
                         </Typography>
-                      </Grid>
-                      <Grid item xs={6} sm='auto'>
+                      </div>
+                      <div className='w-1/2 sm:w-auto'>
                         <Typography variant='caption' color='text.secondary'>
                           Ventas registradas
                         </Typography>
                         <Typography variant='body2' fontWeight={600}>
                           {ventas.length}
                         </Typography>
-                      </Grid>
-                      <Grid item xs={12} sm='auto' sx={{ ml: 'auto' }}>
+                      </div>
+                      <div className='w-full sm:w-auto sm:ml-auto'>
                         <Button
                           variant='contained'
                           color='primary'
@@ -996,8 +1001,8 @@ export default function CajaView() {
                         >
                           Nueva Venta
                         </Button>
-                      </Grid>
-                    </Grid>
+                      </div>
+                    </div>
                   </Box>
 
                   {loadingVentas ? (
@@ -1567,8 +1572,8 @@ export default function CajaView() {
                 />
               </Box>
               {modoClienteRapido ? (
-                <Grid container spacing={1.5}>
-                  <Grid item xs={12} sm={4}>
+                <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+                  <div>
                     <TextField
                       label='Nombre *'
                       fullWidth
@@ -1576,8 +1581,8 @@ export default function CajaView() {
                       value={clienteRapidoNombre}
                       onChange={e => setClienteRapidoNombre(e.target.value)}
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
+                  </div>
+                  <div>
                     <TextField
                       label='Apellido *'
                       fullWidth
@@ -1585,8 +1590,8 @@ export default function CajaView() {
                       value={clienteRapidoApellido}
                       onChange={e => setClienteRapidoApellido(e.target.value)}
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
+                  </div>
+                  <div>
                     <TextField
                       label='Teléfono'
                       fullWidth
@@ -1594,8 +1599,8 @@ export default function CajaView() {
                       value={clienteRapidoTelefono}
                       onChange={e => setClienteRapidoTelefono(e.target.value)}
                     />
-                  </Grid>
-                </Grid>
+                  </div>
+                </div>
               ) : (
                 <Box position='relative'>
                   <TextField
@@ -1698,8 +1703,8 @@ export default function CajaView() {
 
             {itemsVenta.map((item, idx) => (
               <Paper key={idx} variant='outlined' sx={{ p: 1.5 }}>
-                <Grid container spacing={1} alignItems='center'>
-                  <Grid item xs={2}>
+                <div className='grid grid-cols-12 gap-2 items-center'>
+                  <div className='col-span-2 sm:col-span-2'>
                     <FormControl fullWidth size='small'>
                       <InputLabel>Tipo</InputLabel>
                       <Select
@@ -1711,8 +1716,8 @@ export default function CajaView() {
                         <MenuItem value='PRODUCTO'>Producto</MenuItem>
                       </Select>
                     </FormControl>
-                  </Grid>
-                  <Grid item xs={4}>
+                  </div>
+                  <div className='col-span-4'>
                     {item.tipo === 'SERVICIO' ? (
                       <FormControl fullWidth size='small'>
                         <InputLabel>Servicio</InputLabel>
@@ -1744,8 +1749,8 @@ export default function CajaView() {
                         </Select>
                       </FormControl>
                     )}
-                  </Grid>
-                  <Grid item xs={2}>
+                  </div>
+                  <div className='col-span-2'>
                     <TextField
                       size='small'
                       label='Precio'
@@ -1755,8 +1760,8 @@ export default function CajaView() {
                       onChange={e => updateItemVenta(idx, 'precioUnitario', parseFloat(e.target.value) || 0)}
                       InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                     />
-                  </Grid>
-                  <Grid item xs={1}>
+                  </div>
+                  <div className='col-span-1'>
                     <TextField
                       size='small'
                       label='Cant.'
@@ -1766,13 +1771,13 @@ export default function CajaView() {
                       onChange={e => updateItemVenta(idx, 'cantidad', parseInt(e.target.value) || 1)}
                       inputProps={{ min: 1 }}
                     />
-                  </Grid>
-                  <Grid item xs={2}>
+                  </div>
+                  <div className='col-span-2'>
                     <Typography variant='body2' fontWeight={600} textAlign='center'>
                       {fmt(item.precioUnitario * item.cantidad)}
                     </Typography>
-                  </Grid>
-                  <Grid item xs={1} display='flex' justifyContent='center'>
+                  </div>
+                  <div className='col-span-1 flex justify-center'>
                     {itemsVenta.length > 1 && (
                       <IconButton
                         size='small'
@@ -1782,8 +1787,8 @@ export default function CajaView() {
                         <i className='tabler-trash' />
                       </IconButton>
                     )}
-                  </Grid>
-                </Grid>
+                  </div>
+                </div>
               </Paper>
             ))}
 
@@ -1903,7 +1908,7 @@ export default function CajaView() {
               <Box display='flex' flexDirection='column' gap={2}>
                 {sesionDetalle.resumen && (
                   <>
-                    <Grid container spacing={1.5}>
+                    <div className='grid grid-cols-2 sm:grid-cols-5 gap-3'>
                       {[
                         { label: 'Apertura', val: sesionDetalle.resumen.montoApertura },
                         { label: 'Ing. efectivo', val: sesionDetalle.resumen.ingresoEfectivo, color: 'success.main' },
@@ -1911,7 +1916,7 @@ export default function CajaView() {
                         { label: 'Retiros', val: sesionDetalle.resumen.retiros, color: 'warning.main' },
                         { label: 'Total cobrado', val: sesionDetalle.resumen.totalCobrado, color: 'primary.main' }
                       ].map(r => (
-                        <Grid item xs={6} sm={2.4} key={r.label}>
+                        <div key={r.label}>
                           <Paper variant='outlined' sx={{ p: 1.5, textAlign: 'center', borderRadius: 1.5 }}>
                             <Typography variant='caption' color='text.secondary' display='block'>
                               {r.label}
@@ -1920,9 +1925,9 @@ export default function CajaView() {
                               {fmt(r.val)}
                             </Typography>
                           </Paper>
-                        </Grid>
+                        </div>
                       ))}
-                    </Grid>
+                    </div>
                     {sesionDetalle.montoRealContado != null && (
                       <Box
                         display='flex'
