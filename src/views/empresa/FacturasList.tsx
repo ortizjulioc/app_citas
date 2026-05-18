@@ -49,9 +49,16 @@ interface Sucursal {
   id: string
   nombre: string
 }
+interface ServicioSucursal {
+  sucursalId: string
+  precio: number | null
+}
+
 interface Servicio {
   id: string
   nombre: string
+  precio?: number | null
+  servicioSucursals?: ServicioSucursal[]
 }
 interface Producto {
   id: string
@@ -387,7 +394,25 @@ export default function FacturasList() {
       // Al seleccionar servicio, autocompletar precio
       if (field === 'servicioId') {
         const srv = servicios.find(s => s.id === value)
-        if (srv) next[idx].descripcion = srv.nombre
+        if (srv) {
+          next[idx].descripcion = srv.nombre
+          
+          let precioServicio = srv.precio ? Number(srv.precio) : 0
+          
+          if (srv.servicioSucursals && srv.servicioSucursals.length > 0) {
+            const ss = srv.servicioSucursals.find(s => s.sucursalId === sucursalId)
+            if (ss && ss.precio !== null && ss.precio !== undefined) {
+              precioServicio = Number(ss.precio)
+            } else {
+              const fallback = srv.servicioSucursals.find(s => s.precio !== null && s.precio !== undefined)
+              if (fallback && fallback.precio !== null && fallback.precio !== undefined) {
+                precioServicio = Number(fallback.precio)
+              }
+            }
+          }
+          
+          next[idx].precioUnitario = precioServicio
+        }
       }
       // Al seleccionar producto, autocompletar precio
       if (field === 'productoId') {
