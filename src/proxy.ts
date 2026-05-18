@@ -8,7 +8,9 @@ export function proxy(request: NextRequest) {
 
   // 1. Definición de rutas
   const authPaths = ['/login', '/register']
+  const publicPaths = ['/landing', '/api/public'] // rutas accesibles sin sesión
   const isAuthPath = authPaths.some(p => pathname.startsWith(p))
+  const isPublicPath = publicPaths.some(p => pathname.startsWith(p))
   const isApiAuthPath = pathname.startsWith('/api/auth')
   const isPublicAsset = pathname.startsWith('/_next') || pathname.includes('/images/')
 
@@ -38,7 +40,7 @@ export function proxy(request: NextRequest) {
 
   // 3. LÓGICA PARA USUARIOS NO AUTENTICADOS
   // Si no hay token y no es una ruta pública o de auth -> Al Login
-  if (!token && !isAuthPath && !isApiAuthPath && !isPublicAsset && pathname !== '/') {
+  if (!token && !isAuthPath && !isPublicPath && !isApiAuthPath && !isPublicAsset && pathname !== '/') {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
