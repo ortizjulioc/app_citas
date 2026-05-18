@@ -147,8 +147,16 @@ export default function ClienteCitasPage() {
     setActionError('')
     try {
       const duracion = selectedCita.servicioCitas[0]?.servicio.duracionMinutos || 60
+      const servicioId = selectedCita.servicioCitas[0]?.servicio.id
+      
+      const queryParams = new URLSearchParams({
+        fecha: newFecha,
+        duracion: String(duracion)
+      })
+      if (servicioId) queryParams.append('servicioId', servicioId)
+
       const res = await fetch(
-        `/api/public/sucursales/${selectedCita.sucursal.id}/disponibilidad?fecha=${newFecha}&duracion=${duracion}`
+        `/api/public/sucursales/${selectedCita.sucursal.id}/disponibilidad?${queryParams.toString()}`
       )
       const data = await res.json()
       if (data.success) {
