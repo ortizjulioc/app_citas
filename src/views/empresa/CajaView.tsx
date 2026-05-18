@@ -41,6 +41,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useConfirmDialog } from '@/components/shared/confirm-dialog'
+import { useSucursal } from '@/contexts/SucursalContext'
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -170,6 +171,7 @@ export default function CajaView() {
   const { confirm } = useConfirmDialog()
 
   const [tab, setTab] = useState(0)
+  const { sucursalSeleccionada } = useSucursal()
 
   // Catálogos
   const [cajas, setCajas] = useState<Caja[]>([])
@@ -492,7 +494,7 @@ export default function CajaView() {
     setClienteRapidoApellido('')
     setClienteRapidoTelefono('')
     setModoClienteRapido(false)
-    setSucursalVenta('')
+    setSucursalVenta(sucursalSeleccionada?.id || '')
     setDescuentoVenta('0')
     setItemsVenta([emptyItem()])
   }

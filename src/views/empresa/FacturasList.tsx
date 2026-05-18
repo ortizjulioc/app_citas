@@ -36,6 +36,7 @@ import Stack from '@mui/material/Stack'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useConfirmDialog } from '@/components/shared/confirm-dialog'
+import { useSucursal } from '@/contexts/SucursalContext'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -170,6 +171,7 @@ export default function FacturasList() {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
+  const { sucursalSeleccionada } = useSucursal()
   const [filtroSucursal, setFiltroSucursal] = useState('')
 
   // Catálogos
@@ -216,6 +218,14 @@ export default function FacturasList() {
     if (!token) return
     fetchCatalogos()
   }, [token])
+
+  useEffect(() => {
+    if (sucursalSeleccionada?.id) {
+      setFiltroSucursal(sucursalSeleccionada.id)
+    } else {
+      setFiltroSucursal('')
+    }
+  }, [sucursalSeleccionada])
 
   // ── Fetch facturas al cambiar filtros
   useEffect(() => {
@@ -374,7 +384,7 @@ export default function FacturasList() {
 
   const resetCrearForm = () => {
     setClienteId('')
-    setSucursalId('')
+    setSucursalId(sucursalSeleccionada?.id || '')
     setDescuentoGlobal('0')
     setNotasFactura('')
     setItems([emptyItem()])

@@ -23,6 +23,7 @@ import Alert from '@mui/material/Alert'
 
 import { useConfirmDialog } from '@/components/shared/confirm-dialog'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSucursal } from '@/contexts/SucursalContext'
 import EmpleadoForm from '@/components/empleados/EmpleadoForm'
 
 interface Empleado {
@@ -63,11 +64,12 @@ interface NegocioInfo {
 export default function EmpleadosList() {
   const { confirm } = useConfirmDialog()
   const { user, token } = useAuth()
+  const { sucursalSeleccionada } = useSucursal()
   const [empleados, setEmpleados] = useState<Empleado[]>([])
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [selectedSucursal, setSelectedSucursal] = useState<Sucursal | null>(null)
   const [negocioInfo, setNegocioInfo] = useState<NegocioInfo | null>(null)
-  const [sucursalId, setSucursalId] = useState<string>('')
+  // Remover: const [sucursalId, setSucursalId] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [openDialog, setOpenDialog] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -83,10 +85,6 @@ export default function EmpleadosList() {
       if (res.ok) {
         const sucursalesData = json.data?.sucursales || []
         setSucursales(sucursalesData)
-        if (sucursalesData.length > 0 && !sucursalId) {
-          setSucursalId(sucursalesData[0].id)
-          setSelectedSucursal(sucursalesData[0])
-        }
         if (token) {
           const negocioRes = await fetch('/api/negocios/mi-negocio', {
             headers: { Authorization: `Bearer ${token}` }
@@ -105,7 +103,7 @@ export default function EmpleadosList() {
   const fetchEmpleados = async () => {
     try {
       setLoading(true)
-      const url = sucursalId ? `/api/empleados?sucursalId=${sucursalId}` : '/api/empleados'
+      const url = sucursalSeleccionada?.id ? `/api/empleados?sucursalId=${sucursalSeleccionada.id}` : '/api/empleados'
       const res = await fetch(url)
       const json = await res.json()
       if (res.ok) {
@@ -125,17 +123,17 @@ export default function EmpleadosList() {
   }, [])
 
   useEffect(() => {
-    if (sucursalId) {
+    if (sucursalSeleccionada?.id) {
       fetchEmpleados()
     }
-  }, [sucursalId])
+  }, [sucursalSeleccionada])
 
   useEffect(() => {
-    if (sucursalId && sucursales.length > 0) {
-      const found = sucursales.find(s => s.id === sucursalId)
+    if (sucursalSeleccionada?.id && sucursales.length > 0) {
+      const found = sucursales.find(s => s.id === sucursalSeleccionada.id)
       if (found) setSelectedSucursal(found)
     }
-  }, [sucursalId, sucursales])
+  }, [sucursalSeleccionada, sucursales])
 
   const handleOpen = async (empleado?: Empleado) => {
     if (empleado) {
@@ -301,13 +299,13 @@ export default function EmpleadosList() {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ p: 0 }} dividers>
-          {sucursalId && (
+          {sucursalSeleccionada?.id && (
             <Box sx={{ px: 6, py: 4 }}>
               <EmpleadoForm
                 initialData={initialData}
                 isEditing={!!editingId}
-                sucursalId={sucursalId}
                 sucursales={sucursales}
+                sucursalId={sucursalSeleccionada.id}
                 negocioNombre={negocioInfo?.nombre || ''}
                 onSave={handleSave}
                 onCancel={handleClose}
