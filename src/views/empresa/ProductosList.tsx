@@ -24,7 +24,6 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import InputAdornment from '@mui/material/InputAdornment'
 import Paper from '@mui/material/Paper'
@@ -591,8 +590,8 @@ export default function ProductosList() {
               multiline
               rows={2}
             />
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+              <div>
                 <TextField
                   label='Precio'
                   type='number'
@@ -603,8 +602,8 @@ export default function ProductosList() {
                   inputProps={{ min: 0 }}
                   InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </div>
+              <div>
                 <TextField
                   label='Costo'
                   type='number'
@@ -615,8 +614,8 @@ export default function ProductosList() {
                   inputProps={{ min: 0 }}
                   InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                 />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
             {!editingProducto && (
               <TextField
                 label='Stock Inicial'
@@ -697,7 +696,7 @@ export default function ProductosList() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={historialOpen} onClose={() => setHistorialOpen(false)} maxWidth='sm' fullWidth>
+      <Dialog open={historialOpen} onClose={() => setHistorialOpen(false)} maxWidth='md' fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           Historial: {selectedProducto?.nombre}
           <IconButton onClick={() => setHistorialOpen(false)} size='small'>
@@ -732,7 +731,9 @@ export default function ProductosList() {
                 <TableBody>
                   {movimientos.map(m => (
                     <TableRow key={m.id}>
-                      <TableCell>{formatDateTime(m.createdAt)}</TableCell>
+                      <TableCell>
+                        <div className='min-w-max'>{formatDateTime(m.createdAt)}</div>
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={tipoLabels[m.tipo]}

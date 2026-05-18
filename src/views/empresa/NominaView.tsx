@@ -24,7 +24,6 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
@@ -468,8 +467,8 @@ export default function NominaView() {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={3} sx={{ mt: 0.5 }}>
-            <Grid item xs={12}>
+          <div className='grid grid-cols-1 gap-6 mt-1'>
+            <div>
               <TextField
                 label='Fecha de inicio'
                 type='date'
@@ -478,8 +477,8 @@ export default function NominaView() {
                 onChange={e => setFechaInicio(e.target.value)}
                 InputLabelProps={{ shrink: true }}
               />
-            </Grid>
-            <Grid item xs={12}>
+            </div>
+            <div>
               <TextField
                 label='Fecha de fin'
                 type='date'
@@ -489,8 +488,8 @@ export default function NominaView() {
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ min: fechaInicio }}
               />
-            </Grid>
-          </Grid>
+            </div>
+          </div>
           <Box sx={{ mt: 2, p: 1.5, bgcolor: 'info.lighter', borderRadius: 1 }}>
             <Typography variant='caption' color='info.dark'>
               <strong>Cálculo automático:</strong> empleados con salario fijo reciben su salario base; empleados por
@@ -755,8 +754,8 @@ export default function NominaView() {
           <Typography variant='subtitle2' fontWeight={600} mb={2}>
             Agregar nuevo ajuste
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
+          <div className='grid grid-cols-1 sm:grid-cols-12 gap-4'>
+            <div className='sm:col-span-4'>
               <FormControl fullWidth size='small'>
                 <InputLabel>Tipo</InputLabel>
                 <Select
@@ -769,8 +768,8 @@ export default function NominaView() {
                   <MenuItem value='AJUSTE'>Ajuste</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={8}>
+            </div>
+            <div className='sm:col-span-8'>
               <TextField
                 label='Descripción'
                 fullWidth
@@ -779,8 +778,8 @@ export default function NominaView() {
                 onChange={e => setNuevoDescripcion(e.target.value)}
                 placeholder='Ej: Bono de productividad, AFP, SFS...'
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </div>
+            <div className='sm:col-span-6'>
               <TextField
                 label='Monto'
                 fullWidth
@@ -791,8 +790,8 @@ export default function NominaView() {
                 InputProps={{ startAdornment: <InputAdornment position='start'>RD$</InputAdornment> }}
                 inputProps={{ min: 0, step: '0.01' }}
               />
-            </Grid>
-            <Grid item xs={12} sm={6} sx={{ display: 'flex', alignItems: 'center' }}>
+            </div>
+            <div className='sm:col-span-6 flex items-center'>
               <Button
                 variant='contained'
                 fullWidth
@@ -802,8 +801,8 @@ export default function NominaView() {
               >
                 Agregar
               </Button>
-            </Grid>
-          </Grid>
+            </div>
+          </div>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setOpenAjuste(false)}>Cerrar</Button>
