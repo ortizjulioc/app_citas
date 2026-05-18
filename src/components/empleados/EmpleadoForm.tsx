@@ -104,7 +104,7 @@ export default function EmpleadoForm({
   onSave,
   onCancel
 }: Props) {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [activeTab, setActiveTab] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -175,9 +175,13 @@ export default function EmpleadoForm({
   const [serviciosAgregados, setServiciosAgregados] = useState<ServicioConPorcentaje[]>(initialData?.servicios || [])
 
   useEffect(() => {
+    if (!token) return
+
     const fetchServicios = async () => {
       try {
-        const res = await fetch(`/api/servicios?sucursalId=${sucursalId}&limit=100`)
+        const res = await fetch(`/api/servicios?sucursalId=${sucursalId}&limit=100`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
         const json = await res.json()
         if (res.ok) {
           setServicios(json.data?.servicios || [])
@@ -187,7 +191,7 @@ export default function EmpleadoForm({
       }
     }
     fetchServicios()
-  }, [sucursalId])
+  }, [sucursalId, token])
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
