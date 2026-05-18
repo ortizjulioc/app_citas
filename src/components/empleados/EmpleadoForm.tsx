@@ -19,7 +19,6 @@ import {
   TableRow,
   IconButton,
   Typography,
-  Grid,
   Alert,
   Tabs,
   Tab,
@@ -328,13 +327,13 @@ export default function EmpleadoForm({
       <Box className='min-h-[400px]'>
         {/* TAB 0: INFORMACIÓN */}
         {activeTab === 0 && (
-          <Grid container spacing={5}>
-            <Grid item xs={12}>
+          <div className='flex flex-col gap-10'>
+            <div>
               <Typography variant='h6' className='mb-4 flex items-center gap-2'>
                 <i className='tabler-lock text-primary' /> Cuenta de Acceso
               </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-8'>
+                <div>
                   <TextField
                     fullWidth
                     label='Correo Electrónico'
@@ -351,8 +350,8 @@ export default function EmpleadoForm({
                       )
                     }}
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     label={isEditing ? 'Nueva Contraseña' : 'Contraseña'}
@@ -369,17 +368,17 @@ export default function EmpleadoForm({
                       )
                     }}
                   />
-                </Grid>
-              </Grid>
+                </div>
+              </div>
               <Divider className='my-6' />
-            </Grid>
+            </div>
 
-            <Grid item xs={12}>
+            <div>
               <Typography variant='h6' className='mb-4 flex items-center gap-2'>
                 <i className='tabler-user-circle text-primary' /> Datos Personales
               </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-8'>
+                <div>
                   <TextField
                     fullWidth
                     label='Nombre(s)'
@@ -387,8 +386,8 @@ export default function EmpleadoForm({
                     onChange={e => setFormData({ ...formData, nombre: e.target.value })}
                     placeholder='Escribe el nombre'
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     label='Apellido(s)'
@@ -396,8 +395,8 @@ export default function EmpleadoForm({
                     onChange={e => setFormData({ ...formData, apellido: e.target.value })}
                     placeholder='Escribe el apellido'
                   />
-                </Grid>
-                <Grid item xs={12}>
+                </div>
+                <div className='sm:col-span-2'>
                   <TextField
                     fullWidth
                     label='Teléfono de Contacto'
@@ -412,21 +411,21 @@ export default function EmpleadoForm({
                       )
                     }}
                   />
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* TAB 1: LABORAL */}
         {activeTab === 1 && (
-          <Grid container spacing={5}>
-            <Grid item xs={12}>
+          <div className='flex flex-col gap-10'>
+            <div>
               <Typography variant='h6' className='mb-4 flex items-center gap-2'>
                 <i className='tabler-building-store text-primary' /> Asignación
               </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-8'>
+                <div>
                   <TextField
                     fullWidth
                     disabled
@@ -434,8 +433,8 @@ export default function EmpleadoForm({
                     value={negocioNombre}
                     helperText='El empleado se vinculará a este negocio'
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     disabled
@@ -443,17 +442,17 @@ export default function EmpleadoForm({
                     value={sucursalNombre}
                     helperText='Sede de trabajo principal'
                   />
-                </Grid>
-              </Grid>
+                </div>
+              </div>
               <Divider className='my-6' />
-            </Grid>
+            </div>
 
-            <Grid item xs={12}>
+            <div>
               <Typography variant='h6' className='mb-4 flex items-center gap-2'>
                 <i className='tabler-wallet text-primary' /> Condiciones Salariales
               </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-8'>
+                <div>
                   <FormControl fullWidth>
                     <InputLabel>Esquema de Pago</InputLabel>
                     <Select
@@ -471,8 +470,8 @@ export default function EmpleadoForm({
                       ))}
                     </Select>
                   </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     label='Salario Base'
@@ -484,8 +483,8 @@ export default function EmpleadoForm({
                       startAdornment: <InputAdornment position='start'>$</InputAdornment>
                     }}
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     label='Fecha de Contratación'
@@ -501,10 +500,10 @@ export default function EmpleadoForm({
                       )
                     }}
                   />
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* TAB 2: HORARIO */}
@@ -623,9 +622,9 @@ export default function EmpleadoForm({
                 <Typography color='text.secondary'>No hay bloqueos registrados</Typography>
               </Box>
             ) : (
-              <Grid container spacing={4}>
+              <div className='flex flex-col gap-8'>
                 {bloqueos.map(bloqueo => (
-                  <Grid item xs={12} key={bloqueo.id}>
+                  <div key={bloqueo.id}>
                     <Card variant='outlined' className='relative overflow-visible'>
                       <IconButton
                         color='error'
@@ -636,8 +635,8 @@ export default function EmpleadoForm({
                         <i className='tabler-x text-xs' />
                       </IconButton>
                       <CardContent>
-                        <Grid container spacing={4} alignItems='center'>
-                          <Grid item xs={12} sm={3}>
+                        <div className='grid grid-cols-1 sm:grid-cols-4 gap-8 items-center'>
+                          <div>
                             <TextField
                               fullWidth
                               label='Desde'
@@ -647,8 +646,8 @@ export default function EmpleadoForm({
                               onChange={e => actualizarBloqueo(bloqueo.id, 'inicio', e.target.value)}
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid>
-                          <Grid item xs={12} sm={3}>
+                          </div>
+                          <div>
                             <TextField
                               fullWidth
                               label='Hasta'
@@ -658,8 +657,8 @@ export default function EmpleadoForm({
                               onChange={e => actualizarBloqueo(bloqueo.id, 'fin', e.target.value)}
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
+                          </div>
+                          <div className='sm:col-span-2'>
                             <TextField
                               fullWidth
                               label='Motivo / Descripción'
@@ -668,13 +667,13 @@ export default function EmpleadoForm({
                               onChange={e => actualizarBloqueo(bloqueo.id, 'motivo', e.target.value)}
                               placeholder='Ej: Vacaciones anuales'
                             />
-                          </Grid>
-                        </Grid>
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
-                  </Grid>
+                  </div>
                 ))}
-              </Grid>
+              </div>
             )}
           </Box>
         )}
@@ -692,8 +691,8 @@ export default function EmpleadoForm({
             </Box>
 
             <Paper variant='outlined' className='p-4 bg-action-hover'>
-              <Grid container spacing={4} alignItems='center'>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-4 gap-8 items-center'>
+                <div className='sm:col-span-2'>
                   <Autocomplete
                     options={servicios}
                     getOptionLabel={option => option.nombre}
@@ -703,8 +702,8 @@ export default function EmpleadoForm({
                       <TextField {...params} label='Buscar Servicio' placeholder='Escribe el nombre...' />
                     )}
                   />
-                </Grid>
-                <Grid item xs={12} sm={3}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     label='% de Comisión'
@@ -716,8 +715,8 @@ export default function EmpleadoForm({
                       endAdornment: <InputAdornment position='end'>%</InputAdornment>
                     }}
                   />
-                </Grid>
-                <Grid item xs={12} sm={3}>
+                </div>
+                <div>
                   <Button
                     fullWidth
                     variant='contained'
@@ -728,8 +727,8 @@ export default function EmpleadoForm({
                   >
                     Vincular
                   </Button>
-                </Grid>
-              </Grid>
+                </div>
+              </div>
             </Paper>
 
             {serviciosAgregados.length > 0 ? (

@@ -26,7 +26,6 @@ import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Chip from '@mui/material/Chip'
 import Checkbox from '@mui/material/Checkbox'
-import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import InputAdornment from '@mui/material/InputAdornment'
 import Paper from '@mui/material/Paper'
@@ -450,9 +449,9 @@ export default function ServiciosList() {
         </DialogTitle>
 
         <DialogContent sx={{ p: 4 }}>
-          <Grid container spacing={4}>
+          <div className='grid grid-cols-1 md:grid-cols-12 gap-8'>
             {/* Left Side: General Info */}
-            <Grid item xs={12} md={5}>
+            <div className='md:col-span-5'>
               <StyledPaper elevation={0}>
                 <Box display='flex' flexDirection='column' gap={3}>
                   <Box display='flex' alignItems='center' gap={1}>
@@ -521,10 +520,10 @@ export default function ServiciosList() {
                   </Box>
                 </Box>
               </StyledPaper>
-            </Grid>
+            </div>
 
             {/* Right Side: Branch Settings */}
-            <Grid item xs={12} md={7}>
+            <div className='md:col-span-7'>
               <StyledPaper elevation={0}>
                 <Box display='flex' flexDirection='column' gap={3}>
                   <Box display='flex' justifyContent='space-between' alignItems='center'>
@@ -552,8 +551,8 @@ export default function ServiciosList() {
                     <Typography variant='caption' color='textSecondary' display='block' sx={{ mb: 2 }}>
                       Ingresa valores aquí para aplicarlos a todas las sucursales seleccionadas
                     </Typography>
-                    <Grid container spacing={2} alignItems='center'>
-                      <Grid item xs={5}>
+                    <div className='grid grid-cols-12 gap-4 items-center'>
+                      <div className='col-span-5'>
                         <TextField
                           label='Precio Global'
                           size='small'
@@ -563,8 +562,8 @@ export default function ServiciosList() {
                           fullWidth
                           InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                         />
-                      </Grid>
-                      <Grid item xs={5}>
+                      </div>
+                      <div className='col-span-5'>
                         <TextField
                           label='Costo Global'
                           size='small'
@@ -574,8 +573,8 @@ export default function ServiciosList() {
                           fullWidth
                           InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                         />
-                      </Grid>
-                      <Grid item xs={2}>
+                      </div>
+                      <div className='col-span-2'>
                         <Tooltip title='Aplicar a seleccionados'>
                           <span>
                             <IconButton color='primary' onClick={handleApplyBulk} disabled={!bulkPrice && !bulkCosto}>
@@ -583,8 +582,8 @@ export default function ServiciosList() {
                             </IconButton>
                           </span>
                         </Tooltip>
-                      </Grid>
-                    </Grid>
+                      </div>
+                    </div>
                   </Box>
 
                   <Divider />
@@ -634,8 +633,8 @@ export default function ServiciosList() {
 
                           {isSelected && (
                             <Box mt={2} display='flex' flexDirection='column' gap={2}>
-                              <Grid container spacing={2}>
-                                <Grid item xs={6}>
+                              <div className='grid grid-cols-2 gap-4'>
+                                <div>
                                   <TextField
                                     label='Precio'
                                     size='small'
@@ -645,8 +644,8 @@ export default function ServiciosList() {
                                     fullWidth
                                     InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                                   />
-                                </Grid>
-                                <Grid item xs={6}>
+                                </div>
+                                <div>
                                   <TextField
                                     label='Costo'
                                     size='small'
@@ -656,8 +655,8 @@ export default function ServiciosList() {
                                     fullWidth
                                     InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                                   />
-                                </Grid>
-                              </Grid>
+                                </div>
+                              </div>
                               <Box display='flex' justifyContent='space-between' alignItems='center'>
                                 <Typography variant='caption' color='textSecondary'>
                                   Permitir reservas en esta sucursal
@@ -676,8 +675,8 @@ export default function ServiciosList() {
                   </Box>
                 </Box>
               </StyledPaper>
-            </Grid>
-          </Grid>
+            </div>
+          </div>
         </DialogContent>
 
         <DialogActions sx={{ p: 4, borderTop: 1, borderColor: 'divider' }}>

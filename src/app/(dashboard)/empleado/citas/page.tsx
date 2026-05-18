@@ -11,7 +11,6 @@ import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Menu from '@mui/material/Menu'
-import Grid from '@mui/material/Grid'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -186,8 +185,8 @@ export default function EmpleadoCitasPage() {
         Aquí puedes ver todas tus citas programadas
       </Typography>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
+        <div>
           <FormControl fullWidth>
             <InputLabel>Filtrar por estado</InputLabel>
             <Select
@@ -205,8 +204,8 @@ export default function EmpleadoCitasPage() {
               <MenuItem value='FINALIZADA'>Finalizada</MenuItem>
             </Select>
           </FormControl>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
 
       {loading ? (
         <Box display='flex' justifyContent='center' py={8}>

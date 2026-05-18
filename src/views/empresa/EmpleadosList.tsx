@@ -178,7 +178,8 @@ export default function EmpleadosList() {
     setOpenDialog(true)
   }
 
-  const handleClose = () => {
+  const handleClose = (event?: object, reason?: string) => {
+    if (reason === 'backdropClick' || reason === 'escapeKeyDown') return
     setOpenDialog(false)
     setEditingId(null)
     setInitialData(null)
