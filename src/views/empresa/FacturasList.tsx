@@ -24,7 +24,6 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import InputAdornment from '@mui/material/InputAdornment'
 import MenuItem from '@mui/material/MenuItem'
@@ -679,8 +678,8 @@ export default function FacturasList() {
           ) : facturaDetalle ? (
             <Box display='flex' flexDirection='column' gap={2}>
               {/* Info general */}
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-4 gap-4'>
+                <div className='sm:col-span-2'>
                   <Typography variant='caption' color='text.secondary'>
                     Cliente
                   </Typography>
@@ -692,20 +691,20 @@ export default function FacturasList() {
                       {facturaDetalle.cliente.telefono}
                     </Typography>
                   )}
-                </Grid>
-                <Grid item xs={12} sm={3}>
+                </div>
+                <div>
                   <Typography variant='caption' color='text.secondary'>
                     Sucursal
                   </Typography>
                   <Typography variant='body2'>{facturaDetalle.sucursal.nombre}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={3}>
+                </div>
+                <div>
                   <Typography variant='caption' color='text.secondary'>
                     Fecha
                   </Typography>
                   <Typography variant='body2'>{fmtDate(facturaDetalle.createdAt)}</Typography>
-                </Grid>
-              </Grid>
+                </div>
+              </div>
 
               <Divider />
 
@@ -899,8 +898,8 @@ export default function FacturasList() {
         </DialogTitle>
         <DialogContent dividers>
           <Box display='flex' flexDirection='column' gap={2.5}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+              <div>
                 <FormControl fullWidth required>
                   <InputLabel>Cliente</InputLabel>
                   <Select value={clienteId} label='Cliente' onChange={e => setClienteId(e.target.value)}>
@@ -911,8 +910,8 @@ export default function FacturasList() {
                     ))}
                   </Select>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </div>
+              <div>
                 <FormControl fullWidth required>
                   <InputLabel>Sucursal</InputLabel>
                   <Select value={sucursalId} label='Sucursal' onChange={e => setSucursalId(e.target.value)}>
@@ -923,8 +922,8 @@ export default function FacturasList() {
                     ))}
                   </Select>
                 </FormControl>
-              </Grid>
-            </Grid>
+              </div>
+            </div>
 
             <Divider>
               <Typography variant='caption'>Ítems</Typography>
@@ -932,8 +931,8 @@ export default function FacturasList() {
 
             {items.map((item, idx) => (
               <Paper key={idx} variant='outlined' sx={{ p: 2 }}>
-                <Grid container spacing={1.5} alignItems='flex-start'>
-                  <Grid item xs={12} sm={2}>
+                <div className='grid grid-cols-12 gap-3 items-start'>
+                  <div className='col-span-12 sm:col-span-2'>
                     <FormControl fullWidth size='small'>
                       <InputLabel>Tipo</InputLabel>
                       <Select value={item.tipo} label='Tipo' onChange={e => updateItem(idx, 'tipo', e.target.value)}>
@@ -941,8 +940,8 @@ export default function FacturasList() {
                         <MenuItem value='PRODUCTO'>Producto</MenuItem>
                       </Select>
                     </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
+                  </div>
+                  <div className='col-span-12 sm:col-span-3'>
                     {item.tipo === 'SERVICIO' ? (
                       <FormControl fullWidth size='small'>
                         <InputLabel>Servicio</InputLabel>
@@ -974,8 +973,8 @@ export default function FacturasList() {
                         </Select>
                       </FormControl>
                     )}
-                  </Grid>
-                  <Grid item xs={6} sm={2}>
+                  </div>
+                  <div className='col-span-6 sm:col-span-2'>
                     <TextField
                       size='small'
                       label='Precio'
@@ -985,8 +984,8 @@ export default function FacturasList() {
                       onChange={e => updateItem(idx, 'precioUnitario', parseFloat(e.target.value) || 0)}
                       InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                     />
-                  </Grid>
-                  <Grid item xs={6} sm={1}>
+                  </div>
+                  <div className='col-span-6 sm:col-span-1'>
                     <TextField
                       size='small'
                       label='Cant.'
@@ -996,8 +995,8 @@ export default function FacturasList() {
                       onChange={e => updateItem(idx, 'cantidad', parseInt(e.target.value) || 1)}
                       inputProps={{ min: 1 }}
                     />
-                  </Grid>
-                  <Grid item xs={6} sm={2}>
+                  </div>
+                  <div className='col-span-6 sm:col-span-2'>
                     <TextField
                       size='small'
                       label='Desc.'
@@ -1007,13 +1006,13 @@ export default function FacturasList() {
                       onChange={e => updateItem(idx, 'descuento', parseFloat(e.target.value) || 0)}
                       InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                     />
-                  </Grid>
-                  <Grid item xs={6} sm={1} display='flex' alignItems='center' justifyContent='center' pt={0.5}>
+                  </div>
+                  <div className='col-span-6 sm:col-span-1 flex items-center justify-center pt-2'>
                     <Typography variant='body2' fontWeight={600}>
                       {fmt(item.precioUnitario * item.cantidad - item.descuento)}
                     </Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={0.5} display='flex' alignItems='center'>
+                  </div>
+                  <div className='col-span-12 sm:col-span-1 flex items-center justify-center pt-1'>
                     {items.length > 1 && (
                       <IconButton
                         size='small'
@@ -1023,8 +1022,8 @@ export default function FacturasList() {
                         <i className='tabler-trash' />
                       </IconButton>
                     )}
-                  </Grid>
-                </Grid>
+                  </div>
+                </div>
               </Paper>
             ))}
 
@@ -1040,8 +1039,8 @@ export default function FacturasList() {
 
             <Divider />
 
-            <Grid container spacing={2} justifyContent='flex-end'>
-              <Grid item xs={12} sm={4}>
+            <div className='grid grid-cols-1 sm:grid-cols-12 gap-4'>
+              <div className='sm:col-span-4'>
                 <TextField
                   label='Descuento global'
                   type='number'
@@ -1051,8 +1050,8 @@ export default function FacturasList() {
                   onChange={e => setDescuentoGlobal(e.target.value)}
                   InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={8}>
+              </div>
+              <div className='sm:col-span-8'>
                 <TextField
                   label='Notas'
                   fullWidth
@@ -1062,8 +1061,8 @@ export default function FacturasList() {
                   multiline
                   rows={2}
                 />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
 
             {/* Resumen */}
             <Box display='flex' justifyContent='flex-end'>
