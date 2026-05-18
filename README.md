@@ -6,15 +6,15 @@ Plataforma SaaS multi-negocio para gestionar citas, facturación, caja, empleado
 
 ## Stack Tecnológico
 
-| Capa | Tecnología |
-|------|-----------|
-| Framework | Next.js 16 (App Router) |
-| UI | MUI v6 + Tailwind CSS |
-| Base de datos | PostgreSQL |
-| ORM | Prisma (adapter-pg) |
+| Capa          | Tecnología                            |
+| ------------- | ------------------------------------- |
+| Framework     | Next.js 16 (App Router)               |
+| UI            | MUI v6 + Tailwind CSS                 |
+| Base de datos | PostgreSQL                            |
+| ORM           | Prisma (adapter-pg)                   |
 | Autenticación | JWT (jsonwebtoken, 12h de expiración) |
-| Validación | Yup |
-| Iconos | Iconify (tabler-icons) |
+| Validación    | Yup                                   |
+| Iconos        | Iconify (tabler-icons)                |
 
 ---
 
@@ -42,6 +42,7 @@ prisma/
 ### Middleware de autenticación
 
 `src/proxy.ts` intercepta todas las rutas y:
+
 - Si hay token válido → permite el acceso y redirige según rol
 - Si no hay token en ruta protegida → redirige a `/login`
 - Rutas públicas: `/landing`, `/login`, `/register`, `/api/public/*`
@@ -75,6 +76,7 @@ prisma/
 ### Agenda de citas
 
 **Flujo del cliente:**
+
 1. Selecciona negocio → sucursal → servicio → fecha
 2. El sistema consulta disponibilidad en tiempo real por empleado
 3. Los slots aparecen como `HH:MM - Nombre Empleado` (un slot por empleado-hora)
@@ -82,6 +84,7 @@ prisma/
 5. Al confirmar, la cita queda registrada con el empleado exacto seleccionado
 
 **Endpoint de disponibilidad** (`GET /api/public/sucursales/[id]/disponibilidad`):
+
 - Filtra empleados que pueden hacer el servicio (`ServicioEmpleado`)
 - Revisa horario del empleado ese día (`HorarioEmpleado`)
 - Descarta slots bloqueados (`BloqueoHorario`)
@@ -107,6 +110,7 @@ prisma/
 - Cancelar factura revierte automáticamente el stock de productos vendidos
 
 **Endpoints:**
+
 ```
 GET    /api/facturas                    Listar con filtros (estado, sucursal, cliente, fecha)
 POST   /api/facturas                    Crear factura manual
@@ -126,6 +130,7 @@ PATCH  /api/facturas/[id]/cancelar      Cancelar (requiere sin pagos activos)
 - Anular un pago revierte todo lo anterior y crea un movimiento de reverso en caja
 
 **Endpoints:**
+
 ```
 GET    /api/pagos                       Listar pagos del negocio
 POST   /api/pagos                       Registrar pago
@@ -150,6 +155,7 @@ DELETE /api/metodos-pago/[id]           Soft delete (si no tiene pagos activos)
 **Concepto:** Una `Caja` pertenece a una sucursal. Cada vez que el cajero abre su turno, se crea una `SesionCaja`. Todos los cobros del día quedan vinculados a esa sesión.
 
 **Flujo de un día:**
+
 1. Cajero abre la caja → ingresa fondo inicial (`montoApertura`)
 2. A lo largo del día registra ventas → facturas se crean y pagan desde Caja
 3. Los pagos en efectivo generan `MovimientoCaja` de tipo `INGRESO`
@@ -159,6 +165,7 @@ DELETE /api/metodos-pago/[id]           Soft delete (si no tiene pagos activos)
 7. `diferencia` = contado - esperado (positivo = sobrante, negativo = faltante)
 
 **Panel de Caja (POS):**
+
 - Vista de tarjetas por caja con estado `ABIERTA/CERRADA`
 - Tab "Ventas del Día": facturas de la sesión activa con botón "Cobrar"
 - Botón "Nueva Venta": busca cliente existente o crea cliente rápido (nombre + apellido)
@@ -166,6 +173,7 @@ DELETE /api/metodos-pago/[id]           Soft delete (si no tiene pagos activos)
 - Tab "Métodos de Pago": gestión de métodos de cobro
 
 **Endpoints:**
+
 ```
 GET    /api/caja                              Listar cajas del negocio
 POST   /api/caja                              Crear caja
@@ -225,42 +233,25 @@ npm run seed              # Insertar 4 negocios con datos completos
 
 ---
 
-## Datos de prueba (seed)
-
-El seed crea **4 negocios** completamente funcionales:
-
-| Negocio | Categoría | Email admin | Sucursales |
-|---------|-----------|-------------|-----------|
-| Peluquería Bella | BELLEZA | admin@bella.com | 2 |
-| Clínica DentalCare | SALUD (con ITBIS) | admin@dentalcare.com | 2 |
-| AutoExpress | AUTOMOTRIZ | admin@autoexpress.do | 2 |
-| FitLife Gym | FITNESS | admin@fitlife.do | 1 |
-
-**Password universal:** `123456`
-
-Cada negocio incluye: empleados con horarios Lun-Sáb, servicios con precios por sucursal, clientes, métodos de pago, caja abierta con sesión activa, citas en distintos estados y facturas con diferentes estados de pago.
-
----
-
 ## Rutas de la aplicación
 
-| Ruta | Rol | Descripción |
-|------|-----|-------------|
-| `/landing` | Público | Landing page del producto |
-| `/login` | Público | Inicio de sesión |
-| `/register` | Público | Registro de usuario/negocio |
-| `/empresa/home` | Admin | Dashboard del negocio |
-| `/empresa/citas` | Admin | Gestión de agenda |
-| `/empresa/caja` | Admin/Cajero | POS, caja y facturación |
-| `/empresa/facturas` | Admin | Historial de facturas |
-| `/empresa/clientes` | Admin | Lista de clientes |
-| `/empresa/empleados` | Admin | Gestión de empleados |
-| `/empresa/servicios` | Admin | Servicios y precios |
-| `/empresa/productos` | Admin | Inventario |
-| `/empresa/sucursales` | Admin | Sucursales y horarios |
-| `/cliente/empresas` | Cliente | Directorio de negocios |
-| `/cliente/empresas/[id]` | Cliente | Agendar cita (stepper) |
-| `/cliente/citas` | Cliente | Mis citas |
+| Ruta                     | Rol          | Descripción                 |
+| ------------------------ | ------------ | --------------------------- |
+| `/landing`               | Público      | Landing page del producto   |
+| `/login`                 | Público      | Inicio de sesión            |
+| `/register`              | Público      | Registro de usuario/negocio |
+| `/empresa/home`          | Admin        | Dashboard del negocio       |
+| `/empresa/citas`         | Admin        | Gestión de agenda           |
+| `/empresa/caja`          | Admin/Cajero | POS, caja y facturación     |
+| `/empresa/facturas`      | Admin        | Historial de facturas       |
+| `/empresa/clientes`      | Admin        | Lista de clientes           |
+| `/empresa/empleados`     | Admin        | Gestión de empleados        |
+| `/empresa/servicios`     | Admin        | Servicios y precios         |
+| `/empresa/productos`     | Admin        | Inventario                  |
+| `/empresa/sucursales`    | Admin        | Sucursales y horarios       |
+| `/cliente/empresas`      | Cliente      | Directorio de negocios      |
+| `/cliente/empresas/[id]` | Cliente      | Agendar cita (stepper)      |
+| `/cliente/citas`         | Cliente      | Mis citas                   |
 
 ---
 
