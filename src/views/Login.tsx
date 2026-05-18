@@ -162,14 +162,14 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
         </Link>
         <div className='flex flex-col gap-6 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset] mbs-11 sm:mbs-14 md:mbs-0'>
           <div className='flex flex-col gap-1'>
-            <Typography variant='h4'>{`Welcome to ${themeConfig.templateName}! 👋🏻`}</Typography>
-            <Typography>Please sign-in to your account and start the adventure</Typography>
+            <Typography variant='h4'>{`¡Bienvenido a ${themeConfig.templateName}! 👋🏻`}</Typography>
+            <Typography>Por favor, inicia sesión en tu cuenta y comienza la aventura</Typography>
           </div>
           <form noValidate autoComplete='off' onSubmit={handleLogin} className='flex flex-col gap-5'>
             <CustomTextField
               autoFocus
               fullWidth
-              label='Email'
+              label='Correo electrónico'
               placeholder='usuario@gmail.com'
               type='email'
               value={email}
@@ -177,7 +177,7 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
             />
             <CustomTextField
               fullWidth
-              label='Password'
+              label='Contraseña'
               placeholder='············'
               id='outlined-adornment-password'
               type={isPasswordShown ? 'text' : 'password'}
@@ -202,12 +202,12 @@ const LoginV2 = ({ mode }: { mode: SystemMode }) => {
               </Typography> */}
             </div>
             <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
-              {isLoading ? <CircularProgress size={24} color='inherit' /> : 'Login'}
+              {isLoading ? <CircularProgress size={24} color='inherit' /> : 'Iniciar sesión'}
             </Button>
             <div className='flex justify-center items-center flex-wrap gap-2'>
-              <Typography>New on our platform?</Typography>
+              <Typography>¿Nuevo en nuestra plataforma?</Typography>
               <Typography component={Link} href='/register' color='primary.main'>
-                Create an account
+                Crear una cuenta
               </Typography>
             </div>
 
