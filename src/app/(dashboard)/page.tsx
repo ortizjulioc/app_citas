@@ -13,27 +13,25 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!isAuthenticated || !hasRole('admin')) {
+    if (!isAuthenticated) {
       router.push('/login')
       return
     }
-    setLoading(false)
+
+    if (hasRole('admin')) {
+      router.push('/empresa')
+    } else if (hasRole('empleado')) {
+      router.push('/empleado/citas')
+    } else if (hasRole('cliente')) {
+      router.push('/cliente')
+    } else {
+      router.push('/login')
+    }
   }, [isAuthenticated, hasRole, router])
 
-  if (loading || !isAuthenticated || !hasRole('admin')) {
-    return (
-      <Box display='flex' justifyContent='center' alignItems='center' minHeight='50vh'>
-        <CircularProgress />
-      </Box>
-    )
-  }
-
   return (
-    <div className='flex items-center justify-center bs-full'>
-      <div className='flex flex-col items-center gap-4'>
-        <Typography variant='h3'>¡Bienvenido! 👋</Typography>
-        <Typography>Esta es la página principal del dashboard.</Typography>
-      </div>
-    </div>
+    <Box display='flex' justifyContent='center' alignItems='center' minHeight='50vh'>
+      <CircularProgress />
+    </Box>
   )
 }

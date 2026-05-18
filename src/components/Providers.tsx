@@ -7,6 +7,7 @@ import { SettingsProvider } from '@core/contexts/settingsContext'
 import ThemeProvider from '@components/theme'
 import { ConfirmDialogProvider } from '@/components/shared/confirm-dialog'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { SucursalProvider } from '@/contexts/SucursalContext'
 
 // Util Imports
 import { getMode, getSettingsFromCookie, getSystemMode } from '@core/utils/serverHelpers'
@@ -26,15 +27,15 @@ const Providers = async (props: Props) => {
 
   return (
     <AuthProvider>
-      <VerticalNavProvider>
-        <SettingsProvider settingsCookie={settingsCookie} mode={mode}>
-          <ThemeProvider direction={direction} systemMode={systemMode}>
-            <ConfirmDialogProvider>
-              {children}
-            </ConfirmDialogProvider>
-          </ThemeProvider>
-        </SettingsProvider>
-      </VerticalNavProvider>
+      <SucursalProvider>
+        <VerticalNavProvider>
+          <SettingsProvider settingsCookie={settingsCookie} mode={mode}>
+            <ThemeProvider direction={direction} systemMode={systemMode}>
+              <ConfirmDialogProvider>{children}</ConfirmDialogProvider>
+            </ThemeProvider>
+          </SettingsProvider>
+        </VerticalNavProvider>
+      </SucursalProvider>
     </AuthProvider>
   )
 }

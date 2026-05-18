@@ -85,11 +85,15 @@ const MenuButton: ForwardRefRenderFunction<HTMLAnchorElement, MenuButtonProps> =
       const classNameProp = (componentAny.props as { className?: string })?.className
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return cloneElement(component as any, {
-        className: classnames(className, classNameProp),
-        ...rest,
-        ref
-      }, children)
+      return cloneElement(
+        component as any,
+        {
+          className: classnames(className, classNameProp),
+          ...rest,
+          ref
+        },
+        children
+      )
     }
   } else {
     // If there is no component but href is defined, render RouterLink

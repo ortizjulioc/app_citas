@@ -12,15 +12,7 @@ export const categoriaServicioEnum = [
   'OTROS'
 ] as const
 
-export const diasSemanaEnum = [
-  'LUNES',
-  'MARTES',
-  'MIERCOLES',
-  'JUEVES',
-  'VIERNES',
-  'SABADO',
-  'DOMINGO'
-] as const
+export const diasSemanaEnum = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'] as const
 
 export const horarioSchema = yup.object({
   diaSemana: yup.string().oneOf(diasSemanaEnum).required(),
@@ -37,7 +29,11 @@ export const negocioSchema = yup.object({
   email: yup.string().email('Email inválido').nullable(),
   direccion: yup.string().nullable(),
   categoriaServicio: yup.string().oneOf(categoriaServicioEnum).required('La categoría del servicio es requerida'),
-  horarios: yup.array().of(horarioSchema).required('Los horarios son requeridos').min(1, 'Debe configurar al menos un horario'),
+  horarios: yup
+    .array()
+    .of(horarioSchema)
+    .required('Los horarios son requeridos')
+    .min(1, 'Debe configurar al menos un horario'),
   sucursal: yup.string().required('El nombre de la sucursal es requerido')
 })
 

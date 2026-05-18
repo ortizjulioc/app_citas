@@ -22,6 +22,8 @@ import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 
 import { useConfirmDialog } from '@/components/shared/confirm-dialog'
+import { useAuth } from '@/contexts/AuthContext'
+import { useSucursal } from '@/contexts/SucursalContext'
 import EmpleadoForm from '@/components/empleados/EmpleadoForm'
 
 interface Empleado {
@@ -40,13 +42,34 @@ interface Empleado {
 interface Sucursal {
   id: string
   nombre: string
+  direccion: string | null
+  telefono: string | null
+  email: string | null
+  horarioSucursals: {
+    diaSemana: string
+    horaInicio: string | Date
+    horaFin: string | Date
+    activo: boolean
+  }[]
+}
+
+interface NegocioInfo {
+  id: string
+  nombre: string
+  horaApertura: string
+  horaCierre: string
+  diasLaborables: string[]
 }
 
 export default function EmpleadosList() {
   const { confirm } = useConfirmDialog()
+  const { user, token } = useAuth()
+  const { sucursalSeleccionada } = useSucursal()
   const [empleados, setEmpleados] = useState<Empleado[]>([])
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
-  const [sucursalId, setSucursalId] = useState<string>('')
+  const [selectedSucursal, setSelectedSucursal] = useState<Sucursal | null>(null)
+  const [negocioInfo, setNegocioInfo] = useState<NegocioInfo | null>(null)
+  // Remover: const [sucursalId, setSucursalId] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [openDialog, setOpenDialog] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -62,8 +85,14 @@ export default function EmpleadosList() {
       if (res.ok) {
         const sucursalesData = json.data?.sucursales || []
         setSucursales(sucursalesData)
-        if (sucursalesData.length > 0 && !sucursalId) {
-          setSucursalId(sucursalesData[0].id)
+        if (token) {
+          const negocioRes = await fetch('/api/negocios/mi-negocio', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          if (negocioRes.ok) {
+            const negocioJson = await negocioRes.json()
+            setNegocioInfo(negocioJson.data)
+          }
         }
       }
     } catch (err) {
@@ -74,7 +103,7 @@ export default function EmpleadosList() {
   const fetchEmpleados = async () => {
     try {
       setLoading(true)
-      const url = sucursalId ? `/api/empleados?sucursalId=${sucursalId}` : '/api/empleados'
+      const url = sucursalSeleccionada?.id ? `/api/empleados?sucursalId=${sucursalSeleccionada.id}` : '/api/empleados'
       const res = await fetch(url)
       const json = await res.json()
       if (res.ok) {
@@ -94,10 +123,17 @@ export default function EmpleadosList() {
   }, [])
 
   useEffect(() => {
-    if (sucursalId) {
+    if (sucursalSeleccionada?.id) {
       fetchEmpleados()
     }
-  }, [sucursalId])
+  }, [sucursalSeleccionada])
+
+  useEffect(() => {
+    if (sucursalSeleccionada?.id && sucursales.length > 0) {
+      const found = sucursales.find(s => s.id === sucursalSeleccionada.id)
+      if (found) setSelectedSucursal(found)
+    }
+  }, [sucursalSeleccionada, sucursales])
 
   const handleOpen = async (empleado?: Empleado) => {
     if (empleado) {
@@ -105,25 +141,28 @@ export default function EmpleadosList() {
         const res = await fetch(`/api/empleados/${empleado.id}`)
         const json = await res.json()
         if (res.ok) {
-          const fetchedData = json.data || json;
+          const fetchedData = json.data || json
           setInitialData({
             ...fetchedData,
-            horario: fetchedData.horarioEmpleados?.map((h: any) => ({
-              diaSemana: h.diaSemana,
-              horaInicio: h.horaInicio?.substring(0, 5) || '',
-              horaFin: h.horaFin?.substring(0, 5) || ''
-            })) || [],
-            bloqueos: fetchedData.bloqueoHorarios?.map((b: any) => ({
-              id: b.id,
-              inicio: b.inicio?.split('T')[0] || '',
-              fin: b.fin?.split('T')[0] || '',
-              motivo: b.motivo || ''
-            })) || [],
-            servicios: fetchedData.comisionEmpleados?.map((c: any) => ({
-              servicioId: c.servicioId,
-              nombre: c.servicio?.nombre || '',
-              porcentaje: c.porcentaje
-            })) || []
+            horario:
+              fetchedData.horarioEmpleados?.map((h: any) => ({
+                diaSemana: h.diaSemana,
+                horaInicio: h.horaInicio?.substring(0, 5) || '',
+                horaFin: h.horaFin?.substring(0, 5) || ''
+              })) || [],
+            bloqueos:
+              fetchedData.bloqueoHorarios?.map((b: any) => ({
+                id: b.id,
+                inicio: b.inicio?.split('T')[0] || '',
+                fin: b.fin?.split('T')[0] || '',
+                motivo: b.motivo || ''
+              })) || [],
+            servicios:
+              fetchedData.comisionEmpleados?.map((c: any) => ({
+                servicioId: c.servicioId,
+                nombre: c.servicio?.nombre || '',
+                porcentaje: c.porcentaje
+              })) || []
           })
         }
       } catch (err) {
@@ -137,7 +176,8 @@ export default function EmpleadosList() {
     setOpenDialog(true)
   }
 
-  const handleClose = () => {
+  const handleClose = (event?: object, reason?: string) => {
+    if (reason === 'backdropClick' || reason === 'escapeKeyDown') return
     setOpenDialog(false)
     setEditingId(null)
     setInitialData(null)
@@ -249,26 +289,24 @@ export default function EmpleadosList() {
         </TableContainer>
       </Card>
 
-      <Dialog
-        open={openDialog}
-        onClose={handleClose}
-        fullWidth
-        maxWidth='md'
-        PaperProps={{ sx: { borderRadius: 2 } }}
-      >
+      <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth='md' PaperProps={{ sx: { borderRadius: 2 } }}>
         <DialogTitle sx={{ px: 6, py: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant='h5' component='span'>{editingId ? 'Editar Perfil de Empleado' : 'Registro de Nuevo Empleado'}</Typography>
+          <Typography variant='h5' component='span'>
+            {editingId ? 'Editar Perfil de Empleado' : 'Registro de Nuevo Empleado'}
+          </Typography>
           <IconButton onClick={handleClose} size='small'>
             <i className='tabler-x' />
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ p: 0 }} dividers>
-          {sucursalId && (
+          {sucursalSeleccionada?.id && (
             <Box sx={{ px: 6, py: 4 }}>
               <EmpleadoForm
                 initialData={initialData}
                 isEditing={!!editingId}
-                sucursalId={sucursalId}
+                sucursales={sucursales}
+                sucursalId={sucursalSeleccionada.id}
+                negocioNombre={negocioInfo?.nombre || ''}
                 onSave={handleSave}
                 onCancel={handleClose}
               />

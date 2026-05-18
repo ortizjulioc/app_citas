@@ -66,7 +66,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
             <MenuItem href='/cliente/citas' icon={<i className='tabler-calendar' />}>
               Mis Citas
             </MenuItem>
-            <MenuItem href='/cliente/perfil' icon={<i className='tabler-user' />}>
+            <MenuItem href='/perfil-usuario/' icon={<i className='tabler-user' />}>
               Perfil
             </MenuItem>
           </>
@@ -74,9 +74,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
 
         {isEmpleado && (
           <>
-            <MenuItem href='/home' icon={<i className='tabler-smart-home' />}>
-              Dashboard
-            </MenuItem>
             <MenuItem href='/empleado/citas' icon={<i className='tabler-calendar' />}>
               Mis Citas
             </MenuItem>
@@ -85,7 +82,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
 
         {isAdmin && (
           <>
-            <MenuItem href='/home' icon={<i className='tabler-smart-home' />}>
+            <MenuItem href='/empresa' icon={<i className='tabler-smart-home' />}>
               Dashboard
             </MenuItem>
             <MenuItem href='/empresa/sucursales' icon={<i className='tabler-building-store' />}>
@@ -104,7 +101,7 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
               Clientes
             </MenuItem>
             <MenuItem href='/empresa/facturas' icon={<i className='tabler-receipt' />}>
-              Facturación
+              Facturacion
             </MenuItem>
             <MenuItem href='/empresa/productos' icon={<i className='tabler-packages' />}>
               Productos
@@ -112,12 +109,15 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
             <MenuItem href='/empresa/caja' icon={<i className='tabler-cash' />}>
               Caja
             </MenuItem>
+            <MenuItem href='/empresa/nomina' icon={<i className='tabler-moneybag' />}>
+              Nomina
+            </MenuItem>
           </>
         )}
 
-        {!isAdmin && !isCliente && (
+        {!isAdmin && !isCliente && !isEmpleado && (
           <>
-            <MenuItem href='/home' icon={<i className='tabler-smart-home' />}>
+            <MenuItem href='/' icon={<i className='tabler-smart-home' />}>
               Home
             </MenuItem>
             <MenuItem href='/about' icon={<i className='tabler-info-circle' />}>

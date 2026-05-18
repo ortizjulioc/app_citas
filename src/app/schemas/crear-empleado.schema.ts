@@ -22,11 +22,17 @@ const servicioSchema = yup.object({
 
 export const crearEmpleadoSchema = yup.object({
   email: yup.string().email('Email inválido').required('El email es requerido'),
-  password: yup.string().min(6, 'La contraseña debe tener al menos 6 caracteres').required('La contraseña es requerida'),
+  password: yup
+    .string()
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .required('La contraseña es requerida'),
   nombre: yup.string().required('El nombre es requerido'),
   apellido: yup.string().required('El apellido es requerido'),
   telefono: yup.string().nullable(),
-  tipoSalario: yup.string().oneOf(tipoSalarioEnum, 'Tipo de salario inválido').required('El tipo de salario es requerido'),
+  tipoSalario: yup
+    .string()
+    .oneOf(tipoSalarioEnum, 'Tipo de salario inválido')
+    .required('El tipo de salario es requerido'),
   salarioBase: yup.number().nullable(),
   fechaContratacion: yup.date().nullable(),
   sucursalId: yup.string().required('La sucursal es requerida'),

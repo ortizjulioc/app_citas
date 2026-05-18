@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import {
   Box,
   TextField,
@@ -19,7 +19,6 @@ import {
   TableRow,
   IconButton,
   Typography,
-  Grid,
   Alert,
   Tabs,
   Tab,
@@ -30,7 +29,8 @@ import {
   Switch,
   FormControlLabel,
   Tooltip,
-  Chip
+  Chip,
+  FormHelperText
 } from '@mui/material'
 
 import { useAuth } from '@/contexts/AuthContext'
@@ -61,10 +61,19 @@ interface ServicioConPorcentaje {
   porcentaje: number
 }
 
+interface HorarioSucursalItem {
+  diaSemana: string
+  horaInicio: string | Date
+  horaFin: string | Date
+  activo: boolean
+}
+
 interface Props {
   initialData?: any
   isEditing: boolean
   sucursalId: string
+  sucursales: { id: string; nombre: string; horarioSucursals: HorarioSucursalItem[] }[]
+  negocioNombre: string
   onSave: (data: any) => Promise<void>
   onCancel: () => void
 }
@@ -85,8 +94,16 @@ const tipoSalarioOptions = [
   { value: 'POR_COMISION', label: 'Por Comisión', icon: 'tabler:percentage' }
 ]
 
-export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSave, onCancel }: Props) {
-  const { user } = useAuth()
+export default function EmpleadoForm({
+  initialData,
+  isEditing,
+  sucursalId,
+  sucursales,
+  negocioNombre,
+  onSave,
+  onCancel
+}: Props) {
+  const { user, token } = useAuth()
   const [activeTab, setActiveTab] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -106,29 +123,97 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
     negocioId: initialData?.negocioId || user?.negocioId || ''
   })
 
-  const [horario, setHorario] = useState<HorarioDia[]>(
-    initialData?.horario?.map((h: any) => ({
-      diaSemana: h.diaSemana,
-      activo: true,
-      horaInicio: h.horaInicio?.substring(0, 5) || '09:00',
-      horaFin: h.horaFin?.substring(0, 5) || '18:00'
-    })) || diasSemana.map(d => ({
-      diaSemana: d.value,
-      activo: false,
-      horaInicio: '09:00',
-      horaFin: '18:00'
-    }))
-  )
+  const [localSucursalId, setLocalSucursalId] = useState<string>(initialData?.sucursalId || sucursalId)
 
-  const [bloqueos, setBloqueos] = useState<Bloqueo[]>(initialData?.bloqueos || [])
-  const [serviciosAgregados, setServiciosAgregados] = useState<ServicioConPorcentaje[]>(
-    initialData?.servicios || []
+  const selectedSucursal = useMemo(
+    () => sucursales?.find(s => s.id === localSucursalId) || sucursales?.[0],
+    [sucursales, localSucursalId]
   )
+  const sucursalHorario = selectedSucursal?.horarioSucursals || []
+
+  const extractTimeFromUTC = (dateStr: string | Date | undefined, defaultTime: string): string => {
+    if (!dateStr) return defaultTime
+    if (typeof dateStr === 'string' && dateStr.length === 5 && dateStr.includes(':')) {
+      return dateStr
+    }
+    try {
+      const d = new Date(dateStr)
+      const h = String(d.getUTCHours()).padStart(2, '0')
+      const m = String(d.getUTCMinutes()).padStart(2, '0')
+      return `${h}:${m}`
+    } catch {
+      return defaultTime
+    }
+  }
+
+  const isSucursalActiveOnDay = (dia: string) => {
+    const sucHorario = sucursalHorario?.find(h => h.diaSemana === dia)
+    return sucHorario?.activo || false
+  }
+
+  const [horario, setHorario] = useState<HorarioDia[]>(() => {
+    return diasSemana.map(d => {
+      const sucHorario = sucursalHorario?.find(h => h.diaSemana === d.value)
+      const sucursalActiva = sucHorario?.activo || false
+
+      let defaultInicio = extractTimeFromUTC(sucHorario?.horaInicio, '09:00')
+      let defaultFin = extractTimeFromUTC(sucHorario?.horaFin, '18:00')
+
+      if (initialData?.horario?.length > 0) {
+        const empHorario = initialData.horario.find((h: any) => h.diaSemana === d.value)
+        return {
+          diaSemana: d.value,
+          activo: !!empHorario && sucursalActiva,
+          horaInicio: empHorario?.horaInicio?.substring(0, 5) || defaultInicio,
+          horaFin: empHorario?.horaFin?.substring(0, 5) || defaultFin
+        }
+      } else {
+        return {
+          diaSemana: d.value,
+          activo: sucursalActiva,
+          horaInicio: defaultInicio,
+          horaFin: defaultFin
+        }
+      }
+    })
+  })
+
+  const isFirstRender = useRef(true)
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    setHorario(
+      diasSemana.map(d => {
+        const sucHorario = sucursalHorario?.find(h => h.diaSemana === d.value)
+        const sucursalActiva = sucHorario?.activo || false
+
+        let defaultInicio = extractTimeFromUTC(sucHorario?.horaInicio, '09:00')
+        let defaultFin = extractTimeFromUTC(sucHorario?.horaFin, '18:00')
+
+        return {
+          diaSemana: d.value,
+          activo: sucursalActiva,
+          horaInicio: defaultInicio,
+          horaFin: defaultFin
+        }
+      })
+    )
+  }, [localSucursalId])
+
+  const [bloqueos, setBloqueos] = useState<Bloqueo[]>(initialData?.bloqueos || [])
+  const [serviciosAgregados, setServiciosAgregados] = useState<ServicioConPorcentaje[]>(initialData?.servicios || [])
+
+  useEffect(() => {
+    if (!token) return
+
     const fetchServicios = async () => {
       try {
-        const res = await fetch(`/api/servicios?sucursalId=${sucursalId}&limit=100`)
+        const res = await fetch(`/api/servicios?sucursalId=${localSucursalId}&limit=100`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
         const json = await res.json()
         if (res.ok) {
           setServicios(json.data?.servicios || [])
@@ -138,16 +223,14 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
       }
     }
     fetchServicios()
-  }, [sucursalId])
+  }, [localSucursalId, token])
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
   }
 
   const handleHorarioChange = (dia: string, field: 'activo' | 'horaInicio' | 'horaFin', value: boolean | string) => {
-    setHorario(prev => prev.map(h =>
-      h.diaSemana === dia ? { ...h, [field]: value } : h
-    ))
+    setHorario(prev => prev.map(h => (h.diaSemana === dia ? { ...h, [field]: value } : h)))
   }
 
   const agregarBloqueo = () => {
@@ -159,7 +242,7 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
   }
 
   const actualizarBloqueo = (id: string, field: keyof Bloqueo, value: string) => {
-    setBloqueos(prev => prev.map(b => b.id === id ? { ...b, [field]: value } : b))
+    setBloqueos(prev => prev.map(b => (b.id === id ? { ...b, [field]: value } : b)))
   }
 
   const agregarServicio = () => {
@@ -170,11 +253,14 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
 
     if (serviciosAgregados.find(s => s.servicioId === servicioSeleccionado.id)) return
 
-    setServiciosAgregados(prev => [...prev, {
-      servicioId: servicioSeleccionado.id,
-      nombre: servicioSeleccionado.nombre,
-      porcentaje: pct
-    }])
+    setServiciosAgregados(prev => [
+      ...prev,
+      {
+        servicioId: servicioSeleccionado.id,
+        nombre: servicioSeleccionado.nombre,
+        porcentaje: pct
+      }
+    ])
 
     setServicioSeleccionado(null)
     setPorcentaje('')
@@ -198,6 +284,9 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
       if (!formData.email.trim()) return setError('El email es requerido')
       if (!formData.password.trim()) return setError('La contraseña es requerida')
       if (formData.password.length < 6) return setError('La contraseña debe tener al menos 6 caracteres')
+    } else {
+      if (formData.password && formData.password.length < 6)
+        return setError('La contraseña debe tener al menos 6 caracteres')
     }
 
     setLoading(true)
@@ -228,7 +317,7 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
         ...formData,
         salarioBase: formData.salarioBase ? parseFloat(formData.salarioBase) : null,
         fechaContratacion: formData.fechaContratacion ? new Date(formData.fechaContratacion).toISOString() : null,
-        sucursalId,
+        sucursalId: localSucursalId,
         horario: horarioData,
         bloqueos: bloqueosData,
         servicios: serviciosData
@@ -236,7 +325,6 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
 
       if (isEditing) {
         delete payload.email
-        delete payload.password
       }
 
       await onSave(payload)
@@ -275,58 +363,58 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
       <Box className='min-h-[400px]'>
         {/* TAB 0: INFORMACIÓN */}
         {activeTab === 0 && (
-          <Grid container spacing={5}>
-            {!isEditing && (
-              <Grid item xs={12}>
-                <Typography variant='h6' className='mb-4 flex items-center gap-2'>
-                  <i className='tabler-lock text-primary' /> Cuenta de Acceso
-                </Typography>
-                <Grid container spacing={4}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label='Correo Electrónico'
-                      type='email'
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      placeholder='ejemplo@correo.com'
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <i className='tabler-mail' />
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label='Contraseña'
-                      type='password'
-                      value={formData.password}
-                      onChange={e => setFormData({ ...formData, password: e.target.value })}
-                      placeholder='••••••'
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <i className='tabler-key' />
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-                <Divider className='my-6' />
-              </Grid>
-            )}
+          <div className='flex flex-col gap-10'>
+            <div>
+              <Typography variant='h6' className='mb-4 flex items-center gap-2'>
+                <i className='tabler-lock text-primary' /> Cuenta de Acceso
+              </Typography>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-8'>
+                <div>
+                  <TextField
+                    fullWidth
+                    label='Correo Electrónico'
+                    type='email'
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    disabled={isEditing}
+                    placeholder='ejemplo@correo.com'
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <i className='tabler-mail' />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                </div>
+                <div>
+                  <TextField
+                    fullWidth
+                    label={isEditing ? 'Nueva Contraseña' : 'Contraseña'}
+                    type='password'
+                    value={formData.password}
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    placeholder='••••••'
+                    helperText={isEditing ? 'Déjalo en blanco para mantener la actual' : ''}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <i className='tabler-key' />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                </div>
+              </div>
+              <Divider className='my-6' />
+            </div>
 
-            <Grid item xs={12}>
+            <div>
               <Typography variant='h6' className='mb-4 flex items-center gap-2'>
                 <i className='tabler-user-circle text-primary' /> Datos Personales
               </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-8'>
+                <div>
                   <TextField
                     fullWidth
                     label='Nombre(s)'
@@ -334,8 +422,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                     onChange={e => setFormData({ ...formData, nombre: e.target.value })}
                     placeholder='Escribe el nombre'
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     label='Apellido(s)'
@@ -343,8 +431,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                     onChange={e => setFormData({ ...formData, apellido: e.target.value })}
                     placeholder='Escribe el apellido'
                   />
-                </Grid>
-                <Grid item xs={12}>
+                </div>
+                <div className='sm:col-span-2'>
                   <TextField
                     fullWidth
                     label='Teléfono de Contacto'
@@ -359,48 +447,57 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                       )
                     }}
                   />
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* TAB 1: LABORAL */}
         {activeTab === 1 && (
-          <Grid container spacing={5}>
-            <Grid item xs={12}>
+          <div className='flex flex-col gap-10'>
+            <div>
               <Typography variant='h6' className='mb-4 flex items-center gap-2'>
                 <i className='tabler-building-store text-primary' /> Asignación
               </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-8'>
+                <div>
                   <TextField
                     fullWidth
                     disabled
                     label='Negocio'
-                    value={formData.negocioId}
+                    value={negocioNombre}
                     helperText='El empleado se vinculará a este negocio'
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    disabled
-                    label='Sucursal Actual'
-                    value={sucursalId}
-                    helperText='Sede de trabajo principal'
-                  />
-                </Grid>
-              </Grid>
+                </div>
+                <div>
+                  <FormControl fullWidth disabled={isEditing}>
+                    <InputLabel id='sucursal-label'>Sucursal Actual</InputLabel>
+                    <Select
+                      labelId='sucursal-label'
+                      value={localSucursalId}
+                      label='Sucursal Actual'
+                      onChange={e => setLocalSucursalId(e.target.value)}
+                    >
+                      {sucursales?.map(suc => (
+                        <MenuItem key={suc.id} value={suc.id}>
+                          {suc.nombre}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>Sede de trabajo principal</FormHelperText>
+                  </FormControl>
+                </div>
+              </div>
               <Divider className='my-6' />
-            </Grid>
+            </div>
 
-            <Grid item xs={12}>
+            <div>
               <Typography variant='h6' className='mb-4 flex items-center gap-2'>
                 <i className='tabler-wallet text-primary' /> Condiciones Salariales
               </Typography>
-              <Grid container spacing={4}>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-8'>
+                <div>
                   <FormControl fullWidth>
                     <InputLabel>Esquema de Pago</InputLabel>
                     <Select
@@ -418,8 +515,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                       ))}
                     </Select>
                   </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     label='Salario Base'
@@ -431,8 +528,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                       startAdornment: <InputAdornment position='start'>$</InputAdornment>
                     }}
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     label='Fecha de Contratación'
@@ -448,10 +545,10 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                       )
                     }}
                   />
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* TAB 2: HORARIO */}
@@ -492,9 +589,16 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                                 checked={dia.activo}
                                 onChange={e => handleHorarioChange(dia.diaSemana, 'activo', e.target.checked)}
                                 color='primary'
+                                disabled={!isSucursalActiveOnDay(dia.diaSemana)}
                               />
                             }
-                            label={dia.activo ? 'Activo' : 'Inactivo'}
+                            label={
+                              !isSucursalActiveOnDay(dia.diaSemana)
+                                ? 'Cerrado por sucursal'
+                                : dia.activo
+                                  ? 'Activo'
+                                  : 'Inactivo'
+                            }
                           />
                         </TableCell>
                         <TableCell>
@@ -563,9 +667,9 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                 <Typography color='text.secondary'>No hay bloqueos registrados</Typography>
               </Box>
             ) : (
-              <Grid container spacing={4}>
+              <div className='flex flex-col gap-8'>
                 {bloqueos.map(bloqueo => (
-                  <Grid item xs={12} key={bloqueo.id}>
+                  <div key={bloqueo.id}>
                     <Card variant='outlined' className='relative overflow-visible'>
                       <IconButton
                         color='error'
@@ -576,8 +680,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                         <i className='tabler-x text-xs' />
                       </IconButton>
                       <CardContent>
-                        <Grid container spacing={4} alignItems='center'>
-                          <Grid item xs={12} sm={3}>
+                        <div className='grid grid-cols-1 sm:grid-cols-4 gap-8 items-center'>
+                          <div>
                             <TextField
                               fullWidth
                               label='Desde'
@@ -587,8 +691,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                               onChange={e => actualizarBloqueo(bloqueo.id, 'inicio', e.target.value)}
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid>
-                          <Grid item xs={12} sm={3}>
+                          </div>
+                          <div>
                             <TextField
                               fullWidth
                               label='Hasta'
@@ -598,8 +702,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                               onChange={e => actualizarBloqueo(bloqueo.id, 'fin', e.target.value)}
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
+                          </div>
+                          <div className='sm:col-span-2'>
                             <TextField
                               fullWidth
                               label='Motivo / Descripción'
@@ -608,13 +712,13 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                               onChange={e => actualizarBloqueo(bloqueo.id, 'motivo', e.target.value)}
                               placeholder='Ej: Vacaciones anuales'
                             />
-                          </Grid>
-                        </Grid>
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
-                  </Grid>
+                  </div>
                 ))}
-              </Grid>
+              </div>
             )}
           </Box>
         )}
@@ -632,8 +736,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
             </Box>
 
             <Paper variant='outlined' className='p-4 bg-action-hover'>
-              <Grid container spacing={4} alignItems='center'>
-                <Grid item xs={12} sm={6}>
+              <div className='grid grid-cols-1 sm:grid-cols-4 gap-8 items-center'>
+                <div className='sm:col-span-2'>
                   <Autocomplete
                     options={servicios}
                     getOptionLabel={option => option.nombre}
@@ -643,8 +747,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                       <TextField {...params} label='Buscar Servicio' placeholder='Escribe el nombre...' />
                     )}
                   />
-                </Grid>
-                <Grid item xs={12} sm={3}>
+                </div>
+                <div>
                   <TextField
                     fullWidth
                     label='% de Comisión'
@@ -656,8 +760,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                       endAdornment: <InputAdornment position='end'>%</InputAdornment>
                     }}
                   />
-                </Grid>
-                <Grid item xs={12} sm={3}>
+                </div>
+                <div>
                   <Button
                     fullWidth
                     variant='contained'
@@ -668,8 +772,8 @@ export default function EmpleadoForm({ initialData, isEditing, sucursalId, onSav
                   >
                     Vincular
                   </Button>
-                </Grid>
-              </Grid>
+                </div>
+              </div>
             </Paper>
 
             {serviciosAgregados.length > 0 ? (

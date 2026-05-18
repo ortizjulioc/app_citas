@@ -1,10 +1,7 @@
 import prisma from '@/utils/lib/prisma'
 import { handleApiError, successResponse, notFoundResponse } from '@/utils/api-response'
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
 
@@ -18,9 +15,6 @@ export async function GET(
         email: true,
         direccion: true,
         categoriaServicio: true,
-        horaApertura: true,
-        horaCierre: true,
-        diasLaborables: true,
         sucursals: {
           where: { deleted: false },
           select: {

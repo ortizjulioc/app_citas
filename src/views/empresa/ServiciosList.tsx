@@ -26,12 +26,16 @@ import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Chip from '@mui/material/Chip'
 import Checkbox from '@mui/material/Checkbox'
-import Grid from '@mui/material/Grid'
 import Divider from '@mui/material/Divider'
 import InputAdornment from '@mui/material/InputAdornment'
 import Paper from '@mui/material/Paper'
 import Tooltip from '@mui/material/Tooltip'
 import { styled } from '@mui/material/styles'
+import TablePagination from '@mui/material/TablePagination'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
+import InputLabel from '@mui/material/InputLabel'
+import FormControl from '@mui/material/FormControl'
 
 import { useConfirmDialog } from '@/components/shared/confirm-dialog'
 
@@ -90,6 +94,13 @@ export default function ServiciosList() {
   const [openDialog, setOpenDialog] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
+  // Pagination & Filter States
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [total, setTotal] = useState(0)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterSucursalId, setFilterSucursalId] = useState('')
+
   // Bulk action states
   const [bulkPrice, setBulkPrice] = useState('')
   const [bulkCosto, setBulkCosto] = useState('')
@@ -119,10 +130,17 @@ export default function ServiciosList() {
   const fetchServicios = async () => {
     try {
       setLoading(true)
-      const res = await fetch('/api/servicios')
+      const params = new URLSearchParams()
+      params.append('page', (page + 1).toString())
+      params.append('limit', rowsPerPage.toString())
+      if (searchTerm) params.append('search', searchTerm)
+      if (filterSucursalId) params.append('sucursalId', filterSucursalId)
+
+      const res = await fetch(`/api/servicios?${params.toString()}`)
       const json = await res.json()
       if (res.ok) {
         setServicios(json.data?.servicios || [])
+        setTotal(json.data?.pagination?.total || 0)
       } else {
         throw new Error(json.error?.message || 'Error fetching data')
       }
@@ -135,8 +153,25 @@ export default function ServiciosList() {
 
   useEffect(() => {
     fetchSucursales()
-    fetchServicios()
   }, [])
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchServicios()
+    }, 400)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchTerm, page, rowsPerPage, filterSucursalId])
+
+  const handleSearchChange = (val: string) => {
+    setSearchTerm(val)
+    setPage(0)
+  }
+
+  const handleFilterSucursalChange = (val: string) => {
+    setFilterSucursalId(val)
+    setPage(0)
+  }
 
   const handleOpen = (servicio?: Servicio) => {
     if (servicio) {
@@ -300,6 +335,39 @@ export default function ServiciosList() {
           }
           sx={{ borderBottom: 1, borderColor: 'divider', py: 3 }}
         />
+        <CardContent sx={{ pt: 3 }}>
+          <Box display='flex' gap={2} flexWrap='wrap'>
+            <TextField
+              label='Buscar servicio'
+              value={searchTerm}
+              onChange={e => handleSearchChange(e.target.value)}
+              size='small'
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <i className='tabler-search' />
+                  </InputAdornment>
+                )
+              }}
+              sx={{ minWidth: 250 }}
+            />
+            <FormControl size='small' sx={{ minWidth: 200 }}>
+              <InputLabel>Filtrar por Sucursal</InputLabel>
+              <Select
+                value={filterSucursalId}
+                label='Filtrar por Sucursal'
+                onChange={e => handleFilterSucursalChange(e.target.value)}
+              >
+                <MenuItem value=''>Todas</MenuItem>
+                {sucursales.map(s => (
+                  <MenuItem key={s.id} value={s.id}>
+                    {s.nombre}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </CardContent>
         <TableContainer>
           {loading ? (
             <Box p={10} display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={2}>
@@ -380,13 +448,15 @@ export default function ServiciosList() {
                         <Box display='flex' flexWrap='wrap' gap={1}>
                           {s.servicioSucursals.map(ss => (
                             <Tooltip key={ss.id} title={ss.activo ? 'Activo' : 'Inactivo'} arrow>
-                              <Chip
-                                size='small'
-                                label={`${ss.sucursal.nombre}: ${formatCurrency(ss.precio)}`}
-                                color={ss.activo ? 'success' : 'default'}
-                                variant={ss.activo ? 'tonal' : 'outlined'}
-                                sx={{ borderRadius: 1 }}
-                              />
+                              <span>
+                                <Chip
+                                  size='small'
+                                  label={`${ss.sucursal.nombre}: ${formatCurrency(ss.precio)}`}
+                                  color={ss.activo ? 'success' : 'default'}
+                                  variant={ss.activo ? 'tonal' : 'outlined'}
+                                  sx={{ borderRadius: 1 }}
+                                />
+                              </span>
                             </Tooltip>
                           ))}
                         </Box>
@@ -412,6 +482,21 @@ export default function ServiciosList() {
             </Table>
           )}
         </TableContainer>
+        {!loading && (
+          <TablePagination
+            component='div'
+            count={total}
+            page={page}
+            onPageChange={(_, p) => setPage(p)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={e => {
+              setRowsPerPage(parseInt(e.target.value, 10))
+              setPage(0)
+            }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            labelRowsPerPage='Filas por página'
+          />
+        )}
       </Card>
 
       <Dialog
@@ -448,9 +533,9 @@ export default function ServiciosList() {
         </DialogTitle>
 
         <DialogContent sx={{ p: 4 }}>
-          <Grid container spacing={4}>
+          <div className='grid grid-cols-1 md:grid-cols-12 gap-8'>
             {/* Left Side: General Info */}
-            <Grid size={{ xs: 12, md: 5 }}>
+            <div className='md:col-span-5'>
               <StyledPaper elevation={0}>
                 <Box display='flex' flexDirection='column' gap={3}>
                   <Box display='flex' alignItems='center' gap={1}>
@@ -519,10 +604,10 @@ export default function ServiciosList() {
                   </Box>
                 </Box>
               </StyledPaper>
-            </Grid>
+            </div>
 
             {/* Right Side: Branch Settings */}
-            <Grid size={{ xs: 12, md: 7 }}>
+            <div className='md:col-span-7'>
               <StyledPaper elevation={0}>
                 <Box display='flex' flexDirection='column' gap={3}>
                   <Box display='flex' justifyContent='space-between' alignItems='center'>
@@ -550,8 +635,8 @@ export default function ServiciosList() {
                     <Typography variant='caption' color='textSecondary' display='block' sx={{ mb: 2 }}>
                       Ingresa valores aquí para aplicarlos a todas las sucursales seleccionadas
                     </Typography>
-                    <Grid container spacing={2} alignItems='center'>
-                      <Grid size={{ xs: 5 }}>
+                    <div className='grid grid-cols-12 gap-4 items-center'>
+                      <div className='col-span-5'>
                         <TextField
                           label='Precio Global'
                           size='small'
@@ -561,8 +646,8 @@ export default function ServiciosList() {
                           fullWidth
                           InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                         />
-                      </Grid>
-                      <Grid size={{ xs: 5 }}>
+                      </div>
+                      <div className='col-span-5'>
                         <TextField
                           label='Costo Global'
                           size='small'
@@ -572,15 +657,17 @@ export default function ServiciosList() {
                           fullWidth
                           InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                         />
-                      </Grid>
-                      <Grid size={{ xs: 2 }}>
+                      </div>
+                      <div className='col-span-2'>
                         <Tooltip title='Aplicar a seleccionados'>
-                          <IconButton color='primary' onClick={handleApplyBulk} disabled={!bulkPrice && !bulkCosto}>
-                            <i className='tabler-check' />
-                          </IconButton>
+                          <span>
+                            <IconButton color='primary' onClick={handleApplyBulk} disabled={!bulkPrice && !bulkCosto}>
+                              <i className='tabler-check' />
+                            </IconButton>
+                          </span>
                         </Tooltip>
-                      </Grid>
-                    </Grid>
+                      </div>
+                    </div>
                   </Box>
 
                   <Divider />
@@ -630,8 +717,8 @@ export default function ServiciosList() {
 
                           {isSelected && (
                             <Box mt={2} display='flex' flexDirection='column' gap={2}>
-                              <Grid container spacing={2}>
-                                <Grid size={{ xs: 6 }}>
+                              <div className='grid grid-cols-2 gap-4'>
+                                <div>
                                   <TextField
                                     label='Precio'
                                     size='small'
@@ -641,8 +728,8 @@ export default function ServiciosList() {
                                     fullWidth
                                     InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                                   />
-                                </Grid>
-                                <Grid size={{ xs: 6 }}>
+                                </div>
+                                <div>
                                   <TextField
                                     label='Costo'
                                     size='small'
@@ -652,8 +739,8 @@ export default function ServiciosList() {
                                     fullWidth
                                     InputProps={{ startAdornment: <InputAdornment position='start'>$</InputAdornment> }}
                                   />
-                                </Grid>
-                              </Grid>
+                                </div>
+                              </div>
                               <Box display='flex' justifyContent='space-between' alignItems='center'>
                                 <Typography variant='caption' color='textSecondary'>
                                   Permitir reservas en esta sucursal
@@ -672,8 +759,8 @@ export default function ServiciosList() {
                   </Box>
                 </Box>
               </StyledPaper>
-            </Grid>
-          </Grid>
+            </div>
+          </div>
         </DialogContent>
 
         <DialogActions sx={{ p: 4, borderTop: 1, borderColor: 'divider' }}>

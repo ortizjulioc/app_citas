@@ -44,9 +44,6 @@ export async function GET(request: Request) {
           email: true,
           direccion: true,
           categoriaServicio: true,
-          horaApertura: true,
-          horaCierre: true,
-          diasLaborables: true,
           sucursals: {
             where: { deleted: false },
             select: {

@@ -54,9 +54,7 @@ export class PrismaError {
   static fromKnown(error: any): AppError {
     switch (error.code) {
       case 'P2002':
-        return new ConflictError(
-          `Ya existe un registro con valor único duplicado (${error.meta?.target})`
-        )
+        return new ConflictError(`Ya existe un registro con valor único duplicado (${error.meta?.target})`)
       case 'P2025':
         return new NotFoundError('El registro solicitado no existe o ya fue eliminado')
       case 'P2003':

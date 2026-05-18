@@ -45,14 +45,18 @@ export const confirmUrlInChildren = (children: ChildrenType['children'], url: st
   }
 
   if (isValidElement(children)) {
-    const childProps = children.props as { component?: React.ReactElement<{ href?: string }>; href?: string; exactMatch?: boolean; activeUrl?: string; children?: ReactNode }
+    const childProps = children.props as {
+      component?: React.ReactElement<{ href?: string }>
+      href?: string
+      exactMatch?: boolean
+      activeUrl?: string
+      children?: ReactNode
+    }
     const { component, href, exactMatch, activeUrl, children: subChildren } = childProps
     const useExactMatch = exactMatch === true || exactMatch === undefined
 
     if (component && component.props?.href) {
-      return useExactMatch
-        ? component.props.href === url
-        : activeUrl ? url.includes(activeUrl) : false
+      return useExactMatch ? component.props.href === url : activeUrl ? url.includes(activeUrl) : false
     }
 
     if (href) {

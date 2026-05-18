@@ -29,7 +29,7 @@ const DIAS_ORDERED = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABA
 export default function BusinessHoursDisplay({ horarios }: Props) {
   if (!horarios || horarios.length === 0) {
     return (
-      <Typography variant="caption" color="error">
+      <Typography variant='caption' color='error'>
         No configurado
       </Typography>
     )
@@ -37,7 +37,7 @@ export default function BusinessHoursDisplay({ horarios }: Props) {
 
   const formatTime = (timeStr: string) => {
     if (!timeStr) return ''
-    
+
     try {
       let hours: number
       let minutes: number
@@ -57,7 +57,7 @@ export default function BusinessHoursDisplay({ horarios }: Props) {
       const ampm = hours >= 12 ? 'PM' : 'AM'
       const h12 = hours % 12 || 12
       const mStr = minutes.toString().padStart(2, '0')
-      
+
       return `${h12}:${mStr} ${ampm}`
     } catch (e) {
       return timeStr // Fallback to raw value if parsing fails
@@ -68,7 +68,7 @@ export default function BusinessHoursDisplay({ horarios }: Props) {
 
   if (activeHorarios.length === 0) {
     return (
-      <Typography variant="caption" color="textSecondary">
+      <Typography variant='caption' color='textSecondary'>
         Cerrado
       </Typography>
     )
@@ -116,13 +116,13 @@ export default function BusinessHoursDisplay({ horarios }: Props) {
 
   return (
     <Tooltip title={<Box sx={{ whiteSpace: 'pre-line' }}>{fullScheduleText}</Box>} arrow>
-      <Box display="flex" flexDirection="column" gap={0.5} sx={{ cursor: 'help' }}>
+      <Box display='flex' flexDirection='column' gap={0.5} sx={{ cursor: 'help' }}>
         {renderedGroups.map((group, idx) => (
-          <Box key={idx} display="flex" alignItems="baseline" gap={1}>
-            <Typography variant="caption" fontWeight="700" color="primary.main" sx={{ whiteSpace: 'nowrap' }}>
+          <Box key={idx} display='flex' alignItems='baseline' gap={1}>
+            <Typography variant='caption' fontWeight='700' color='primary.main' sx={{ whiteSpace: 'nowrap' }}>
               {group.daysText}:
             </Typography>
-            <Typography variant="caption" color="text.primary" sx={{ whiteSpace: 'nowrap' }}>
+            <Typography variant='caption' color='text.primary' sx={{ whiteSpace: 'nowrap' }}>
               {group.timeRange}
             </Typography>
           </Box>

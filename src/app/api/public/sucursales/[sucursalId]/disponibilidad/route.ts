@@ -1,5 +1,5 @@
 import prisma from '@/utils/lib/prisma'
-import { handleApiError, successResponse, notFoundResponse } from '@/utils/api-response'
+import { handleApiError, successResponse, notFoundResponse, badRequestResponse } from '@/utils/api-response'
 
 const DIA_SEMANA_MAP: Record<number, string> = {
   0: 'DOMINGO',
@@ -12,63 +12,52 @@ const DIA_SEMANA_MAP: Record<number, string> = {
 }
 
 function getDiaSemana(date: Date): string {
-  return DIA_SEMANA_MAP[date.getDay()]
+  return DIA_SEMANA_MAP[date.getUTCDay()]
 }
 
+// Prisma devuelve @db.Time como Date con la hora en UTC (e.g. 08:00 → T08:00:00Z)
+// Usamos getUTCHours/getUTCMinutes para leer el valor real independiente del TZ del servidor
 function timeToMinutes(time: Date): number {
-  return time.getHours() * 60 + time.getMinutes()
+  return time.getUTCHours() * 60 + time.getUTCMinutes()
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ sucursalId: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ sucursalId: string }> }) {
   try {
     const { sucursalId } = await params
     const { searchParams } = new URL(request.url)
     const fecha = searchParams.get('fecha')
     const duracion = parseInt(searchParams.get('duracion') || '60')
+    const servicioId = searchParams.get('servicioId')
 
     if (!fecha) {
-      return handleApiError(new Error('Fecha requerida'))
+      return badRequestResponse('Fecha requerida')
     }
 
-    const fechaDate = new Date(fecha)
+    const [year, month, day] = fecha.split('-').map(Number)
+    // Crear la fecha en UTC para que getDiaSemana y los slots sean consistentes
+    const fechaDate = new Date(Date.UTC(year, month - 1, day))
     const diaSemana = getDiaSemana(fechaDate)
 
     const sucursal = await prisma.sucursal.findFirst({
-      where: { id: sucursalId, deleted: false },
-      include: {
-        negocio: {
-          select: {
-            horaApertura: true,
-            horaCierre: true,
-            diasLaborables: true
-          }
-        }
-      }
+      where: { id: sucursalId, deleted: false }
     })
 
     if (!sucursal) {
       return notFoundResponse('Sucursal no encontrada')
     }
 
-    const { horaApertura, horaCierre, diasLaborables } = sucursal.negocio
-    if (!diasLaborables.includes(diaSemana)) {
-      return successResponse({
-        disponibles: false,
-        mensaje: 'La empresa no labora este día',
-        empleados: []
-      })
-    }
-
-    const inicioDia = timeToMinutes(horaApertura)
-    const finDia = timeToMinutes(horaCierre)
-
     const empleados = await prisma.empleado.findMany({
       where: {
         sucursalId,
-        deleted: false
+        deleted: false,
+        ...(servicioId && {
+          servicioEmpleados: {
+            some: {
+              servicioId,
+              deleted: false
+            }
+          }
+        })
       },
       select: {
         id: true,
@@ -78,7 +67,7 @@ export async function GET(
     })
 
     const disponibilidadPorEmpleado = await Promise.all(
-      empleados.map(async (empleado) => {
+      empleados.map(async empleado => {
         const horarios = await prisma.horarioEmpleado.findMany({
           where: {
             empleadoId: empleado.id,
@@ -114,8 +103,8 @@ export async function GET(
             deleted: false,
             estado: { not: 'CANCELADA' },
             inicio: {
-              gte: new Date(fechaDate.setHours(0, 0, 0, 0)),
-              lt: new Date(fechaDate.setHours(23, 59, 59, 999))
+              gte: new Date(fechaDate.getTime()),
+              lt: new Date(fechaDate.getTime() + 24 * 60 * 60 * 1000)
             }
           },
           select: {
@@ -124,27 +113,21 @@ export async function GET(
           }
         })
 
-        const trabajoInicio = Math.max(inicio, inicioDia)
-        const trabajoFin = Math.min(fin, finDia)
-
         const slots: { inicio: string; fin: string }[] = []
 
-        for (let time = trabajoInicio; time + duracion <= trabajoFin; time += 30) {
-          const slotInicio = new Date(fecha)
-          slotInicio.setHours(Math.floor(time / 60), time % 60, 0, 0)
+        for (let time = inicio; time + duracion <= fin; time += 30) {
+          const slotInicio = new Date(fechaDate.getTime())
+          // setUTCHours para ser consistente con cómo leemos los tiempos del DB
+          slotInicio.setUTCHours(Math.floor(time / 60), time % 60, 0, 0)
 
           const slotFin = new Date(slotInicio)
           slotFin.setMinutes(slotFin.getMinutes() + duracion)
 
-          const bloqueado = bloqueos.some(
-            (b) => slotInicio < b.fin && slotFin > b.inicio
-          )
+          const bloqueado = bloqueos.some(b => slotInicio < b.fin && slotFin > b.inicio)
 
           if (bloqueado) continue
 
-          const ocupado = citas.some(
-            (c) => slotInicio < c.fin && slotFin > c.inicio
-          )
+          const ocupado = citas.some(c => slotInicio < c.fin && slotFin > c.inicio)
 
           if (ocupado) continue
 
@@ -163,7 +146,7 @@ export async function GET(
       })
     )
 
-    const empleadosConSlots = disponibilidadPorEmpleado.filter((e) => e.disponible)
+    const empleadosConSlots = disponibilidadPorEmpleado.filter(e => e.disponible)
 
     return successResponse({
       disponibles: empleadosConSlots.length > 0,

@@ -15,10 +15,9 @@ function getUserFromRequest(request: Request): JwtPayload | null {
 }
 
 function parseTimeToDate(timeString: string): Date {
+  // Usar UTC para que sea consistente con la lectura en disponibilidad
   const [hours, minutes] = timeString.split(':').map(Number)
-  const date = new Date()
-  date.setHours(hours, minutes, 0, 0)
-  return date
+  return new Date(`1970-01-01T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00Z`)
 }
 
 export async function POST(request: Request) {
@@ -31,14 +30,17 @@ export async function POST(request: Request) {
     })
 
     const existeUsuario = await prisma.usuario.findUnique({
-      where: { email: validatedData.email }
+      where: {
+        deleted: false,
+        email: validatedData.email
+      }
     })
 
     if (existeUsuario) {
       throw new ConflictError('El correo del usuario ya está registrado')
     }
 
-    const resultado = await prisma.$transaction(async (tx) => {
+    const resultado = await prisma.$transaction(async tx => {
       const hashedPassword = await bcrypt.hash(validatedData.password, 10)
 
       const nuevoUsuario = await tx.usuario.create({
@@ -82,7 +84,7 @@ export async function POST(request: Request) {
       })
 
       if (validatedData.horario && validatedData.horario.length > 0) {
-        const horariosData = validatedData.horario.map((h) => ({
+        const horariosData = validatedData.horario.map(h => ({
           empleadoId: nuevoEmpleado.id,
           diaSemana: h.diaSemana as $Enums.DiaSemana,
           horaInicio: parseTimeToDate(h.horaInicio),
@@ -93,7 +95,7 @@ export async function POST(request: Request) {
       }
 
       if (validatedData.bloqueos && validatedData.bloqueos.length > 0) {
-        const bloqueosData = validatedData.bloqueos.map((b) => ({
+        const bloqueosData = validatedData.bloqueos.map(b => ({
           empleadoId: nuevoEmpleado.id,
           inicio: b.inicio,
           fin: b.fin,

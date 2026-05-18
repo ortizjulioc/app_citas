@@ -29,10 +29,7 @@ interface Negocio {
   email: string | null
   direccion: string | null
   categoriaServicio: string
-  horaApertura: string
-  horaCierre: string
-  diasLaborables: string[]
-  sucursals: { id: string; nombre: string; direccion: string | null }[]
+  sucursals: { id: string; nombre: string }[]
 }
 
 const categorias = [
@@ -115,11 +112,13 @@ export default function EmpresasPage() {
   }
 
   const formatTime = (time: string) => {
+    if (!time) return 'No disponible'
     const [hours, minutes] = time.split(':')
     return `${hours}:${minutes}`
   }
 
-  const formatDias = (dias: string[]) => {
+  const formatDias = (dias: string[] | undefined) => {
+    if (!dias || dias.length === 0) return 'No disponible'
     const diasMap: Record<string, string> = {
       LUNES: 'Lun',
       MARTES: 'Mar',
@@ -129,7 +128,7 @@ export default function EmpresasPage() {
       SABADO: 'Sáb',
       DOMINGO: 'Dom'
     }
-    return dias.map(d => diasMap[d]).join(', ')
+    return dias.map(d => diasMap[d] || d).join(', ')
   }
 
   return (
@@ -147,7 +146,7 @@ export default function EmpresasPage() {
             fullWidth
             placeholder='Buscar empresas...'
             value={search}
-            onChange={(e) => {
+            onChange={e => {
               setSearch(e.target.value)
               setPage(1)
             }}
@@ -168,12 +167,12 @@ export default function EmpresasPage() {
             <Select
               value={categoria}
               label='Categoría'
-              onChange={(e) => {
+              onChange={e => {
                 setCategoria(e.target.value)
                 setPage(1)
               }}
             >
-              {categorias.map((cat) => (
+              {categorias.map(cat => (
                 <MenuItem key={cat.value} value={cat.value}>
                   {cat.label}
                 </MenuItem>
@@ -209,7 +208,7 @@ export default function EmpresasPage() {
       ) : (
         <>
           <Grid container spacing={3}>
-            {negocios.map((negocio) => (
+            {negocios.map(negocio => (
               <Grid item xs={12} sm={6} md={4} key={negocio.id}>
                 <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardContent sx={{ flexGrow: 1 }}>
@@ -234,20 +233,16 @@ export default function EmpresasPage() {
                     )}
 
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant='caption' display='block' color='text.secondary'>
-                        <i className='tabler-map-pin' /> {negocio.direccion || 'Sin dirección'}
-                      </Typography>
+                      {negocio.direccion && (
+                        <Typography variant='caption' display='block' color='text.secondary'>
+                          <i className='tabler-map-pin' /> {negocio.direccion}
+                        </Typography>
+                      )}
                       {negocio.sucursals.length > 0 && (
                         <Typography variant='caption' display='block' color='text.secondary'>
                           <i className='tabler-building-store' /> {negocio.sucursals.length} sucursal(es)
                         </Typography>
                       )}
-                      <Typography variant='caption' display='block' color='text.secondary'>
-                        <i className='tabler-clock' /> {formatTime(negocio.horaApertura)} - {formatTime(negocio.horaCierre)}
-                      </Typography>
-                      <Typography variant='caption' display='block' color='text.secondary'>
-                        <i className='tabler-calendar' /> {formatDias(negocio.diasLaborables)}
-                      </Typography>
                     </Box>
                   </CardContent>
                   <CardActions>
@@ -266,12 +261,7 @@ export default function EmpresasPage() {
 
           {totalPages > 1 && (
             <Box display='flex' justifyContent='center' mt={4}>
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
-                color='primary'
-              />
+              <Pagination count={totalPages} page={page} onChange={(_, value) => setPage(value)} color='primary' />
             </Box>
           )}
         </>

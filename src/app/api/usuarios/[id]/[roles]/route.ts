@@ -9,10 +9,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { id } = await params
     const body = await request.json()
 
-    const validatedData = await usuarioRolSchema.validate({ ...body, usuarioId: id }, {
-      abortEarly: false,
-      stripUnknown: true
-    })
+    const validatedData = await usuarioRolSchema.validate(
+      { ...body, usuarioId: id },
+      {
+        abortEarly: false,
+        stripUnknown: true
+      }
+    )
 
     const existe = await prisma.usuarioRol.findFirst({
       where: {
@@ -95,7 +98,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       ]
     }
 
-
     if (advancedFilters.rolId) {
       where.rolId = advancedFilters.rolId
     }
@@ -139,16 +141,3 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return handleApiError(error)
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

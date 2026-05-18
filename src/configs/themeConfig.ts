@@ -50,7 +50,7 @@ export type Config = {
 }
 
 const themeConfig: Config = {
-  templateName: 'Vuexy',
+  templateName: 'Vínculo',
   homePageUrl: '/home',
   settingsCookieName: 'vuexy-mui-next-demo-1',
   mode: 'light', // 'system', 'light', 'dark'

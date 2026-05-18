@@ -24,6 +24,11 @@ import InputLabel from '@mui/material/InputLabel'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Alert from '@mui/material/Alert'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import Snackbar from '@mui/material/Snackbar'
 
 interface Cliente {
   id: string
@@ -60,15 +65,24 @@ interface Cita {
   servicioCitas: { servicio: Servicio }[]
 }
 
+const ESTADOS_VALIDOS = ['PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'FINALIZADA'] as const
+
 const estadoColores: Record<string, string> = {
   PENDIENTE: '#ff9800',
   CONFIRMADA: '#2196f3',
-  COMPLETADA: '#4caf50',
+  FINALIZADA: '#4caf50',
   CANCELADA: '#f44336'
 }
 
+const estadoLabels: Record<string, string> = {
+  PENDIENTE: 'Pendiente',
+  CONFIRMADA: 'Confirmada',
+  FINALIZADA: 'Finalizada',
+  CANCELADA: 'Cancelada'
+}
+
 export default function EmpresaCitasPage() {
-  const { isAuthenticated, hasRole, isLoading, user } = useAuth()
+  const { isAuthenticated, hasRole, isLoading, user, token } = useAuth()
 
   const [citas, setCitas] = useState<Cita[]>([])
   const [loading, setLoading] = useState(true)
@@ -82,6 +96,13 @@ export default function EmpresaCitasPage() {
   const [estadoFiltro, setEstadoFiltro] = useState('')
   const [fechaFiltro, setFechaFiltro] = useState('')
 
+  // Estado para cambio de estado
+  const [citaEditando, setCitaEditando] = useState<Cita | null>(null)
+  const [nuevoEstado, setNuevoEstado] = useState('')
+  const [guardandoEstado, setGuardandoEstado] = useState(false)
+  const [updateError, setUpdateError] = useState('')
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' })
+
   const fetchCitas = async () => {
     setLoading(true)
     setError('')
@@ -94,7 +115,10 @@ export default function EmpresaCitasPage() {
       if (estadoFiltro) params.append('estado', estadoFiltro)
       if (fechaFiltro) params.append('fechaInicio', fechaFiltro)
 
-      const res = await fetch(`/api/empresa/citas?${params.toString()}`)
+      const res = await fetch(`/api/empresa/citas?${params.toString()}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        cache: 'no-store'
+      })
       const data = await res.json()
 
       if (data.success) {
@@ -112,7 +136,9 @@ export default function EmpresaCitasPage() {
 
   const fetchSucursales = async () => {
     try {
-      const res = await fetch('/api/sucursales')
+      const res = await fetch('/api/sucursales', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       const data = await res.json()
       if (data.success && data.data?.sucursales) {
         setSucursales(data.data.sucursales)
@@ -144,7 +170,8 @@ export default function EmpresaCitasPage() {
   }
 
   const formatDateTime = (iso: string) => {
-    const date = new Date(iso)
+    const isoLocal = iso.endsWith('Z') ? iso.slice(0, -1) : iso
+    const date = new Date(isoLocal)
     return date.toLocaleString('es-DO', {
       dateStyle: 'medium',
       timeStyle: 'short'
@@ -154,6 +181,58 @@ export default function EmpresaCitasPage() {
   const getServiciosLabel = (servicioCitas: { servicio: Servicio }[]) => {
     if (!servicioCitas || servicioCitas.length === 0) return '-'
     return servicioCitas.map(sc => sc.servicio.nombre).join(', ')
+  }
+
+  const abrirEditarEstado = (cita: Cita) => {
+    setCitaEditando(cita)
+    setNuevoEstado(cita.estado)
+    setUpdateError('')
+  }
+
+  const cerrarEditarEstado = () => {
+    if (guardandoEstado) return
+    setCitaEditando(null)
+    setNuevoEstado('')
+    setUpdateError('')
+  }
+
+  const guardarEstado = async () => {
+    if (!citaEditando || !nuevoEstado) return
+    if (nuevoEstado === citaEditando.estado) {
+      cerrarEditarEstado()
+      return
+    }
+
+    setGuardandoEstado(true)
+    setUpdateError('')
+
+    try {
+      const res = await fetch(`/api/citas/${citaEditando.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ estado: nuevoEstado })
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        // Actualizamos la fila localmente sin esperar al refetch
+        setCitas(prev => prev.map(c => (c.id === citaEditando.id ? { ...c, estado: nuevoEstado } : c)))
+        setSnackbar({ open: true, message: 'Estado actualizado correctamente' })
+        setCitaEditando(null)
+        setNuevoEstado('')
+        // Refrescamos también desde el servidor por consistencia
+        fetchCitas()
+      } else {
+        setUpdateError(data.error?.message || data.message || 'No se pudo actualizar el estado')
+      }
+    } catch (err) {
+      setUpdateError('Error al actualizar el estado')
+    } finally {
+      setGuardandoEstado(false)
+    }
   }
 
   if (isLoading || !isAuthenticated || !hasRole('admin')) {
@@ -181,13 +260,13 @@ export default function EmpresaCitasPage() {
               <Select
                 value={sucursalFiltro}
                 label='Sucursal'
-                onChange={(e) => {
+                onChange={e => {
                   setSucursalFiltro(e.target.value)
                   setPage(0)
                 }}
               >
                 <MenuItem value=''>Todas</MenuItem>
-                {sucursales.map((s) => (
+                {sucursales.map(s => (
                   <MenuItem key={s.id} value={s.id}>
                     {s.nombre}
                   </MenuItem>
@@ -200,16 +279,17 @@ export default function EmpresaCitasPage() {
               <Select
                 value={estadoFiltro}
                 label='Estado'
-                onChange={(e) => {
+                onChange={e => {
                   setEstadoFiltro(e.target.value)
                   setPage(0)
                 }}
               >
                 <MenuItem value=''>Todos</MenuItem>
-                <MenuItem value='PENDIENTE'>Pendiente</MenuItem>
-                <MenuItem value='CONFIRMADA'>Confirmada</MenuItem>
-                <MenuItem value='COMPLETADA'>Completada</MenuItem>
-                <MenuItem value='CANCELADA'>Cancelada</MenuItem>
+                {ESTADOS_VALIDOS.map(estado => (
+                  <MenuItem key={estado} value={estado}>
+                    {estadoLabels[estado]}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
 
@@ -217,7 +297,7 @@ export default function EmpresaCitasPage() {
               type='date'
               label='Fecha'
               value={fechaFiltro}
-              onChange={(e) => {
+              onChange={e => {
                 setFechaFiltro(e.target.value)
                 setPage(0)
               }}
@@ -255,10 +335,11 @@ export default function EmpresaCitasPage() {
                       <TableCell>Sucursal</TableCell>
                       <TableCell>Servicios</TableCell>
                       <TableCell>Estado</TableCell>
+                      <TableCell align='center'>Acciones</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {citas.map((cita) => (
+                    {citas.map(cita => (
                       <TableRow key={cita.id} hover>
                         <TableCell>
                           {cita.cliente.nombre} {cita.cliente.apellido}
@@ -275,13 +356,18 @@ export default function EmpresaCitasPage() {
                         <TableCell>{getServiciosLabel(cita.servicioCitas)}</TableCell>
                         <TableCell>
                           <Chip
-                            label={cita.estado}
+                            label={estadoLabels[cita.estado] || cita.estado}
                             size='small'
                             sx={{
                               bgcolor: estadoColores[cita.estado] || '#607d8b',
                               color: 'white'
                             }}
                           />
+                        </TableCell>
+                        <TableCell align='center'>
+                          <Button size='small' variant='outlined' onClick={() => abrirEditarEstado(cita)}>
+                            Cambiar estado
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -303,6 +389,81 @@ export default function EmpresaCitasPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={Boolean(citaEditando)} onClose={cerrarEditarEstado} maxWidth='xs' fullWidth>
+        <DialogTitle>Cambiar estado de la cita</DialogTitle>
+        <DialogContent dividers>
+          {citaEditando && (
+            <Box display='flex' flexDirection='column' gap={2}>
+              <Box>
+                <Typography variant='body2' color='text.secondary'>
+                  Cliente
+                </Typography>
+                <Typography variant='body1'>
+                  {citaEditando.cliente.nombre} {citaEditando.cliente.apellido}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant='body2' color='text.secondary'>
+                  Fecha y hora
+                </Typography>
+                <Typography variant='body1'>{formatDateTime(citaEditando.inicio)}</Typography>
+              </Box>
+              <Box>
+                <Typography variant='body2' color='text.secondary'>
+                  Estado actual
+                </Typography>
+                <Chip
+                  label={estadoLabels[citaEditando.estado] || citaEditando.estado}
+                  size='small'
+                  sx={{
+                    bgcolor: estadoColores[citaEditando.estado] || '#607d8b',
+                    color: 'white',
+                    mt: 0.5
+                  }}
+                />
+              </Box>
+
+              <FormControl fullWidth sx={{ mt: 1 }}>
+                <InputLabel>Nuevo estado</InputLabel>
+                <Select value={nuevoEstado} label='Nuevo estado' onChange={e => setNuevoEstado(e.target.value)}>
+                  {ESTADOS_VALIDOS.map(estado => (
+                    <MenuItem key={estado} value={estado}>
+                      {estadoLabels[estado]}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {updateError && (
+                <Alert severity='error' onClose={() => setUpdateError('')}>
+                  {updateError}
+                </Alert>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={cerrarEditarEstado} disabled={guardandoEstado}>
+            Cancelar
+          </Button>
+          <Button
+            variant='contained'
+            onClick={guardarEstado}
+            disabled={guardandoEstado || !nuevoEstado || (citaEditando ? nuevoEstado === citaEditando.estado : true)}
+          >
+            {guardandoEstado ? 'Guardando...' : 'Guardar cambios'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ open: false, message: '' })}
+        message={snackbar.message}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      />
     </Box>
   )
 }
