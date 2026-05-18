@@ -5,17 +5,15 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import Divider from '@mui/material/Divider'
 
 const PURPLE   = '#7C3AED'
 const PURPLE_L = '#A78BFA'
 const PURPLE_D = '#5B21B6'
 const BG_DARK  = '#0F0A1E'
 const BG_CARD  = '#1A1130'
-const MUTED    = 'rgba(255,255,255,0.5)'
+const MUTED    = 'rgba(255,255,255,0.65)'
 
 const features = [
   { icon: 'tabler-calendar-check',  title: 'Agenda Online',    desc: 'Tus clientes reservan citas 24/7 desde cualquier dispositivo, sin llamadas.' },
@@ -85,7 +83,7 @@ export default function Landing() {
             El sistema de citas para tu negocio
           </Typography>
 
-          <Typography sx={{ color: MUTED, fontSize: '1.1rem', lineHeight: 1.8, mb: 5, maxWidth: 460, mx: 'auto' }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', lineHeight: 1.8, mb: 5, maxWidth: 460, mx: 'auto' }}>
             Agenda, factura y maneja tu caja — todo desde un solo lugar. Sin complicaciones.
           </Typography>
 
@@ -122,34 +120,32 @@ export default function Landing() {
             sx={{ background: 'linear-gradient(135deg, #fff 30%, #c084fc 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Todo lo que necesitas
           </Typography>
-          <Typography textAlign='center' sx={{ color: MUTED, mb: 7 }}>
+          <Typography textAlign='center' sx={{ color: 'rgba(255,255,255,0.7)', mb: 7 }}>
             Deja de usar WhatsApp y hojas de Excel. Vínculo lo integra todo.
           </Typography>
 
-          <Grid container spacing={3}>
+          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4'>
             {features.map((f, i) => (
-              <Grid item xs={12} sm={6} md={3} key={i}>
-                <Card sx={{
-                  bgcolor: BG_CARD, border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: 3, height: '100%',
-                  transition: 'all 0.2s',
-                  '&:hover': { borderColor: 'rgba(124,58,237,0.35)', transform: 'translateY(-4px)', boxShadow: `0 16px 40px rgba(0,0,0,0.4)` }
-                }}>
-                  <CardContent sx={{ p: 3 }}>
-                    <Box sx={{
-                      width: 46, height: 46, borderRadius: 2, mb: 2.5,
-                      bgcolor: 'rgba(124,58,237,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      border: '1px solid rgba(124,58,237,0.22)'
-                    }}>
-                      <i className={f.icon} style={{ fontSize: 22, color: PURPLE_L }} />
-                    </Box>
-                    <Typography variant='h6' fontWeight={700} mb={1}>{f.title}</Typography>
-                    <Typography variant='body2' sx={{ color: MUTED, lineHeight: 1.7 }}>{f.desc}</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+              <Card key={i} sx={{
+                bgcolor: BG_CARD, border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: 3, height: '100%',
+                transition: 'all 0.2s',
+                '&:hover': { borderColor: 'rgba(124,58,237,0.35)', transform: 'translateY(-4px)', boxShadow: '0 16px 40px rgba(0,0,0,0.4)' }
+              }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{
+                    width: 46, height: 46, borderRadius: 2, mb: 2.5,
+                    bgcolor: 'rgba(124,58,237,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '1px solid rgba(124,58,237,0.22)'
+                  }}>
+                    <i className={f.icon} style={{ fontSize: 22, color: PURPLE_L }} />
+                  </Box>
+                  <Typography variant='h6' fontWeight={700} mb={1} sx={{ color: '#fff' }}>{f.title}</Typography>
+                  <Typography variant='body2' sx={{ color: MUTED, lineHeight: 1.7 }}>{f.desc}</Typography>
+                </CardContent>
+              </Card>
             ))}
-          </Grid>
+          </div>
         </Container>
       </Box>
 
@@ -161,7 +157,7 @@ export default function Landing() {
             sx={{ background: 'linear-gradient(135deg, #fff 20%, #c084fc 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             ¿Listo para empezar?
           </Typography>
-          <Typography sx={{ color: MUTED, mb: 4, lineHeight: 1.8 }}>
+          <Typography sx={{ color: 'rgba(255,255,255,0.75)', mb: 4, lineHeight: 1.8 }}>
             Crea tu cuenta gratis y organiza tu negocio desde hoy.
           </Typography>
           <Button component={Link} href='/register' size='large' variant='contained'
